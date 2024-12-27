@@ -1,0 +1,6 @@
+*.elf
+*.bin
+*.uf2
+devboard/*/examples/*/*.hex
+zisrnames.go
+core
