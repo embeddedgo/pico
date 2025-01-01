@@ -9,7 +9,7 @@ rm -rf *
 
 svdxgen github.com/embeddedgo/pico/p ../svd/*.svd
 
-for p in iobank padsbank pllsys sio xosc; do
+for p in iobank padsbank pllsys resets sio xosc; do
 	cd $p
 	xgen -g *.go
 	GOOS=noos GOARCH=thumb $(emgo env GOROOT)/bin/go build -tags rp2350

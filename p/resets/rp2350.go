@@ -10,9 +10,9 @@
 //
 // Registers:
 //
-//	0x000 32  RESET
-//	0x004 32  WDSEL
-//	0x008 32  RESET_DONE
+//	0x000 32  RESET(uint32)
+//	0x004 32  WDSEL(uint32)
+//	0x008 32  RESET_DONE(uint32)
 //
 // Import:
 //
@@ -20,163 +20,35 @@
 package resets
 
 const (
-	ADC        RESET = 0x01 << 0  //+
-	BUSCTRL    RESET = 0x01 << 1  //+
-	DMA        RESET = 0x01 << 2  //+
-	HSTX       RESET = 0x01 << 3  //+
-	I2C0       RESET = 0x01 << 4  //+
-	I2C1       RESET = 0x01 << 5  //+
-	IO_BANK0   RESET = 0x01 << 6  //+
-	IO_QSPI    RESET = 0x01 << 7  //+
-	JTAG       RESET = 0x01 << 8  //+
-	PADS_BANK0 RESET = 0x01 << 9  //+
-	PADS_QSPI  RESET = 0x01 << 10 //+
-	PIO0       RESET = 0x01 << 11 //+
-	PIO1       RESET = 0x01 << 12 //+
-	PIO2       RESET = 0x01 << 13 //+
-	PLL_SYS    RESET = 0x01 << 14 //+
-	PLL_USB    RESET = 0x01 << 15 //+
-	PWM        RESET = 0x01 << 16 //+
-	SHA256     RESET = 0x01 << 17 //+
-	SPI0       RESET = 0x01 << 18 //+
-	SPI1       RESET = 0x01 << 19 //+
-	SYSCFG     RESET = 0x01 << 20 //+
-	SYSINFO    RESET = 0x01 << 21 //+
-	TBMAN      RESET = 0x01 << 22 //+
-	TIMER0     RESET = 0x01 << 23 //+
-	TIMER1     RESET = 0x01 << 24 //+
-	TRNG       RESET = 0x01 << 25 //+
-	UART0      RESET = 0x01 << 26 //+
-	UART1      RESET = 0x01 << 27 //+
-	USBCTRL    RESET = 0x01 << 28 //+
-)
-
-const (
-	ADCn        = 0
-	BUSCTRLn    = 1
-	DMAn        = 2
-	HSTXn       = 3
-	I2C0n       = 4
-	I2C1n       = 5
-	IO_BANK0n   = 6
-	IO_QSPIn    = 7
-	JTAGn       = 8
-	PADS_BANK0n = 9
-	PADS_QSPIn  = 10
-	PIO0n       = 11
-	PIO1n       = 12
-	PIO2n       = 13
-	PLL_SYSn    = 14
-	PLL_USBn    = 15
-	PWMn        = 16
-	SHA256n     = 17
-	SPI0n       = 18
-	SPI1n       = 19
-	SYSCFGn     = 20
-	SYSINFOn    = 21
-	TBMANn      = 22
-	TIMER0n     = 23
-	TIMER1n     = 24
-	TRNGn       = 25
-	UART0n      = 26
-	UART1n      = 27
-	USBCTRLn    = 28
-)
-
-const (
-	ADC        WDSEL = 0x01 << 0  //+
-	BUSCTRL    WDSEL = 0x01 << 1  //+
-	DMA        WDSEL = 0x01 << 2  //+
-	HSTX       WDSEL = 0x01 << 3  //+
-	I2C0       WDSEL = 0x01 << 4  //+
-	I2C1       WDSEL = 0x01 << 5  //+
-	IO_BANK0   WDSEL = 0x01 << 6  //+
-	IO_QSPI    WDSEL = 0x01 << 7  //+
-	JTAG       WDSEL = 0x01 << 8  //+
-	PADS_BANK0 WDSEL = 0x01 << 9  //+
-	PADS_QSPI  WDSEL = 0x01 << 10 //+
-	PIO0       WDSEL = 0x01 << 11 //+
-	PIO1       WDSEL = 0x01 << 12 //+
-	PIO2       WDSEL = 0x01 << 13 //+
-	PLL_SYS    WDSEL = 0x01 << 14 //+
-	PLL_USB    WDSEL = 0x01 << 15 //+
-	PWM        WDSEL = 0x01 << 16 //+
-	SHA256     WDSEL = 0x01 << 17 //+
-	SPI0       WDSEL = 0x01 << 18 //+
-	SPI1       WDSEL = 0x01 << 19 //+
-	SYSCFG     WDSEL = 0x01 << 20 //+
-	SYSINFO    WDSEL = 0x01 << 21 //+
-	TBMAN      WDSEL = 0x01 << 22 //+
-	TIMER0     WDSEL = 0x01 << 23 //+
-	TIMER1     WDSEL = 0x01 << 24 //+
-	TRNG       WDSEL = 0x01 << 25 //+
-	UART0      WDSEL = 0x01 << 26 //+
-	UART1      WDSEL = 0x01 << 27 //+
-	USBCTRL    WDSEL = 0x01 << 28 //+
-)
-
-const (
-	ADCn        = 0
-	BUSCTRLn    = 1
-	DMAn        = 2
-	HSTXn       = 3
-	I2C0n       = 4
-	I2C1n       = 5
-	IO_BANK0n   = 6
-	IO_QSPIn    = 7
-	JTAGn       = 8
-	PADS_BANK0n = 9
-	PADS_QSPIn  = 10
-	PIO0n       = 11
-	PIO1n       = 12
-	PIO2n       = 13
-	PLL_SYSn    = 14
-	PLL_USBn    = 15
-	PWMn        = 16
-	SHA256n     = 17
-	SPI0n       = 18
-	SPI1n       = 19
-	SYSCFGn     = 20
-	SYSINFOn    = 21
-	TBMANn      = 22
-	TIMER0n     = 23
-	TIMER1n     = 24
-	TRNGn       = 25
-	UART0n      = 26
-	UART1n      = 27
-	USBCTRLn    = 28
-)
-
-const (
-	ADC        RESET_DONE = 0x01 << 0  //+
-	BUSCTRL    RESET_DONE = 0x01 << 1  //+
-	DMA        RESET_DONE = 0x01 << 2  //+
-	HSTX       RESET_DONE = 0x01 << 3  //+
-	I2C0       RESET_DONE = 0x01 << 4  //+
-	I2C1       RESET_DONE = 0x01 << 5  //+
-	IO_BANK0   RESET_DONE = 0x01 << 6  //+
-	IO_QSPI    RESET_DONE = 0x01 << 7  //+
-	JTAG       RESET_DONE = 0x01 << 8  //+
-	PADS_BANK0 RESET_DONE = 0x01 << 9  //+
-	PADS_QSPI  RESET_DONE = 0x01 << 10 //+
-	PIO0       RESET_DONE = 0x01 << 11 //+
-	PIO1       RESET_DONE = 0x01 << 12 //+
-	PIO2       RESET_DONE = 0x01 << 13 //+
-	PLL_SYS    RESET_DONE = 0x01 << 14 //+
-	PLL_USB    RESET_DONE = 0x01 << 15 //+
-	PWM        RESET_DONE = 0x01 << 16 //+
-	SHA256     RESET_DONE = 0x01 << 17 //+
-	SPI0       RESET_DONE = 0x01 << 18 //+
-	SPI1       RESET_DONE = 0x01 << 19 //+
-	SYSCFG     RESET_DONE = 0x01 << 20 //+
-	SYSINFO    RESET_DONE = 0x01 << 21 //+
-	TBMAN      RESET_DONE = 0x01 << 22 //+
-	TIMER0     RESET_DONE = 0x01 << 23 //+
-	TIMER1     RESET_DONE = 0x01 << 24 //+
-	TRNG       RESET_DONE = 0x01 << 25 //+
-	UART0      RESET_DONE = 0x01 << 26 //+
-	UART1      RESET_DONE = 0x01 << 27 //+
-	USBCTRL    RESET_DONE = 0x01 << 28 //+
+	ADC        uint32 = 0x01 << 0  //+
+	BUSCTRL    uint32 = 0x01 << 1  //+
+	DMA        uint32 = 0x01 << 2  //+
+	HSTX       uint32 = 0x01 << 3  //+
+	I2C0       uint32 = 0x01 << 4  //+
+	I2C1       uint32 = 0x01 << 5  //+
+	IO_BANK0   uint32 = 0x01 << 6  //+
+	IO_QSPI    uint32 = 0x01 << 7  //+
+	JTAG       uint32 = 0x01 << 8  //+
+	PADS_BANK0 uint32 = 0x01 << 9  //+
+	PADS_QSPI  uint32 = 0x01 << 10 //+
+	PIO0       uint32 = 0x01 << 11 //+
+	PIO1       uint32 = 0x01 << 12 //+
+	PIO2       uint32 = 0x01 << 13 //+
+	PLL_SYS    uint32 = 0x01 << 14 //+
+	PLL_USB    uint32 = 0x01 << 15 //+
+	PWM        uint32 = 0x01 << 16 //+
+	SHA256     uint32 = 0x01 << 17 //+
+	SPI0       uint32 = 0x01 << 18 //+
+	SPI1       uint32 = 0x01 << 19 //+
+	SYSCFG     uint32 = 0x01 << 20 //+
+	SYSINFO    uint32 = 0x01 << 21 //+
+	TBMAN      uint32 = 0x01 << 22 //+
+	TIMER0     uint32 = 0x01 << 23 //+
+	TIMER1     uint32 = 0x01 << 24 //+
+	TRNG       uint32 = 0x01 << 25 //+
+	UART0      uint32 = 0x01 << 26 //+
+	UART1      uint32 = 0x01 << 27 //+
+	USBCTRL    uint32 = 0x01 << 28 //+
 )
 
 const (
