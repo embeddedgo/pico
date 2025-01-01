@@ -1061,6 +1061,14 @@ const (
 )
 
 const (
+	TBLOFF VTOR = 0x1FFFFFF << 7 //+ Vector table base offset field. It contains bits[31:7] of the offset of the table base from the bottom of the memory map.
+)
+
+const (
+	TBLOFFn = 7
+)
+
+const (
 	VECTCLRACTIVE AIRCR = 0x01 << 1    //+ Clears all active state information for fixed and configurable exceptions. This bit: is self-clearing, can only be set by the DAP when the core is halted. When set: clears all active exception status of the processor, forces a return to Thread mode, forces an IPSR of 0. A debugger must re-initialize the stack.
 	SYSRESETREQ   AIRCR = 0x01 << 2    //+ Writing 1 to this bit causes the SYSRESETREQ signal to the outer system to be asserted to request a reset. The intention is to force a large system reset of all major components except for debug. The C_HALT bit in the DHCSR is cleared as a result of the system reset requested. The debugger does not lose contact with the device.
 	SYSRESETREQS  AIRCR = 0x01 << 3    //+ System reset request, Secure state only. 0 SYSRESETREQ functionality is available to both Security states. 1 SYSRESETREQ functionality is only available to Secure state.
@@ -1295,6 +1303,14 @@ const (
 )
 
 const (
+	MPROFDBG ID_DFR0 = 0x0F << 20 //+ Indicates the supported M-profile debug architecture
+)
+
+const (
+	MPROFDBGn = 20
+)
+
+const (
 	IMPDEF0 ID_AFR0 = 0x0F << 0  //+ IMPLEMENTATION DEFINED meaning
 	IMPDEF1 ID_AFR0 = 0x0F << 4  //+ IMPLEMENTATION DEFINED meaning
 	IMPDEF2 ID_AFR0 = 0x0F << 8  //+ IMPLEMENTATION DEFINED meaning
@@ -1322,6 +1338,14 @@ const (
 	SHARELVLn = 12
 	TCMn      = 16
 	AUXREGn   = 20
+)
+
+const (
+	WFISTALL ID_MMFR2 = 0x0F << 24 //+ Indicates the support for Wait For Interrupt (WFI) stalling
+)
+
+const (
+	WFISTALLn = 24
 )
 
 const (
@@ -1661,6 +1685,14 @@ const (
 )
 
 const (
+	BADDR SAU_RBAR = 0x7FFFFFF << 5 //+ Holds bits [31:5] of the base address for the selected SAU region
+)
+
+const (
+	BADDRn = 5
+)
+
+const (
 	ENABLE SAU_RLAR = 0x01 << 0      //+ SAU region enable
 	NSC    SAU_RLAR = 0x01 << 1      //+ Controls whether Non-secure state is permitted to execute an SG instruction from this region
 	LADDR  SAU_RLAR = 0x7FFFFFF << 5 //+ Holds bits [31:5] of the limit address for the selected SAU region
@@ -1827,6 +1859,14 @@ const (
 )
 
 const (
+	ADDRESS FPCAR = 0x1FFFFFFF << 3 //+ The location of the unpopulated floating-point register space allocated on an exception stack frame
+)
+
+const (
+	ADDRESSn = 3
+)
+
+const (
 	RMODE FPDSCR = 0x03 << 22 //+ Default value for FPSCR.RMode
 	FZ    FPDSCR = 0x01 << 24 //+ Default value for FPSCR.FZ
 	DN    FPDSCR = 0x01 << 25 //+ Default value for FPSCR.DN
@@ -1870,6 +1910,14 @@ const (
 	FPDNANn = 4
 	FPHPn   = 24
 	FMACn   = 28
+)
+
+const (
+	FPMISC MVFR2 = 0x0F << 4 //+ Indicates support for miscellaneous FP features
+)
+
+const (
+	FPMISCn = 4
 )
 
 const (
@@ -2224,6 +2272,14 @@ const (
 	DVn     = 2
 	PCn     = 3
 	STATUSn = 31
+)
+
+const (
+	PU TRCPDCR = 0x01 << 3 //+ Powerup request bit:
+)
+
+const (
+	PUn = 3
 )
 
 const (

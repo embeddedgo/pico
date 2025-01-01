@@ -2,7 +2,7 @@
 
 //go:build rp2350
 
-package pllsys
+package pll
 
 import (
 	"embedded/mmio"
@@ -22,8 +22,8 @@ type Periph struct {
 	INTS      mmio.R32[uint32]
 }
 
-func PLL_SYS() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.PLL_SYS_BASE))) }
-func PLL_USB() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.PLL_USB_BASE))) }
+func SYS() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.PLL_SYS_BASE))) }
+func USB() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.PLL_USB_BASE))) }
 
 func (p *Periph) BaseAddr() uintptr {
 	return uintptr(unsafe.Pointer(p))
