@@ -60,3 +60,11 @@ const (
 	FIFO_EMPTYn = 1
 	FIFO_FULLn  = 2
 )
+
+const (
+	STREAM_ADDR STREAM_ADDR = 0x3FFFFFFF << 2 //+ The address of the next word to be streamed from flash to the streaming FIFO. Increments automatically after each flash access. Write the initial access address here before starting a streaming read.
+)
+
+const (
+	STREAM_ADDRn = 2
+)

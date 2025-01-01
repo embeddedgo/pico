@@ -573,6 +573,14 @@ const (
 )
 
 const (
+	GPIOBASE GPIOBASE = 0x01 << 4 //+
+)
+
+const (
+	GPIOBASEn = 4
+)
+
+const (
 	SM0_RXNEMPTY INTR = 0x01 << 0  //+
 	SM1_RXNEMPTY INTR = 0x01 << 1  //+
 	SM2_RXNEMPTY INTR = 0x01 << 2  //+

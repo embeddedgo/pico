@@ -10,24 +10,7 @@
 //
 // Registers:
 //
-//	0x000 32  PROC0_CTRL       Controls the tick generator
-//	0x004 32  PROC0_CYCLES
-//	0x008 32  PROC0_COUNT
-//	0x00C 32  PROC1_CTRL       Controls the tick generator
-//	0x010 32  PROC1_CYCLES
-//	0x014 32  PROC1_COUNT
-//	0x018 32  TIMER0_CTRL      Controls the tick generator
-//	0x01C 32  TIMER0_CYCLES
-//	0x020 32  TIMER0_COUNT
-//	0x024 32  TIMER1_CTRL      Controls the tick generator
-//	0x028 32  TIMER1_CYCLES
-//	0x02C 32  TIMER1_COUNT
-//	0x030 32  WATCHDOG_CTRL    Controls the tick generator
-//	0x034 32  WATCHDOG_CYCLES
-//	0x038 32  WATCHDOG_COUNT
-//	0x03C 32  RISCV_CTRL       Controls the tick generator
-//	0x040 32  RISCV_CYCLES
-//	0x044 32  RISCV_COUNT
+//	0x000 32  T{CTRL,CYCLES,COUNT}[6]  Controls the tick generator
 //
 // Import:
 //
@@ -35,58 +18,17 @@
 package ticks
 
 const (
-	ENABLE  PROC0_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING PROC0_CTRL = 0x01 << 1 //+ Is the tick generator running?
+	PROC0    int = 0x00 << 0 //+ Index to the PROC0 register in the T array
+	PROC1    int = 0x01 << 0 //+ Index to the PROC1 register in the T array
+	TIMER0   int = 0x02 << 0 //+ Index to the TIMER0 register in the T array
+	TIMER1   int = 0x03 << 0 //+ Index to the TIMER1 register in the T array
+	WATCHDOG int = 0x04 << 0 //+ Index to the WATCHDOG register in the T array
+	RISCV    int = 0x05 << 0 //+ Index to the RISCV register in the T array
 )
 
 const (
-	ENABLEn  = 0
-	RUNNINGn = 1
-)
-
-const (
-	ENABLE  PROC1_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING PROC1_CTRL = 0x01 << 1 //+ Is the tick generator running?
-)
-
-const (
-	ENABLEn  = 0
-	RUNNINGn = 1
-)
-
-const (
-	ENABLE  TIMER0_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING TIMER0_CTRL = 0x01 << 1 //+ Is the tick generator running?
-)
-
-const (
-	ENABLEn  = 0
-	RUNNINGn = 1
-)
-
-const (
-	ENABLE  TIMER1_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING TIMER1_CTRL = 0x01 << 1 //+ Is the tick generator running?
-)
-
-const (
-	ENABLEn  = 0
-	RUNNINGn = 1
-)
-
-const (
-	ENABLE  WATCHDOG_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING WATCHDOG_CTRL = 0x01 << 1 //+ Is the tick generator running?
-)
-
-const (
-	ENABLEn  = 0
-	RUNNINGn = 1
-)
-
-const (
-	ENABLE  RISCV_CTRL = 0x01 << 0 //+ start / stop tick generation
-	RUNNING RISCV_CTRL = 0x01 << 1 //+ Is the tick generator running?
+	ENABLE  CTRL = 0x01 << 0 //+ start / stop tick generation
+	RUNNING CTRL = 0x01 << 1 //+ Is the tick generator running?
 )
 
 const (

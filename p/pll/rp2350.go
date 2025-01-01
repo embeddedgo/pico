@@ -2,12 +2,12 @@
 
 //go:build rp2350
 
-// Package pllsys provides access to the registers of the PLL_SYS peripheral.
+// Package pll provides access to the registers of the PLL_SYS peripheral.
 //
 // Instances:
 //
-//	PLL_SYS  PLL_SYS_BASE  -  PLL_SYS_IRQ
-//	PLL_USB  PLL_USB_BASE  -  PLL_USB_IRQ
+//	SYS  PLL_SYS_BASE  -  PLL_SYS_IRQ
+//	USB  PLL_USB_BASE  -  PLL_USB_IRQ
 //
 // Registers:
 //
@@ -23,7 +23,7 @@
 // Import:
 //
 //	github.com/embeddedgo/pico/p/mmap
-package pllsys
+package pll
 
 const (
 	REFDIV CS = 0x3F << 0  //+ Divides the PLL input reference clock. Behaviour is undefined for div=0. PLL output will be unpredictable during refdiv changes, wait for lock=1 before using it.

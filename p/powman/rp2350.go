@@ -139,6 +139,14 @@ const (
 )
 
 const (
+	ISOLATE BOD_CTRL = 0x01 << 12 //+ isolates the brown-out detection control interface 0 - not isolated (default) 1 - isolated
+)
+
+const (
+	ISOLATEn = 12
+)
+
+const (
 	EN   BOD = 0x01 << 0 //+ enable brown-out detection 0=not enabled, 1=enabled
 	VSEL BOD = 0x1F << 4 //+ threshold select 00000 - 0.473V 00001 - 0.516V 00010 - 0.559V 00011 - 0.602V 00100 - 0.645VS 00101 - 0.688V 00110 - 0.731V 00111 - 0.774V 01000 - 0.817V 01001 - 0.860V (default) 01010 - 0.903V 01011 - 0.946V 01100 - 0.989V 01101 - 1.032V 01110 - 1.075V 01111 - 1.118V 10000 - 1.161 10001 - 1.204V
 )

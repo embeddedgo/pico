@@ -9,14 +9,12 @@ rm -rf *
 
 svdxgen github.com/embeddedgo/pico/p ../svd/*.svd
 
-for p in iobank padsbank pllsys resets sio xosc; do
+for p in clocks iobank padsbank pll qmi resets sio ticks xosc; do
 	cd $p
 	xgen -g *.go
 	GOOS=noos GOARCH=thumb $(emgo env GOROOT)/bin/go build -tags rp2350
 	cd ..
 done
-
-exit
 
 perlscript='
 s/package irq/$&\n\nimport "embedded\/rtos"/;

@@ -90,6 +90,14 @@ const (
 )
 
 const (
+	CORE1 FORCE_CORE_NS = 0x01 << 1 //+
+)
+
+const (
+	CORE1n = 1
+)
+
+const (
 	GPIO     GPIO_NSMASK1 = 0xFFFF << 0 //+
 	USB_DP   GPIO_NSMASK1 = 0x01 << 24  //+
 	USB_DM   GPIO_NSMASK1 = 0x01 << 25  //+

@@ -2619,6 +2619,14 @@ const (
 )
 
 const (
+	ADDR MPU_BAR0 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
+	ADDRn = 5
+)
+
+const (
 	EN   MPU_LAR0 = 0x01 << 0      //+ Region enable. If 1, any address within range specified by the base address (BAR_ADDR) and limit address (LAR_ADDR) has the attributes specified by S and P.
 	P    MPU_LAR0 = 0x01 << 1      //+ Determines the Privileged/Unprivileged (=1/0) status of addresses matching this region, if this region is enabled. Writable from any Privileged context, if and only if the S bit is clear. Otherwise, writable only from a Secure, Privileged context.
 	S    MPU_LAR0 = 0x01 << 2      //+ Determines the Secure/Non-secure (=1/0) status of addresses matching this region, if this region is enabled.
@@ -2629,6 +2637,14 @@ const (
 	ENn   = 0
 	Pn    = 1
 	Sn    = 2
+	ADDRn = 5
+)
+
+const (
+	ADDR MPU_BAR1 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
 	ADDRn = 5
 )
 
@@ -2647,6 +2663,14 @@ const (
 )
 
 const (
+	ADDR MPU_BAR2 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
+	ADDRn = 5
+)
+
+const (
 	EN   MPU_LAR2 = 0x01 << 0      //+ Region enable. If 1, any address within range specified by the base address (BAR_ADDR) and limit address (LAR_ADDR) has the attributes specified by S and P.
 	P    MPU_LAR2 = 0x01 << 1      //+ Determines the Privileged/Unprivileged (=1/0) status of addresses matching this region, if this region is enabled. Writable from any Privileged context, if and only if the S bit is clear. Otherwise, writable only from a Secure, Privileged context.
 	S    MPU_LAR2 = 0x01 << 2      //+ Determines the Secure/Non-secure (=1/0) status of addresses matching this region, if this region is enabled.
@@ -2657,6 +2681,14 @@ const (
 	ENn   = 0
 	Pn    = 1
 	Sn    = 2
+	ADDRn = 5
+)
+
+const (
+	ADDR MPU_BAR3 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
 	ADDRn = 5
 )
 
@@ -2675,6 +2707,14 @@ const (
 )
 
 const (
+	ADDR MPU_BAR4 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
+	ADDRn = 5
+)
+
+const (
 	EN   MPU_LAR4 = 0x01 << 0      //+ Region enable. If 1, any address within range specified by the base address (BAR_ADDR) and limit address (LAR_ADDR) has the attributes specified by S and P.
 	P    MPU_LAR4 = 0x01 << 1      //+ Determines the Privileged/Unprivileged (=1/0) status of addresses matching this region, if this region is enabled. Writable from any Privileged context, if and only if the S bit is clear. Otherwise, writable only from a Secure, Privileged context.
 	S    MPU_LAR4 = 0x01 << 2      //+ Determines the Secure/Non-secure (=1/0) status of addresses matching this region, if this region is enabled.
@@ -2685,6 +2725,14 @@ const (
 	ENn   = 0
 	Pn    = 1
 	Sn    = 2
+	ADDRn = 5
+)
+
+const (
+	ADDR MPU_BAR5 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
 	ADDRn = 5
 )
 
@@ -2703,6 +2751,14 @@ const (
 )
 
 const (
+	ADDR MPU_BAR6 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
+	ADDRn = 5
+)
+
+const (
 	EN   MPU_LAR6 = 0x01 << 0      //+ Region enable. If 1, any address within range specified by the base address (BAR_ADDR) and limit address (LAR_ADDR) has the attributes specified by S and P.
 	P    MPU_LAR6 = 0x01 << 1      //+ Determines the Privileged/Unprivileged (=1/0) status of addresses matching this region, if this region is enabled. Writable from any Privileged context, if and only if the S bit is clear. Otherwise, writable only from a Secure, Privileged context.
 	S    MPU_LAR6 = 0x01 << 2      //+ Determines the Secure/Non-secure (=1/0) status of addresses matching this region, if this region is enabled.
@@ -2713,6 +2769,14 @@ const (
 	ENn   = 0
 	Pn    = 1
 	Sn    = 2
+	ADDRn = 5
+)
+
+const (
+	ADDR MPU_BAR7 = 0x7FFFFFF << 5 //+ This MPU region matches addresses where addr[31:5] (the 27 most significant bits) are greater than or equal to BAR_ADDR, and less than or equal to LAR_ADDR. Readable from any Privileged context, if and only if this region's S bit is clear, and MPU_CTRL_NS_HIDE_ADDR is clear. Otherwise readable only from a Secure, Privileged context.
+)
+
+const (
 	ADDRn = 5
 )
 

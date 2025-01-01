@@ -398,6 +398,14 @@ const (
 )
 
 const (
+	INT_EP_ACTIVE INT_EP_CTRL = 0x7FFF << 1 //+ Host: Enable interrupt endpoint 1 -> 15
+)
+
+const (
+	INT_EP_ACTIVEn = 1
+)
+
+const (
 	EP0_IN   BUFF_STATUS = 0x01 << 0  //+
 	EP0_OUT  BUFF_STATUS = 0x01 << 1  //+
 	EP1_IN   BUFF_STATUS = 0x01 << 2  //+

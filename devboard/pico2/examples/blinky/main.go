@@ -5,6 +5,7 @@
 package main
 
 import (
+	"github.com/embeddedgo/pico/hal/system"
 	"github.com/embeddedgo/pico/p/iobank"
 	"github.com/embeddedgo/pico/p/padsbank"
 	"github.com/embeddedgo/pico/p/sio"
@@ -13,6 +14,8 @@ import (
 const LEDpin = 25
 
 func main() {
+	system.SetupPico2()
+
 	ledpin := &padsbank.PADS_BANK0().GPIO[LEDpin]
 	ledio := &iobank.IO_BANK0().GPIO[LEDpin].CTRL
 	sio := sio.SIO()
