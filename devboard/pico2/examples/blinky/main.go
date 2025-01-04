@@ -5,7 +5,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/embeddedgo/pico/hal/system"
+	"github.com/embeddedgo/pico/hal/system/timer/riscvst"
 	"github.com/embeddedgo/pico/p/iobank"
 	"github.com/embeddedgo/pico/p/padsbank"
 	"github.com/embeddedgo/pico/p/sio"
@@ -14,7 +17,8 @@ import (
 const LEDpin = 25
 
 func main() {
-	system.SetupPico2()
+	system.SetupPico2_125MHz()
+	riscvst.Setup()
 
 	ledpin := &padsbank.PADS_BANK0().GPIO[LEDpin]
 	ledio := &iobank.IO_BANK0().GPIO[LEDpin].CTRL
@@ -28,11 +32,9 @@ func main() {
 	oeset.Store(1 << LEDpin)
 
 	for {
-		for i := 0; i < 2e5; i++ {
-			outset.Store(1 << LEDpin)
-		}
-		for i := 0; i < 1e6; i++ {
-			outclr.Store(1 << LEDpin)
-		}
+		outset.Store(1 << LEDpin)
+		time.Sleep(time.Second / 16)
+		outclr.Store(1 << LEDpin)
+		time.Sleep(time.Second)
 	}
 }
