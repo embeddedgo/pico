@@ -15,7 +15,7 @@ import (
 )
 
 // Setup configures and sets the RISCV platform timer as the tickless system
-// timer. The timer resolution is 1 uS.
+// timer. The timer resolution is 1 uS (true for any integer MHz crystal). .
 func Setup() {
 	runtime.LockOSThread()
 	pl, _ := rtos.SetPrivLevel(0)

@@ -1,4 +1,4 @@
-// Copyright 2024 The Embedded Go Authors. All rights reserved.
+// Copyright 2025 The Embedded Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -20,6 +20,29 @@ import (
 	"github.com/embeddedgo/pico/p/xosc"
 )
 
+// SetupPico2_125MHz setups the system assuming it is an RPI Pico 2 compatible,
+// that is, it's clocked from 12 MHz crystal, the XIP QSPI flash supports 133
+// MHz clock, the IOVDD >= 2.5 V. Both the CPU and QSPI flash are configured
+// to run at conservative 125 MHz, which seems to be a good compromise between
+// speed and stability. See Setup for more generic fuction that does the same.
+func SetupPico2_125MHz() {
+	Setup(12e6, PLL{1, 125, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
+}
+
+// SetupPico2_133MHz is like SetupPico2_125MHz but both the CPU and QSPI flash
+// run at 133 MHz. It's gives you slightly faster system but without any margin
+// for flash and its circuity.
+func SetupPico2_133MHz() {
+	Setup(12e6, PLL{1, 133, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
+}
+
+// SetupPico2_150MHz is like SetupPico2_125MHz but the CPU runs at 150 MHz, the
+// QSPI flash at 75 MHz. It should give you quite good performance while being
+// very forgiving for flash and its circuity.
+func SetupPico2_150MHz() {
+	Setup(12e6, PLL{1, 125, 5, 2}, PLL{1, 100, 5, 5}, 133e6)
+}
+
 // A PLL configuration.
 //
 //	vcoHz = refHz / RefDiv * FbDiv
@@ -39,9 +62,9 @@ type PLL struct {
 	PostDiv2 int
 }
 
-// Fout calculates the output frequency for the pll configuration and the refHz
-// freuency as input. It returns outHz < 0 if the refHz is invalid or the pll
-// configuration is invalid for the given refHz.
+// Fout calculates the output frequency fo the PLL worknig with the pll
+// configuration and the refHz frequency as an input. It returns outHz < 0 if
+// the refHz is invalid or the pll configuration is invalid for the given refHz.
 func (pll PLL) Fout(refHz int64) (outHz int64) {
 	if pll.RefDiv < 1 || 63 < pll.RefDiv {
 		return -1
@@ -69,30 +92,6 @@ func (pll PLL) Fout(refHz int64) (outHz int64) {
 	return int64(vcoHz / (pll.PostDiv1 * pll.PostDiv2))
 }
 
-// SetupPico2_125MHz setups the  system assuming it is an RPI Pico 2 compatible:
-// 12 MHz XOSC, 133 MHz QSPI Flash.
-//
-// Both the CPU and QSPI flash run at 125 MHz.
-func SetupPico2_125MHz() {
-	Setup(12e6, PLL{1, 125, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
-}
-
-// SetupPico2_133MHz setups the  system assuming it is an RPI Pico 2 compatible:
-// 12 MHz XOSC, 133 MHz QSPI Flash.
-//
-// Both the CPU and QSPI flash run at 133 MHz.
-func SetupPico2_133MHz() {
-	Setup(12e6, PLL{1, 133, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
-}
-
-// SetupPico2_150MHz setups the  system assuming it is an RPI Pico 2 compatible:
-// 12 MHz XOSC, 133 MHz QSPI Flash.
-//
-// The CPU runs at 150 MHz, the QSPI flash at 75 MHz.
-func SetupPico2_150MHz() {
-	Setup(12e6, PLL{1, 125, 5, 2}, PLL{1, 100, 5, 5}, 133e6)
-}
-
 /*
   pico-sdk initialization sequence
 
@@ -118,7 +117,9 @@ func SetupPico2_150MHz() {
   irq.c                      runtime_init_per_core_irq_priorities
 */
 
-// Setup setups the whole system for
+// Setup initializes and configures the system. It expects a crystal oscillator
+// as the source of the reference frequency to both PLLs and an QSPI flash
+// supporting maxFlashHz clock from which the code is executed (XIP).
 func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 	// The default configuration in the ACCESSCTRL makes some of the registers
 	// used below only accessible in the priviledged mode.
@@ -131,7 +132,7 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 
 	// 00100 PICO_RUNTIME_INIT_EARLY_RESETS
 
-	// Reset all peripherals except these that may hurt the code execution..
+	// Reset all peripherals except these that may hurt the code execution.
 	rst := resets.RESETS()
 	allp := uint32(0x1fff_ffff) // all defined peripheral bits
 	nrp := resets.IO_QSPI |
@@ -142,7 +143,7 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 		resets.PLL_SYS
 	internal.AtomicSet(&rst.RESET, allp&^nrp)
 
-	// Remove reset from peripherals which are clocked only by CLK_SYS, CLK_REF.
+	// Remove reset from peripherals which are clocked only by SYS, REF.
 	nup := resets.HSTX |
 		resets.ADC |
 		resets.SPI0 |
@@ -235,10 +236,10 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 		uint(usbHz), 1<<clocks.ADC_INTn,
 	)
 
-	// After enabling clocks pico-sdk configures and starts all tick generators
-	// with the 1 us period. We leave them disabled and enable one if needed.
+	// pico-sdk starts all tick generators here, all configurrd to 1 MHz. We
+	// leave them disabled and enable one by one if needed.
 
-	// Increase QSPI Flash clock speed.
+	// Increase the QSPI Flash clock speed.
 	qmiDiv := (uint(sysHz)-1)/uint(maxFlashHz) + 1
 	qmi.QMI().M[0].TIMING.StoreBits(
 		qmi.CLKDIV|qmi.RXDELAY,

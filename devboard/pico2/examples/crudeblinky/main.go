@@ -24,10 +24,10 @@ func main() {
 
 	// The RP2530 pins have isolation latches that prevent changes to the pin
 	// state during boot from the deep sleep. The sequence below makes little
-	// sense for the onboard LED but demonstrates the concept of configuring
-	// the pin to known state before disabling its isolation latch.
+	// sense for the onboard LED but demonstrates how to configure the pin to
+	.. known state before disabling its isolation latch.
 
-	// Setup SIO to output the low state on the LED pin..
+	// Setup SIO. Output the low state on the LED pin..
 	outclr.Store(1 << LEDpin)
 	oeset.Store(1 << LEDpin)
 
