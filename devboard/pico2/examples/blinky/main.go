@@ -17,7 +17,7 @@ import (
 const LEDpin = 25
 
 func main() {
-	system.SetupPico2_125MHz()
+	system.SetupPico2_150MHz()
 	riscvst.Setup()
 
 	ledpin := &padsbank.PADS_BANK0().GPIO[LEDpin]

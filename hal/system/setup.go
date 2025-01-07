@@ -164,7 +164,7 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 	clk.SYS_RESUS_CTRL.Load()
 	clk.SYS_RESUS_CTRL.Store(0)
 
-	// // Enable the xosc.
+	// Enable the xosc.
 	var fr xosc.CTRL
 	switch {
 	case xoscHz < 15e6:
@@ -243,7 +243,7 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 	qmiDiv := (uint(sysHz)-1)/uint(maxFlashHz) + 1
 	qmi.QMI().M[0].TIMING.StoreBits(
 		qmi.CLKDIV|qmi.RXDELAY,
-		qmi.TIMING(qmiDiv)<<qmi.CLKDIVn|1<<qmi.RXDELAYn,
+		qmi.TIMING(qmiDiv)<<qmi.CLKDIVn|2<<qmi.RXDELAYn,
 	)
 
 	rtos.SetPrivLevel(pl)
