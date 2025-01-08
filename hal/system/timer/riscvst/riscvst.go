@@ -56,7 +56,7 @@ func setAlarm(ns int64) {
 	h := uint32(timecmp) >> 32
 	l := uint32(timecmp)
 	SIO := sio.SIO()
-	SIO.MTIMECMP.Store(0xffff_ffff)
-	SIO.MTIMECMPH.Store(h)
+	SIO.MTIMECMPH.Store(0xffff_ffff)
 	SIO.MTIMECMP.Store(l)
+	SIO.MTIMECMPH.Store(h)
 }

@@ -33,8 +33,8 @@ func main() {
 
 	for {
 		outset.Store(1 << LEDpin)
-		time.Sleep(time.Second / 16)
+		time.Sleep(200 * time.Millisecond)
 		outclr.Store(1 << LEDpin)
-		time.Sleep(time.Second)
+		time.Sleep(800 * time.Millisecond)
 	}
 }
