@@ -243,7 +243,8 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 	qmiDiv := (uint(sysHz)-1)/uint(maxFlashHz) + 1
 	qmi.QMI().M[0].TIMING.StoreBits(
 		qmi.CLKDIV|qmi.RXDELAY,
-		qmi.TIMING(qmiDiv)<<qmi.CLKDIVn|2<<qmi.RXDELAYn,
+		qmi.TIMING(qmiDiv)<<qmi.CLKDIVn| // SCK = freq(SYS) / CLKDIV
+			qmi.TIMING(qmiDiv)<<qmi.RXDELAYn, // RXDELAY unit is period(SYS)/2
 	)
 
 	rtos.SetPrivLevel(pl)

@@ -28,6 +28,9 @@ func Setup() {
 	runtime.UnlockOSThread()
 
 	SIO := sio.SIO()
+	SIO.MTIME_CTRL.Store(0)
+	SIO.MTIME.Store(0)
+	SIO.MTIMEH.Store(0)
 	SIO.MTIMECMPH.Store(0xffff_ffff)
 	SIO.MTIME_CTRL.Store(sio.EN)
 	irq.SIO_IRQ_MTIMECMP.Enable(rtos.IntPrioSysTimer, 0)
@@ -53,7 +56,7 @@ func setAlarm(ns int64) {
 	if ns >= 0 {
 		timecmp = uint64(ns) / 1e3
 	}
-	h := uint32(timecmp) >> 32
+	h := uint32(timecmp >> 32)
 	l := uint32(timecmp)
 	SIO := sio.SIO()
 	SIO.MTIMECMPH.Store(0xffff_ffff)
