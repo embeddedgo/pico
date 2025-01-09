@@ -60,82 +60,84 @@ const (
 	SWD
 )
 
-/*
 type Config uint32
 
 const (
-	FastSR Config = 1 << 0 // Enable fast slew rate
+	FastSR   Config = 1 << 0 // Enable fast slew rate
+	Schmitt  Config = 1 << 1 // Enable schmitt trigger
+	PullDown Config = 1 << 2 // Pull down enable
+	PullUp   Config = 1 << 3 // Pull up enable
 
-	Drive  Config = 7 << 3 // Drive strength field
-	Drive0 Config = 0 << 3 // Rout = ∞Ω (output driver disabled)
-	Drive1 Config = 1 << 3 // Rout = R, R = 150Ω @ 3V3, R = 260Ω @ 1V8
-	Drive2 Config = 2 << 3 // Rout = R / 2
-	Drive3 Config = 3 << 3 // Rout = R / 3
-	Drive4 Config = 4 << 3 // Rout = R / 4
-	Drive5 Config = 5 << 3 // Rout = R / 5
-	Drive6 Config = 6 << 3 // Rout = R / 6
-	Drive7 Config = 7 << 3 // Rout = R / 7
+	Drive Config = 3 << 4 // Drive strength
+	D2mA  Config = 0 << 4 // 2 mA
+	D4mA  Config = 1 << 4 // 4 mA
+	D8mA  Config = 2 << 4 // 8 mA
+	D12mA Config = 3 << 4 // 12 mA
 
-	Speed       Config = 3 << 6 // Speed field
-	SpeedLow    Config = 0 << 6 // Speed low (50MHz)
-	SpeedMedium Config = 1 << 6 // Speed medium (100MHz)
-	SpeedFast   Config = 2 << 6 // Speed fast (150MHz)
-	SpeedMax    Config = 3 << 6 // Speed max (200MHz)
-
-	OpenDrain Config = 1 << 11 // Enable open drain mode
-
-	PK   Config = 3 << 12 // Pull / keep field
-	Keep Config = 1 << 12 // Enable pull/keep mode
-	Pull Config = 3 << 12 // Use pull mode instead of keep mode
-
-	PullSel  Config = 3 << 14 // Select pull direction and strength
-	Down100k Config = 0 << 14 // 100kΩ pull-down
-	Up47k    Config = 1 << 14 //  47kΩ pull-up
-	Up100k   Config = 2 << 14 // 100kΩ pull up
-	Up22k    Config = 3 << 14 //  22kΩ pull up
-
-	Hys Config = 1 << 16 //+ Enable hysteresis mode
-)
-
-// AltFunc represents a mux mode.
-type AltFunc int8
-
-const (
-	ALT   AltFunc = 0xf << 0 // Mux mode select field
-	ALT0  AltFunc = 0x0 << 0 // Select ALT0 mux mode
-	ALT1  AltFunc = 0x1 << 0 // Select ALT1 mux mode
-	ALT2  AltFunc = 0x2 << 0 // Select ALT2 mux mode
-	ALT3  AltFunc = 0x3 << 0 // Select ALT3 mux mode
-	ALT4  AltFunc = 0x4 << 0 // Select ALT4 mux mode
-	ALT5  AltFunc = 0x5 << 0 // Select ALT5 mux mode
-	ALT6  AltFunc = 0x6 << 0 // Select ALT6 mux mode
-	ALT7  AltFunc = 0x7 << 0 // Select ALT7 mux mode
-	ALT8  AltFunc = 0x8 << 0 // Select ALT8 mux mode
-	ALT9  AltFunc = 0x9 << 0 // Select ALT9 mux mode
-	ALT10 AltFunc = 0xa << 0 // Select ALT10 mux mode
-
-	SION AltFunc = 0x1 << 4 // Software Input On field
-
-	GPIO = ALT5 // More readable alias for ALT5
+	IE  Config = 1 << 6 // Input enable
+	OD  Config = 1 << 7 // Output disable
+	ISO Config = 1 << 8 // Pad isolation control.
 )
 
 // Config return pin configuration.
 func (p Pin) Config() Config {
-	return Config(pr().pad[p].Load())
+	return Config(pb().pad[p].Load())
 }
 
 // Setup configures pin.
 func (p Pin) Setup(cfg Config) {
-	pr().pad[p].Store(uint32(cfg))
+	pb().pad[p].Store(uint32(cfg))
 }
+
+// AltFunc represents a mux mode.
+type AltFunc uint32
+
+const (
+	Func    AltFunc = 0x1F << 0 // Selects pin function
+	F0      AltFunc = 0x00 << 0
+	F1_SPI  AltFunc = 0x01 << 0
+	F2_UART AltFunc = 0x02 << 0
+	F3_I2C  AltFunc = 0x03 << 0
+	F4_PWM  AltFunc = 0x04 << 0
+	F5_SIO  AltFunc = 0x05 << 0
+	F6_PIO0 AltFunc = 0x06 << 0
+	F7_PIO1 AltFunc = 0x07 << 0
+	F8_PIO2 AltFunc = 0x08 << 0
+	F9      AltFunc = 0x09 << 0
+	F10_USB AltFunc = 0x0A << 0
+	Null    AltFunc = 0x1F << 0
+
+	OutOver   AltFunc = 3 << 12 // Peripheral output override
+	OutNormal AltFunc = 0 << 12 // normal
+	OutInvert AltFunc = 1 << 12 // inverted
+	OutLow    AltFunc = 2 << 12 // force low
+	OutHigh   AltFunc = 3 << 12 // force high
+
+	OEOver    AltFunc = 3 << 14 // Peripheral output enable override
+	OENormal  AltFunc = 0 << 14 // direct
+	OEInvert  AltFunc = 1 << 14 // inverted
+	OEDisable AltFunc = 2 << 14 // force disabled
+	OEEnable  AltFunc = 3 << 14 // force enabled
+
+	InpOver   AltFunc = 3 << 16 // Peripheral input override
+	InpNormal AltFunc = 0 << 16 // normal
+	InpInvert AltFunc = 1 << 16 // inverted
+	InpLow    AltFunc = 2 << 16 // force low
+	InpHigh   AltFunc = 3 << 16 // force high
+
+	IRQOver   AltFunc = 3 << 28 // Interrupt override
+	IRQNormal AltFunc = 0 << 28 // normal
+	IRQInvert AltFunc = 1 << 28 // inverted
+	IRQLow    AltFunc = 2 << 28 // force low
+	IRQHigh   AltFunc = 3 << 28 // force high
+)
 
 // AltFunc returns a currently set muxmode for pin.
 func (p Pin) AltFunc() AltFunc {
-	return AltFunc(pr().mux[p].Load())
+	return AltFunc(ib().gpio[p].ctrl.Load())
 }
 
 // SetAltFunc sets a mux mode for pin.
 func (p Pin) SetAltFunc(af AltFunc) {
-	pr().mux[p].Store(uint32(af))
+	ib().gpio[p].ctrl.Store(uint32(af))
 }
-*/

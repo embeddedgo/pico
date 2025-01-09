@@ -13,11 +13,11 @@ import (
 
 type padsbank struct {
 	voltage mmio.R32[uint32]
-	pin     [50]mmio.R32[uint32]
+	pad     [50]mmio.R32[uint32]
 }
 
 func pb() *padsbank {
-	return (*padsbank)(unsafe.Pointer(mmap.IO_BANK0_BASE))
+	return (*padsbank)(unsafe.Pointer(mmap.PADS_BANK0_BASE))
 }
 
 type iobank struct {

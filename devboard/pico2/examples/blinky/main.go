@@ -7,34 +7,29 @@ package main
 import (
 	"time"
 
+	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/system"
 	"github.com/embeddedgo/pico/hal/system/timer/riscvst"
-	"github.com/embeddedgo/pico/p/iobank"
-	"github.com/embeddedgo/pico/p/padsbank"
 	"github.com/embeddedgo/pico/p/sio"
 )
-
-const LEDpin = 25
 
 func main() {
 	system.SetupPico2_125MHz()
 	riscvst.Setup()
 
-	ledpin := &padsbank.PADS_BANK0().GPIO[LEDpin]
-	ledio := &iobank.IO_BANK0().GPIO[LEDpin].CTRL
+	ledpin := iomux.P25
+	ledpin.Setup(iomux.D4mA)
+	ledpin.SetAltFunc(iomux.F5_SIO)
+
 	sio := sio.SIO()
-	oeset := &sio.GPIO_OE_SET
+	sio.GPIO_OE_SET.Store(1 << ledpin)
 	outset := &sio.GPIO_OUT_SET
 	outclr := &sio.GPIO_OUT_CLR
 
-	ledpin.Store(padsbank.IE | padsbank.D4MA)
-	ledio.Store(iobank.F5_SIO)
-	oeset.Store(1 << LEDpin)
-
 	for {
-		outset.Store(1 << LEDpin)
-		time.Sleep(200 * time.Millisecond)
-		outclr.Store(1 << LEDpin)
-		time.Sleep(800 * time.Millisecond)
+		outset.Store(1 << ledpin)
+		time.Sleep(100 * time.Millisecond)
+		outclr.Store(1 << ledpin)
+		time.Sleep(900 * time.Millisecond)
 	}
 }
