@@ -93,19 +93,28 @@ func (p Pin) Setup(cfg Config) {
 type AltFunc uint32
 
 const (
-	Func    AltFunc = 0x1F << 0 // Selects pin function
-	F0      AltFunc = 0x00 << 0
-	F1_SPI  AltFunc = 0x01 << 0
-	F2_UART AltFunc = 0x02 << 0
-	F3_I2C  AltFunc = 0x03 << 0
-	F4_PWM  AltFunc = 0x04 << 0
-	F5_SIO  AltFunc = 0x05 << 0
-	F6_PIO0 AltFunc = 0x06 << 0
-	F7_PIO1 AltFunc = 0x07 << 0
-	F8_PIO2 AltFunc = 0x08 << 0
-	F9      AltFunc = 0x09 << 0
-	F10_USB AltFunc = 0x0A << 0
-	Null    AltFunc = 0x1F << 0
+	Func AltFunc = 0x1F << 0 // Selects pin function
+	F0   AltFunc = 0x00 << 0
+	F1   AltFunc = 0x01 << 0
+	F2   AltFunc = 0x02 << 0
+	F3   AltFunc = 0x03 << 0
+	F4   AltFunc = 0x04 << 0
+	F5   AltFunc = 0x05 << 0
+	F6   AltFunc = 0x06 << 0
+	F7   AltFunc = 0x07 << 0
+	F8   AltFunc = 0x08 << 0
+	F9   AltFunc = 0x09 << 0
+	F10  AltFunc = 0x0A << 0
+	Null AltFunc = 0x1F << 0
+	SPI          = F1
+	UART         = F2
+	I2C          = F3
+	PWM          = F4
+	GPIO         = F5
+	PIO0         = F6
+	PIO1         = F7
+	PIO2         = F8
+	USB          = F10
 
 	OutOver   AltFunc = 3 << 12 // Peripheral output override
 	OutNormal AltFunc = 0 << 12 // normal

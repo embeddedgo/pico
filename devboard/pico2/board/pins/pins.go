@@ -4,7 +4,10 @@
 
 package pins
 
-import "github.com/embeddedgo/pico/hal/iomux"
+import (
+	_ "github.com/embeddedgo/pico/devboard/pico2/board/system"
+	"github.com/embeddedgo/pico/hal/iomux"
+)
 
 const (
 	GP0     = iomux.P00
