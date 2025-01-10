@@ -4,6 +4,8 @@
 
 package iomux
 
+import "github.com/embeddedgo/pico/hal/internal"
+
 // Pin represents an I/O pin (pad).
 type Pin int16
 
@@ -149,4 +151,36 @@ func (p Pin) AltFunc() AltFunc {
 // SetAltFunc sets a mux mode for pin.
 func (p Pin) SetAltFunc(af AltFunc) {
 	ib().gpio[p].ctrl.Store(uint32(af))
+}
+
+// IRQ destination.
+const (
+	Proc0       int16 = 0 // Processor 0
+	Proc1       int16 = 1 // Processor 1
+	DormantWake int16 = 2 // Wake ROSC or XOSC from dormant mode
+)
+
+// IRQ condition.
+const (
+	LevelLow  uint8 = 1 << 0 // IRQ when high level
+	LevelHigh uint8 = 1 << 1 // IRQ when low level
+	EdgeLow   uint8 = 1 << 2 // IRQ when transition from high to low
+	EdgeHigh  uint8 = 1 << 3 // IRQ when transition from low to high
+)
+
+// SetDstIRQ sets pin as an IRQ source for dst. One pin may be a source for
+// multiple destinations with different conditions at the same time.
+func (p Pin) SetDstIRQ(dst int16, condition uint8) {
+	i := int(p) >> 3
+	shift := 4 * uint(p&7)
+	r := &ib().irqCtrl[dst].enable[i]
+	internal.AtomicMod(r, 15<<shift, r.Load(), uint32(condition)<<shift)
+}
+
+// DstIRQ
+func (p Pin) DstIRQ(dst int16) (condition uint8) {
+	i := int(p) >> 3
+	shift := 4 * uint(p&7)
+	r := &ib().irqCtrl[dst].enable[i]
+	return uint8(r.Load() >> shift & 15)
 }

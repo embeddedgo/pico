@@ -30,20 +30,18 @@ type iobank struct {
 	irqsummary_dormant_wake_secure    [2]mmio.R32[uint32]
 	irqsummary_dormant_wake_nonsecure [2]mmio.R32[uint32]
 	intr                              [6]mmio.R32[uint32]
-	proc0_inte                        [6]mmio.R32[uint32]
-	proc0_intf                        [6]mmio.R32[uint32]
-	proc0_ints                        [6]mmio.R32[uint32]
-	proc1_inte                        [6]mmio.R32[uint32]
-	proc1_intf                        [6]mmio.R32[uint32]
-	proc1_ints                        [6]mmio.R32[uint32]
-	dormant_wake_inte                 [6]mmio.R32[uint32]
-	dormant_wake_intf                 [6]mmio.R32[uint32]
-	dormant_wake_ints                 [6]mmio.R32[uint32]
+	irqCtrl                           [3]irqCtrl
 }
 
 type sgpio struct {
 	status mmio.R32[uint32]
 	ctrl   mmio.R32[uint32]
+}
+
+type irqCtrl struct {
+	enable [6]mmio.R32[uint32]
+	force  [6]mmio.R32[uint32]
+	status [6]mmio.R32[uint32]
 }
 
 func ib() *iobank {
