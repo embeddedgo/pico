@@ -8,6 +8,7 @@ import (
 	"embedded/mmio"
 	"unsafe"
 
+	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
@@ -38,10 +39,6 @@ func P(n int) *Port {
 	return (*Port)(unsafe.Pointer(mmap.SIO_BASE + uintptr(n+1)*4))
 }
 
-func (p *Port) Bit(n int) Bit {
-	if uint(n) > 31 {
-		panic("bad GPIO bit number")
-	}
-	addr := uintptr(unsafe.Pointer(p))
-	return Bit{uint8(addr&3<<5 | uintptr(n))}
+func UsePin(pin iomux.Pin) {
+	pin.SetAltFunc(iomux.GPIO)
 }

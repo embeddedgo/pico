@@ -1,6 +1,8 @@
-// Copyright 2022 The Embedded Go Authors. All rights reserved.
+// Copyright 2025 The Embedded Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+//go:build ignore
 
 package gpio
 
@@ -87,13 +89,18 @@ func (b Bit) Store(val int) {
 	}
 }
 
-func UsePin(pin iomux.Pin) {
-	pin.SetAltFunc(iomux.GPIO)
-}
-
 func BitForPin(pin iomux.Pin) Bit {
 	return Bit{uint8(pin + 32)}
 }
+
+func (p *Port) Bit(n int) Bit {
+	if uint(n) > 31 {
+		panic("bad GPIO bit number")
+	}
+	addr := uintptr(unsafe.Pointer(p))
+	return Bit{uint8(addr&3<<5 | uintptr(n))}
+}
+
 
 /*
 
