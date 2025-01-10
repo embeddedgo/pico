@@ -4,6 +4,9 @@
 
 //go:build ignore
 
+// This implementation has smaller storage than the one from bit1.go but inlines
+// much worse with go1.22.
+
 package gpio
 
 import (
@@ -53,7 +56,7 @@ func (b Bit) DisableOut() {
 	b.Port().oeClr.Store(b.Mask())
 }
 
-// Samples the value of the connected pin.
+// Load samples the value of the connected pin.
 func (b Bit) Load() int {
 	return int(b.Port().in.Load()) >> uint(b.Num()) & 1
 }
@@ -89,10 +92,7 @@ func (b Bit) Store(val int) {
 	}
 }
 
-func BitForPin(pin iomux.Pin) Bit {
-	return Bit{uint8(pin + 32)}
-}
-
+// Bit returns the n-th bit from the p port.
 func (p *Port) Bit(n int) Bit {
 	if uint(n) > 31 {
 		panic("bad GPIO bit number")
@@ -101,49 +101,7 @@ func (p *Port) Bit(n int) Bit {
 	return Bit{uint8(addr&3<<5 | uintptr(n))}
 }
 
-
-/*
-
-// Interrupt configuration constants
-const (
-	IntLow     = 0 // interrupt is low-level sensitive
-	IntHigh    = 1 // interrupt is high-level sensitive
-	IntRising  = 2 // interrupt is rising-edge sensitive
-	IntFalling = 3 // interrupt is falling-edge sensitive
-)
-
-// IntConf returns the interrupt configuration of bit.
-func (b Bit) IntConf() int {
-	n := uint(b.Num())
-	shift := n * 2 & 15
-	return int(b.Port().IntCfg[n>>4].Load()>>shift) & 3
+// BitForPin returns the GPIO bit that corresponds to the given pin.
+func BitForPin(pin iomux.Pin) Bit {
+	return Bit{uint8(pin + 32)}
 }
-
-// SetIntConf sets the interrupt configuration for bit.
-func (b Bit) SetIntConf(cfg int) {
-	n := uint(b.Num())
-	shift := n * 2 & 15
-	b.Port().IntCfg[n>>4].StoreBits(3<<shift, uint32(cfg<<shift))
-}
-
-// IntPending reports whether the interrupt coresponding to b is pending.
-func (b Bit) IntPending() bool {
-	return b.Port().Pending.LoadBits(1<<uint(b.Num())) != 0
-}
-
-// ClearPending clears the pending state of the interrupt coresponding to b.
-func (b Bit) ClearPending() {
-	b.Port().Pending.Store(1 << uint(b.Num()))
-}
-
-// ConnectMux works like Port.ConnectMux(b.Mask())
-func (b Bit) ConnectMux() {
-	b.Port().ConnectMux(1 << uint(b.Num()))
-}
-
-// ConnectMux reports wheter the bit is connected to IOMUX.
-func (b Bit) MuxConnected() bool {
-	return b.Port().MuxConnected()>>uint(b.Num())&1 != 0
-}
-
-*/

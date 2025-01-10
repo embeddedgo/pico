@@ -10,6 +10,7 @@ import (
 	"github.com/embeddedgo/pico/hal/iomux"
 )
 
+// Bit represents a single bit in a GPIO port.
 type Bit struct {
 	port *Port
 	mask uint32
@@ -37,20 +38,20 @@ func (b Bit) Mask() uint32 {
 
 // OutEnabled reports the output enabled state.
 func (b Bit) OutEnabled() bool {
-	return b.port.oe.LoadBits(b.Mask()) != 0
+	return b.port.oe.LoadBits(b.mask) != 0
 }
 
 // EnableOut enables output for this bit.
 func (b Bit) EnableOut() {
-	b.port.oeSet.Store(b.Mask())
+	b.port.oeSet.Store(b.mask)
 }
 
 // DisableOut disables output for this bit.
 func (b Bit) DisableOut() {
-	b.port.oeClr.Store(b.Mask())
+	b.port.oeClr.Store(b.mask)
 }
 
-// Samples the value of the connected pin.
+// Load samples the value of the connected pin.
 func (b Bit) Load() int {
 	return int(b.port.in.Load()) >> uint(b.Num()) & 1
 }
@@ -84,13 +85,15 @@ func (b Bit) Store(val int) {
 	}
 }
 
-func BitForPin(pin iomux.Pin) Bit {
-	return P(int(pin >> 5)).Bit(int(pin & 31))
-}
-
+// Bit returns the n-th bit from the p port.
 func (p *Port) Bit(n int) Bit {
 	if uint(n) > 31 {
 		panic("bad GPIO bit number")
 	}
-	return Bit{p, 1 << n}
+	return Bit{p, uint32(1) << uint(n)}
+}
+
+// BitForPin returns the GPIO bit that corresponds to the given pin.
+func BitForPin(pin iomux.Pin) Bit {
+	return Bit{P(int(pin >> 5)), 1 << uint(pin&31)}
 }
