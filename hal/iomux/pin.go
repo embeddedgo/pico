@@ -76,9 +76,9 @@ const (
 	D8mA  Config = 2 << 4 // 8 mA
 	D12mA Config = 3 << 4 // 12 mA
 
-	IE  Config = 1 << 6 // Input enable
-	OD  Config = 1 << 7 // Output disable
-	ISO Config = 1 << 8 // Pad isolation control.
+	InpEn  Config = 1 << 6 // Input enable
+	OutDis Config = 1 << 7 // Output disable
+	ISO    Config = 1 << 8 // Pad isolation control.
 )
 
 // Config return pin configuration.
