@@ -10,9 +10,20 @@ import (
 	"github.com/embeddedgo/pico/hal/iomux"
 )
 
-const User LED = 25 // The onboard LED
+const User = LED(iomux.P25) // The onboard LED
 
 type LED uint8
+
+func Connect(pin iomux.Pin, drive iomux.Config, invert bool) LED {
+	pin.Setup(drive)
+	af := iomux.GPIO
+	if invert {
+		af |= iomux.OutInvert
+	}
+	pin.SetAltFunc(af)
+	gpio.BitForPin(pin).EnableOut()
+	return LED(pin)
+}
 
 func (d LED) SetOn()     { gpio.BitForPin(iomux.Pin(d)).Set() }
 func (d LED) SetOff()    { gpio.BitForPin(iomux.Pin(d)).Clear() }
@@ -21,8 +32,5 @@ func (d LED) Set(on int) { gpio.BitForPin(iomux.Pin(d)).Store(on) }
 func (d LED) Get() int   { return gpio.BitForPin(iomux.Pin(d)).LoadOut() }
 
 func init() {
-	pin := iomux.Pin(User)
-	pin.Setup(iomux.D4mA)
-	gpio.UsePin(pin)
-	gpio.BitForPin(pin).EnableOut()
+	Connect(iomux.Pin(User), iomux.D4mA, false)
 }
