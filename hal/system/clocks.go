@@ -65,9 +65,9 @@ func setClock(clk int, src, auxsrc clocks.CTRL, freqHz uint, div clocks.DIV) {
 	}
 
 	// Set aux mux first, and then glitchless mux if this clock has one.
-	internal.AtomicXor(&c.CTRL, (c.CTRL.Load()^auxsrc)&clocks.SYS_AUXSRC)
+	internal.AtomicMod(&c.CTRL, clocks.SYS_AUXSRC, c.CTRL.Load(), auxsrc)
 	if hasGlitchlessMux(clk) {
-		internal.AtomicXor(&c.CTRL, (c.CTRL.Load()^src)&clocks.REF_SRC)
+		internal.AtomicMod(&c.CTRL, clocks.REF_SRC, c.CTRL.Load(), src)
 		for c.SELECTED.LoadBits(1<<src) == 0 {
 		}
 	}
