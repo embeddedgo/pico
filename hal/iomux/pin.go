@@ -184,3 +184,18 @@ func (p Pin) DstIRQ(dst int16) (condition uint8) {
 	r := &ib().irqCtrl[dst].enable[i]
 	return uint8(r.Load() >> shift & 15)
 }
+
+// IRQ returns the active IRQ condition for pin.
+func (p Pin) IRQ() (condition uint8) {
+	i := int(p) >> 3
+	shift := 4 * uint(p&7)
+	return uint8(ib().intr[i].Load() >> shift & 15)
+}
+
+// IRQ clears the active IRQ condition for pin. Only edge conditions can be
+// cleared.
+func (p Pin) ClearIRQ(condition uint8) {
+	i := int(p) >> 3
+	shift := 4 * uint(p&7)
+	ib().intr[i].Store(uint32(condition&15) << shift)
+}
