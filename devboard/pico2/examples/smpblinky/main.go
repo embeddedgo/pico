@@ -2,25 +2,34 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Smpblinky tests the Go and noos schedulers. The onboard LED informs about the
+// used CPU: CPU0 turns it off, CPU1 turns it on.
+//
+// The first part of this test blinks the onboard LED three times, switching the
+// running thread between CPUs. The second part spawns two busy threads and
+// leaves the CPU selection to the schedulers. Now the onboard LED should bilink
+// unevenly if the threads run on both CPUs.
 package main
 
 import (
+	"embedded/rtos"
 	"runtime"
+	"time"
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/p/sio"
 )
 
-func cpuled() {
+func blinkcpu(period int) {
 	runtime.LockOSThread()
 	CPUID := &sio.SIO().CPUID
 	for {
-		const loopN = 1_000_000
-		var cpuid uint32
-		for i := 0; i < loopN; i++ {
-			cpuid += CPUID.Load()
+		cpuid := 0
+		// Busy wait to make this thread really busy.
+		for i := 0; i < period; i++ {
+			cpuid += int(CPUID.Load())
 		}
-		if cpuid <= loopN/2 {
+		if cpuid < period/2 {
 			leds.User.SetOff() // the above loop ran mostly on CPU0
 		} else {
 			leds.User.SetOn() // the above loop ran mostly on CPU1
@@ -29,6 +38,24 @@ func cpuled() {
 }
 
 func main() {
-	go cpuled()
-	cpuled()
+	// Test the binding a thread to CPU.
+	runtime.LockOSThread()
+	CPUID := &sio.SIO().CPUID
+	cpu := rtos.ExeCtx(0)
+	for i := 0; i < 6; i++ {
+		if CPUID.Load() == 0 {
+			leds.User.SetOff()
+		} else {
+			leds.User.SetOn()
+		}
+		time.Sleep(time.Second)
+		cpu ^= 1
+		rtos.Bind(cpu)
+	}
+	rtos.Bind(rtos.NotBound)
+	runtime.UnlockOSThread()
+
+	// Check the scheduler with not bound threads.
+	go blinkcpu(2e6)
+	blinkcpu(3e6)
 }
