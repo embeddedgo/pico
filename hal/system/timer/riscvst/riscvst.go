@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package riscvst provides the implementation of a tickless system timer based
+// on the RISCV platform timer.
 package riscvst
 
 import (
@@ -14,8 +16,8 @@ import (
 	"github.com/embeddedgo/pico/p/ticks"
 )
 
-// Setup configures and sets the RISCV platform timer as the tickless system
-// timer. The timer resolution is 1 uS (true for any integer MHz crystal). .
+// Setup configures and sets the RISCV platform timer as the Embedded Go system
+// timer. The timer resolution is 1 uS (true for any integer MHz crystal).
 func Setup() {
 	runtime.LockOSThread()
 	pl, _ := rtos.SetPrivLevel(0)

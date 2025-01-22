@@ -15,7 +15,7 @@ TEXT IRQ29_Handler(SB),NOSPLIT|NOFRAME,$0-0
 	MOVW  $ICSR_ADDR, R0
 	MOVW  $ICSR_PENDSVSET, R1
 	MOVW  R1, (R0)
-	//SEV   // see ARM Errata 563915
+	//SEV   // see ARM Errata 563915 (doesn't apply to the Pico 2 Cortex-M33)
 
 	// Clear this IRQ.
 	MOVW  $MTIMECMPH_ADDR, R0
