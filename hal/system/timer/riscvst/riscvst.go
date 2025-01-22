@@ -31,9 +31,9 @@ func Setup() {
 	SIO.MTIME_CTRL.Store(0)
 	SIO.MTIME.Store(0)
 	SIO.MTIMEH.Store(0)
-	SIO.MTIMECMPH.Store(0xffff_ffff)
 	SIO.MTIME_CTRL.Store(sio.EN)
 	irq.SIO_IRQ_MTIMECMP.Enable(rtos.IntPrioSysTimer, 0)
+	irq.SIO_IRQ_MTIMECMP.Enable(rtos.IntPrioSysTimer, 1)
 
 	rtos.SetSystemTimer(nanotime, setAlarm)
 }
