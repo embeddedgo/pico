@@ -107,16 +107,20 @@ const (
 	F8   AltFunc = 0x08 << 0
 	F9   AltFunc = 0x09 << 0
 	F10  AltFunc = 0x0A << 0
+	F11  AltFunc = 0x0B << 0
 	Null AltFunc = 0x1F << 0
-	SPI          = F1
-	UART         = F2
-	I2C          = F3
-	PWM          = F4
-	GPIO         = F5
-	PIO0         = F6
-	PIO1         = F7
-	PIO2         = F8
-	USB          = F10
+
+	HSTX     = F0
+	SPI      = F1
+	UART     = F2
+	I2C      = F3
+	PWM      = F4
+	GPIO     = F5
+	PIO0     = F6
+	PIO1     = F7
+	PIO2     = F8
+	USB      = F10
+	UART_AUX = F11
 
 	OutOver   AltFunc = 3 << 12 // Peripheral output override
 	OutNormal AltFunc = 0 << 12 // normal
