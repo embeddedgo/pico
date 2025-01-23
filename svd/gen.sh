@@ -9,7 +9,7 @@ rm -rf *
 
 svdxgen github.com/embeddedgo/pico/p ../svd/*.svd
 
-for p in clocks iobank padsbank pll qmi resets sio ticks xosc; do
+for p in clocks iobank padsbank pll qmi resets sio ticks uart xosc; do
 	cd $p
 	xgen -g *.go
 	GOOS=noos GOARCH=thumb $(emgo env GOROOT)/bin/go build -tags rp2350
