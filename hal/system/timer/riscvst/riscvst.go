@@ -11,7 +11,7 @@ import (
 	"runtime"
 
 	"github.com/embeddedgo/pico/hal/irq"
-	"github.com/embeddedgo/pico/hal/system"
+	"github.com/embeddedgo/pico/hal/system/clock"
 	"github.com/embeddedgo/pico/p/sio"
 	"github.com/embeddedgo/pico/p/ticks"
 )
@@ -23,7 +23,7 @@ func Setup() {
 	pl, _ := rtos.SetPrivLevel(0)
 
 	t := &ticks.TICKS().T[ticks.RISCV]
-	t.CYCLES.Store(uint32(system.ClockREF.Freq()) / 1e6)
+	t.CYCLES.Store(uint32(clock.REF.Freq()) / 1e6)
 	t.CTRL.Store(ticks.ENABLE)
 
 	rtos.SetPrivLevel(pl)

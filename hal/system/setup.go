@@ -280,3 +280,5 @@ func setupPLL(p *pll.Periph, reset uint32, cfg PLL) {
 	p.PRIM.Store(uint32(pdiv))
 	internal.AtomicClear(&p.PWR, pll.POSTDIVPD)
 }
+
+func setClock(clk int, src, auxsrc clocks.CTRL, freqHz uint, div clocks.DIV)

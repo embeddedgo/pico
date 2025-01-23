@@ -6,25 +6,27 @@
 // Pi (Trading) Ltd; SPDX-License-Identifier: BSD-3-Clause) loosely translated
 // to Go.
 
-package system
+package clock
 
 import (
+	_ "unsafe"
+
 	"github.com/embeddedgo/pico/hal/internal"
 	"github.com/embeddedgo/pico/p/clocks"
 )
 
 const (
-	ClockGPOUT0 = Clock(clocks.GPOUT0)
-	ClockGPOUT1 = Clock(clocks.GPOUT1)
-	ClockGPOUT2 = Clock(clocks.GPOUT2)
-	ClockGPOUT3 = Clock(clocks.GPOUT3)
-	ClockREF    = Clock(clocks.REF)
-	ClockSYS    = Clock(clocks.SYS)
-	ClockPERI   = Clock(clocks.PERI)
-	ClockHSTX   = Clock(clocks.HSTX)
-	ClockUSB    = Clock(clocks.USB)
-	ClockADC    = Clock(clocks.ADC)
-	nclk        = ClockADC + 1
+	GPOUT0 = Clock(clocks.GPOUT0)
+	GPOUT1 = Clock(clocks.GPOUT1)
+	GPOUT2 = Clock(clocks.GPOUT2)
+	GPOUT3 = Clock(clocks.GPOUT3)
+	REF    = Clock(clocks.REF)
+	SYS    = Clock(clocks.SYS)
+	PERI   = Clock(clocks.PERI)
+	HSTX   = Clock(clocks.HSTX)
+	USB    = Clock(clocks.USB)
+	ADC    = Clock(clocks.ADC)
+	nclk   = ADC + 1
 )
 
 type Clock int
@@ -42,7 +44,8 @@ func hasGlitchlessMux(clk int) bool {
 	return clk == clocks.SYS || clk == clocks.REF
 }
 
-func setClock(clk int, src, auxsrc clocks.CTRL, freqHz uint, div clocks.DIV) {
+// TODO: export this function
+func set(clk int, src, auxsrc clocks.CTRL, freqHz uint, div clocks.DIV) {
 	c := &clocks.CLOCKS().CLK[clk]
 	// If increasing divisor, set divisor before source.
 	if div > c.DIV.Load() {
@@ -79,3 +82,5 @@ func setClock(clk int, src, auxsrc clocks.CTRL, freqHz uint, div clocks.DIV) {
 	// Store this clock freqency.
 	clocksHz[clk] = freqHz
 }
+
+//go:linkname set github.com/embeddedgo/pico/hal/system.setClock
