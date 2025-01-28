@@ -6,9 +6,14 @@
 #include "funcdata.h"
 #include "textflag.h"
 
-
+#define ICSR_ADDR 0xe000ed04
+#define ICSR_PENDSVSET (1<<28)
+#define NVIC_ISER0 0xE000E100
+#define NVIC_IPR0 0xE000E400
 #define RP2350_RAMEND (0x20000000 + 520*1024)
 #define SIO_CPUID_ADDR 0xD0000000
+#define SIO_DOORBELL_OUT_SET 0xD0000180
+#define SIO_DOORBELL_IN_CLR 0xD000018C
 #define SIO_FIFO_ADDR 0xD0000050
 #define FIFO_ST 0
 #define FIFO_WR 4
@@ -19,7 +24,10 @@
 // _rt0_thumb_noos is the first function of the Embedded Go program
 TEXT _rt0_thumb_noos(SB),NOSPLIT|NOFRAME,$0
 	// Uncomment in case of truble to connect the debugger to the running program.
-	//B   0(PC)  // gdb `set $pc += 4` to exit this loop
+	//B  0(PC)  // gdb `set $pc += 4` to exit this loop
+
+	// Disable exceptions until the CPU is ready for SVCall and PendSV.
+	CPSID
 
 	// Use the last 8 KB of RAM for two 4 KB stacks
 	MOVW  $runtime·ramend(SB), R0
@@ -48,6 +56,15 @@ TEXT _rt0_thumb_noos(SB),NOSPLIT|NOFRAME,$0
 	BL         runtime·initCPU(SB)
 	ADD        $8, R13
 
+	// Enable SIO_IRQ_BELL (IRQ26) to support the runtime.preepmtOrWakeup
+	MOVW  $(NVIC_IPR0+26), R0
+	MOVW  $(14<<4), R1  // slightly higher than PendSV priority
+	MOVB  R1, (R0)
+	MOVW  $NVIC_ISER0, R0
+	MOVW  $(1<<26), R1  // IRQ26
+	MOVW  R1, (R0)
+
+	// CPU execution paths diverge here.
 	MOVW  $SIO_CPUID_ADDR, R1
 	MOVW  (R1), R1
 	CBZ   R1, cpu0
@@ -71,8 +88,9 @@ waitTaskerReady:
 	ORR   $2, R0  // use PSP as a stack pointer
 	MOVW  R0, CONTROL
 	ISB
-	BL  runtime·curcpuSchedule(SB)  // raise the PendSV exception
-	B   0(PC)                       // CPU1 never retuns here from PendSV
+	BL     runtime·curcpuSchedule(SB)  // raise the PendSV exception
+	CPSIE  // enable exceptions (CPU1 should take PendSV immediately)
+	B      0(PC)  // CPU1 never retuns here from PendSV
 
 cpu0:
 	// Clear memory and load the data segment from Flash.
@@ -137,4 +155,29 @@ TEXT runtime·identcurcpu(SB),NOSPLIT|NOFRAME,$0-0
 	MOVW  $SIO_CPUID_ADDR, R1
 	MOVW  (R1), R1
 	MOVW  (R0)(R1*4), R0  // R0 = thetasker.allcpu[cpuid]
+	RET
+
+
+// func preepmtOrWakeup(cpuid int)
+TEXT runtime·preemptOrWakeup(SB),NOSPLIT|NOFRAME,$0-4
+	MOVW    cpuid+0(FP), R0
+	CMP     $-1, R0
+	RET.EQ  // wakeup the current CPU (no need to do anything)
+
+	MOVW  $SIO_DOORBELL_OUT_SET, R0
+	MOVW  $1, R1
+	MOVW  R1, (R0)  // rise SIO_IRQ_BELL (IRQ26) on the opposite core
+	RET
+
+
+// SIO_IRQ_BELL handler
+TEXT IRQ26_Handler(SB),NOSPLIT|NOFRAME,$0-0
+	MOVW  $SIO_DOORBELL_IN_CLR, R0
+	MOVW  $1, R1
+	MOVW  R1, (R0)  // clear this IRQ
+
+	MOVW  $ICSR_ADDR, R0
+	MOVW  $ICSR_PENDSVSET, R1
+	MOVW  R1, (R0)  // rise PendSV
+
 	RET
