@@ -12,8 +12,8 @@ import (
 )
 
 type padsbank struct {
-	voltage mmio.R32[uint32]
-	pad     [50]mmio.R32[uint32]
+	voltage mmio.U32
+	pad     [50]mmio.U32
 }
 
 func pb() *padsbank {

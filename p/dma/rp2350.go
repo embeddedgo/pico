@@ -10,20 +10,20 @@
 //
 // Registers:
 //
-//	0x000 32  CH{READ_ADDR,WRITE_ADDR,TRANS_COUNT,CTRL_TRIG,AL1_CTRL,AL1_READ_ADDR,AL1_WRITE_ADDR,AL1_TRANS_COUNT_TRIG,AL2_CTRL,AL2_TRANS_COUNT,AL2_READ_ADDR,AL2_WRITE_ADDR_TRIG,AL3_CTRL,AL3_WRITE_ADDR,AL3_TRANS_COUNT,AL3_READ_ADDR_TRIG}[16]  Channel status and control registers
-//	0x400 32  INT{R,E,F,S}[4]                                                                                                                                                                                                                      Interrupt status and control registers
-//	0x440 32  TIMER[4]                                                                                                                                                                                                                             Pacing (X/Y) fractional timer The pacing timer produces TREQ assertions at a rate set by ((X/Y) * sys_clk). This equation is evaluated every sys_clk cycles and therefore can only generate TREQs at a rate of 1 per sys_clk (i.e. permanent TREQ) or less.
-//	0x450 32  MULTI_CHAN_TRIGGER                                                                                                                                                                                                                   Trigger one or more channels simultaneously
-//	0x454 32  SNIFF_CTRL                                                                                                                                                                                                                           Sniffer Control
-//	0x458 32  SNIFF_DATA                                                                                                                                                                                                                           Data accumulator for sniff hardware
-//	0x460 32  FIFO_LEVELS                                                                                                                                                                                                                          Debug RAF, WAF, TDF levels
-//	0x468 32  N_CHANNELS                                                                                                                                                                                                                           The number of channels this DMA instance is equipped with. This DMA supports up to 16 hardware channels, but can be configured with as few as one, to minimise silicon area.
-//	0x480 32  SECCFG_CH[16]                                                                                                                                                                                                                        Security configuration for channel 0. Control whether this channel performs Secure/Non-secure and Privileged/Unprivileged bus accesses. If this channel generates bus accesses of some security level, an access of at least that level (in the order S+P > S+U > NS+P > NS+U) is required to program, trigger, abort, check the status of, interrupt on or acknowledge the interrupt of this channel. This register automatically locks down (becomes read-only) once software starts to configure the channel. This register is world-readable, but is writable only from a Secure, Privileged context.
-//	0x4C0 32  SECCFG_IRQ[4]                                                                                                                                                                                                                        Security configuration for IRQ 0. Control whether the IRQ permits configuration by Non-secure/Unprivileged contexts, and whether it can observe Secure/Privileged channel interrupt flags.
-//	0x4D0 32  SECCFG_MISC                                                                                                                                                                                                                          Miscellaneous security configuration
-//	0x500 32  MPU_CTRL                                                                                                                                                                                                                             Control register for DMA MPU. Accessible only from a Privileged context.
-//	0x504 32  MPU{BAR,LAR}[8]                                                                                                                                                                                                                      DMA Memory Protection Unit registers
-//	0x800 32  CH_DBG{DBG_CTDREQ,DBG_TCR}[16]                                                                                                                                                                                                       Channel debug registers
+//	0x000 32  CH{READ_ADDR,WRITE_ADDR,TRANS_COUNT,CTRL_TRIG(CTRL),AL1_CTRL(CTRL),AL1_READ_ADDR,AL1_WRITE_ADDR,AL1_TRANS_COUNT_TRIG(TRANS_COUNT),AL2_CTRL(CTRL),AL2_TRANS_COUNT(TRANS_COUNT),AL2_READ_ADDR,AL2_WRITE_ADDR_TRIG,AL3_CTRL(CTRL),AL3_WRITE_ADDR,AL3_TRANS_COUNT(TRANS_COUNT),AL3_READ_ADDR_TRIG}[16]  Channel status and control registers
+//	0x400 32  INT{R,E,F,S}[4]                                                                                                                                                                                                                                                                                     Interrupt status and control registers
+//	0x440 32  TIMER[4]                                                                                                                                                                                                                                                                                            Pacing (X/Y) fractional timer The pacing timer produces TREQ assertions at a rate set by ((X/Y) * sys_clk). This equation is evaluated every sys_clk cycles and therefore can only generate TREQs at a rate of 1 per sys_clk (i.e. permanent TREQ) or less.
+//	0x450 32  MULTI_CHAN_TRIGGER                                                                                                                                                                                                                                                                                  Trigger one or more channels simultaneously
+//	0x454 32  SNIFF_CTRL                                                                                                                                                                                                                                                                                          Sniffer Control
+//	0x458 32  SNIFF_DATA                                                                                                                                                                                                                                                                                          Data accumulator for sniff hardware
+//	0x460 32  FIFO_LEVELS                                                                                                                                                                                                                                                                                         Debug RAF, WAF, TDF levels
+//	0x468 32  N_CHANNELS                                                                                                                                                                                                                                                                                          The number of channels this DMA instance is equipped with. This DMA supports up to 16 hardware channels, but can be configured with as few as one, to minimise silicon area.
+//	0x480 32  SECCFG_CH[16]                                                                                                                                                                                                                                                                                       Security configuration for channel 0. Control whether this channel performs Secure/Non-secure and Privileged/Unprivileged bus accesses. If this channel generates bus accesses of some security level, an access of at least that level (in the order S+P > S+U > NS+P > NS+U) is required to program, trigger, abort, check the status of, interrupt on or acknowledge the interrupt of this channel. This register automatically locks down (becomes read-only) once software starts to configure the channel. This register is world-readable, but is writable only from a Secure, Privileged context.
+//	0x4C0 32  SECCFG_IRQ[4]                                                                                                                                                                                                                                                                                       Security configuration for IRQ 0. Control whether the IRQ permits configuration by Non-secure/Unprivileged contexts, and whether it can observe Secure/Privileged channel interrupt flags.
+//	0x4D0 32  SECCFG_MISC                                                                                                                                                                                                                                                                                         Miscellaneous security configuration
+//	0x500 32  MPU_CTRL                                                                                                                                                                                                                                                                                            Control register for DMA MPU. Accessible only from a Privileged context.
+//	0x504 32  MPU{BAR,LAR}[8]                                                                                                                                                                                                                                                                                     DMA Memory Protection Unit registers
+//	0x800 32  CH_DBG{DBG_CTDREQ,DBG_TCR}[16]                                                                                                                                                                                                                                                                      Channel debug registers
 //
 // Import:
 //
@@ -44,88 +44,88 @@ const (
 )
 
 const (
-	EN             CTRL_TRIG = 0x01 << 0 //+ DMA Channel Enable. When 1, the channel will respond to triggering events, which will cause it to become BUSY and start transferring data. When 0, the channel will ignore triggers, stop issuing transfers, and pause the current transfer sequence (i.e. BUSY will remain high if already high)
-	HIGH_PRIORITY  CTRL_TRIG = 0x01 << 1 //+ HIGH_PRIORITY gives a channel preferential treatment in issue scheduling: in each scheduling round, all high priority channels are considered first, and then only a single low priority channel, before returning to the high priority channels. This only affects the order in which the DMA schedules channels. The DMA's bus priority is not changed. If the DMA is not saturated then a low priority channel will see no loss of throughput.
-	DATA_SIZE      CTRL_TRIG = 0x03 << 2 //+ Set the size of each bus transfer (byte/halfword/word). READ_ADDR and WRITE_ADDR advance by this amount (1/2/4 bytes) with each transfer.
-	SIZE_BYTE      CTRL_TRIG = 0x00 << 2
-	SIZE_HALFWORD  CTRL_TRIG = 0x01 << 2
-	SIZE_WORD      CTRL_TRIG = 0x02 << 2
-	INCR_READ      CTRL_TRIG = 0x01 << 4 //+ If 1, the read address increments with each transfer. If 0, each read is directed to the same, initial address. Generally this should be disabled for peripheral-to-memory transfers.
-	INCR_READ_REV  CTRL_TRIG = 0x01 << 5 //+ If 1, and INCR_READ is 1, the read address is decremented rather than incremented with each transfer. If 1, and INCR_READ is 0, this otherwise-unused combination causes the read address to be incremented by twice the transfer size, i.e. skipping over alternate addresses.
-	INCR_WRITE     CTRL_TRIG = 0x01 << 6 //+ If 1, the write address increments with each transfer. If 0, each write is directed to the same, initial address. Generally this should be disabled for memory-to-peripheral transfers.
-	INCR_WRITE_REV CTRL_TRIG = 0x01 << 7 //+ If 1, and INCR_WRITE is 1, the write address is decremented rather than incremented with each transfer. If 1, and INCR_WRITE is 0, this otherwise-unused combination causes the write address to be incremented by twice the transfer size, i.e. skipping over alternate addresses.
-	RING_SIZE      CTRL_TRIG = 0x0F << 8 //+ Size of address wrap region. If 0, don't wrap. For values n > 0, only the lower n bits of the address will change. This wraps the address on a (1 << n) byte boundary, facilitating access to naturally-aligned ring buffers. Ring sizes between 2 and 32768 bytes are possible. This can apply to either read or write addresses, based on value of RING_SEL.
-	RING_NONE      CTRL_TRIG = 0x00 << 8
-	RING_SEL       CTRL_TRIG = 0x01 << 12 //+ Select whether RING_SIZE applies to read or write addresses. If 0, read addresses are wrapped on a (1 << RING_SIZE) boundary. If 1, write addresses are wrapped.
-	CHAIN_TO       CTRL_TRIG = 0x0F << 13 //+ When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. Note this field resets to 0, so channels 1 and above will chain to channel 0 by default. Set this field to avoid this behaviour.
-	TREQ_SEL       CTRL_TRIG = 0x3F << 17 //+ Select a Transfer Request signal. The channel uses the transfer request signal to pace its data transfer rate. Sources for TREQ signals are internal (TIMERS) or external (DREQ, a Data Request from the system). 0x0 to 0x3a -> select DREQ n as TREQ
-	PIO0_TX0       CTRL_TRIG = 0x00 << 17 //  Select PIO0's TX FIFO 0 as TREQ
-	PIO0_TX1       CTRL_TRIG = 0x01 << 17 //  Select PIO0's TX FIFO 1 as TREQ
-	PIO0_TX2       CTRL_TRIG = 0x02 << 17 //  Select PIO0's TX FIFO 2 as TREQ
-	PIO0_TX3       CTRL_TRIG = 0x03 << 17 //  Select PIO0's TX FIFO 3 as TREQ
-	PIO0_RX0       CTRL_TRIG = 0x04 << 17 //  Select PIO0's RX FIFO 0 as TREQ
-	PIO0_RX1       CTRL_TRIG = 0x05 << 17 //  Select PIO0's RX FIFO 1 as TREQ
-	PIO0_RX2       CTRL_TRIG = 0x06 << 17 //  Select PIO0's RX FIFO 2 as TREQ
-	PIO0_RX3       CTRL_TRIG = 0x07 << 17 //  Select PIO0's RX FIFO 3 as TREQ
-	PIO1_TX0       CTRL_TRIG = 0x08 << 17 //  Select PIO1's TX FIFO 0 as TREQ
-	PIO1_TX1       CTRL_TRIG = 0x09 << 17 //  Select PIO1's TX FIFO 1 as TREQ
-	PIO1_TX2       CTRL_TRIG = 0x0A << 17 //  Select PIO1's TX FIFO 2 as TREQ
-	PIO1_TX3       CTRL_TRIG = 0x0B << 17 //  Select PIO1's TX FIFO 3 as TREQ
-	PIO1_RX0       CTRL_TRIG = 0x0C << 17 //  Select PIO1's RX FIFO 0 as TREQ
-	PIO1_RX1       CTRL_TRIG = 0x0D << 17 //  Select PIO1's RX FIFO 1 as TREQ
-	PIO1_RX2       CTRL_TRIG = 0x0E << 17 //  Select PIO1's RX FIFO 2 as TREQ
-	PIO1_RX3       CTRL_TRIG = 0x0F << 17 //  Select PIO1's RX FIFO 3 as TREQ
-	PIO2_TX0       CTRL_TRIG = 0x10 << 17 //  Select PIO2's TX FIFO 0 as TREQ
-	PIO2_TX1       CTRL_TRIG = 0x11 << 17 //  Select PIO2's TX FIFO 1 as TREQ
-	PIO2_TX2       CTRL_TRIG = 0x12 << 17 //  Select PIO2's TX FIFO 2 as TREQ
-	PIO2_TX3       CTRL_TRIG = 0x13 << 17 //  Select PIO2's TX FIFO 3 as TREQ
-	PIO2_RX0       CTRL_TRIG = 0x14 << 17 //  Select PIO2's RX FIFO 0 as TREQ
-	PIO2_RX1       CTRL_TRIG = 0x15 << 17 //  Select PIO2's RX FIFO 1 as TREQ
-	PIO2_RX2       CTRL_TRIG = 0x16 << 17 //  Select PIO2's RX FIFO 2 as TREQ
-	PIO2_RX3       CTRL_TRIG = 0x17 << 17 //  Select PIO2's RX FIFO 3 as TREQ
-	SPI0_TX        CTRL_TRIG = 0x18 << 17 //  Select SPI0's TX FIFO as TREQ
-	SPI0_RX        CTRL_TRIG = 0x19 << 17 //  Select SPI0's RX FIFO as TREQ
-	SPI1_TX        CTRL_TRIG = 0x1A << 17 //  Select SPI1's TX FIFO as TREQ
-	SPI1_RX        CTRL_TRIG = 0x1B << 17 //  Select SPI1's RX FIFO as TREQ
-	UART0_TX       CTRL_TRIG = 0x1C << 17 //  Select UART0's TX FIFO as TREQ
-	UART0_RX       CTRL_TRIG = 0x1D << 17 //  Select UART0's RX FIFO as TREQ
-	UART1_TX       CTRL_TRIG = 0x1E << 17 //  Select UART1's TX FIFO as TREQ
-	UART1_RX       CTRL_TRIG = 0x1F << 17 //  Select UART1's RX FIFO as TREQ
-	PWM_WRAP0      CTRL_TRIG = 0x20 << 17 //  Select PWM Counter 0's Wrap Value as TREQ
-	PWM_WRAP1      CTRL_TRIG = 0x21 << 17 //  Select PWM Counter 1's Wrap Value as TREQ
-	PWM_WRAP2      CTRL_TRIG = 0x22 << 17 //  Select PWM Counter 2's Wrap Value as TREQ
-	PWM_WRAP3      CTRL_TRIG = 0x23 << 17 //  Select PWM Counter 3's Wrap Value as TREQ
-	PWM_WRAP4      CTRL_TRIG = 0x24 << 17 //  Select PWM Counter 4's Wrap Value as TREQ
-	PWM_WRAP5      CTRL_TRIG = 0x25 << 17 //  Select PWM Counter 5's Wrap Value as TREQ
-	PWM_WRAP6      CTRL_TRIG = 0x26 << 17 //  Select PWM Counter 6's Wrap Value as TREQ
-	PWM_WRAP7      CTRL_TRIG = 0x27 << 17 //  Select PWM Counter 7's Wrap Value as TREQ
-	PWM_WRAP8      CTRL_TRIG = 0x28 << 17 //  Select PWM Counter 8's Wrap Value as TREQ
-	PWM_WRAP9      CTRL_TRIG = 0x29 << 17 //  Select PWM Counter 9's Wrap Value as TREQ
-	PWM_WRAP10     CTRL_TRIG = 0x2A << 17 //  Select PWM Counter 0's Wrap Value as TREQ
-	PWM_WRAP11     CTRL_TRIG = 0x2B << 17 //  Select PWM Counter 1's Wrap Value as TREQ
-	I2C0_TX        CTRL_TRIG = 0x2C << 17 //  Select I2C0's TX FIFO as TREQ
-	I2C0_RX        CTRL_TRIG = 0x2D << 17 //  Select I2C0's RX FIFO as TREQ
-	I2C1_TX        CTRL_TRIG = 0x2E << 17 //  Select I2C1's TX FIFO as TREQ
-	I2C1_RX        CTRL_TRIG = 0x2F << 17 //  Select I2C1's RX FIFO as TREQ
-	ADC            CTRL_TRIG = 0x30 << 17 //  Select the ADC as TREQ
-	XIP_STREAM     CTRL_TRIG = 0x31 << 17 //  Select the XIP Streaming FIFO as TREQ
-	XIP_QMITX      CTRL_TRIG = 0x32 << 17 //  Select XIP_QMITX as TREQ
-	XIP_QMIRX      CTRL_TRIG = 0x33 << 17 //  Select XIP_QMIRX as TREQ
-	HSTX           CTRL_TRIG = 0x34 << 17 //  Select HSTX as TREQ
-	CORESIGHT      CTRL_TRIG = 0x35 << 17 //  Select CORESIGHT as TREQ
-	SHA256         CTRL_TRIG = 0x36 << 17 //  Select SHA256 as TREQ
-	TIMER0         CTRL_TRIG = 0x3B << 17 //  Select Timer 0 as TREQ
-	TIMER1         CTRL_TRIG = 0x3C << 17 //  Select Timer 1 as TREQ
-	TIMER2         CTRL_TRIG = 0x3D << 17 //  Select Timer 2 as TREQ (Optional)
-	TIMER3         CTRL_TRIG = 0x3E << 17 //  Select Timer 3 as TREQ (Optional)
-	PERMANENT      CTRL_TRIG = 0x3F << 17 //  Permanent request, for unpaced transfers.
-	IRQ_QUIET      CTRL_TRIG = 0x01 << 23 //+ In QUIET mode, the channel does not generate IRQs at the end of every transfer block. Instead, an IRQ is raised when NULL is written to a trigger register, indicating the end of a control block chain. This reduces the number of interrupts to be serviced by the CPU when transferring a DMA chain of many small control blocks.
-	BSWAP          CTRL_TRIG = 0x01 << 24 //+ Apply byte-swap transformation to DMA data. For byte data, this has no effect. For halfword data, the two bytes of each halfword are swapped. For word data, the four bytes of each word are swapped to reverse order.
-	SNIFF_EN       CTRL_TRIG = 0x01 << 25 //+ If 1, this channel's data transfers are visible to the sniff hardware, and each transfer will advance the state of the checksum. This only applies if the sniff hardware is enabled, and has this channel selected. This allows checksum to be enabled or disabled on a per-control- block basis.
-	BUSY           CTRL_TRIG = 0x01 << 26 //+ This flag goes high when the channel starts a new transfer sequence, and low when the last transfer of that sequence completes. Clearing EN while BUSY is high pauses the channel, and BUSY will stay high while paused. To terminate a sequence early (and clear the BUSY flag), see CHAN_ABORT.
-	WRITE_ERROR    CTRL_TRIG = 0x01 << 29 //+ If 1, the channel received a write bus error. Write one to clear. WRITE_ADDR shows the approximate address where the bus error was encountered (will not be earlier, or more than 5 transfers later)
-	READ_ERROR     CTRL_TRIG = 0x01 << 30 //+ If 1, the channel received a read bus error. Write one to clear. READ_ADDR shows the approximate address where the bus error was encountered (will not be earlier, or more than 3 transfers later)
-	AHB_ERROR      CTRL_TRIG = 0x01 << 31 //+ Logical OR of the READ_ERROR and WRITE_ERROR flags. The channel halts when it encounters any bus error, and always raises its channel IRQ flag.
+	EN             CTRL = 0x01 << 0 //+ DMA Channel Enable. When 1, the channel will respond to triggering events, which will cause it to become BUSY and start transferring data. When 0, the channel will ignore triggers, stop issuing transfers, and pause the current transfer sequence (i.e. BUSY will remain high if already high)
+	HIGH_PRIORITY  CTRL = 0x01 << 1 //+ HIGH_PRIORITY gives a channel preferential treatment in issue scheduling: in each scheduling round, all high priority channels are considered first, and then only a single low priority channel, before returning to the high priority channels. This only affects the order in which the DMA schedules channels. The DMA's bus priority is not changed. If the DMA is not saturated then a low priority channel will see no loss of throughput.
+	DATA_SIZE      CTRL = 0x03 << 2 //+ Set the size of each bus transfer (byte/halfword/word). READ_ADDR and WRITE_ADDR advance by this amount (1/2/4 bytes) with each transfer.
+	SIZE_BYTE      CTRL = 0x00 << 2
+	SIZE_HALFWORD  CTRL = 0x01 << 2
+	SIZE_WORD      CTRL = 0x02 << 2
+	INCR_READ      CTRL = 0x01 << 4 //+ If 1, the read address increments with each transfer. If 0, each read is directed to the same, initial address. Generally this should be disabled for peripheral-to-memory transfers.
+	INCR_READ_REV  CTRL = 0x01 << 5 //+ If 1, and INCR_READ is 1, the read address is decremented rather than incremented with each transfer. If 1, and INCR_READ is 0, this otherwise-unused combination causes the read address to be incremented by twice the transfer size, i.e. skipping over alternate addresses.
+	INCR_WRITE     CTRL = 0x01 << 6 //+ If 1, the write address increments with each transfer. If 0, each write is directed to the same, initial address. Generally this should be disabled for memory-to-peripheral transfers.
+	INCR_WRITE_REV CTRL = 0x01 << 7 //+ If 1, and INCR_WRITE is 1, the write address is decremented rather than incremented with each transfer. If 1, and INCR_WRITE is 0, this otherwise-unused combination causes the write address to be incremented by twice the transfer size, i.e. skipping over alternate addresses.
+	RING_SIZE      CTRL = 0x0F << 8 //+ Size of address wrap region. If 0, don't wrap. For values n > 0, only the lower n bits of the address will change. This wraps the address on a (1 << n) byte boundary, facilitating access to naturally-aligned ring buffers. Ring sizes between 2 and 32768 bytes are possible. This can apply to either read or write addresses, based on value of RING_SEL.
+	RING_NONE      CTRL = 0x00 << 8
+	RING_SEL       CTRL = 0x01 << 12 //+ Select whether RING_SIZE applies to read or write addresses. If 0, read addresses are wrapped on a (1 << RING_SIZE) boundary. If 1, write addresses are wrapped.
+	CHAIN_TO       CTRL = 0x0F << 13 //+ When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. Note this field resets to 0, so channels 1 and above will chain to channel 0 by default. Set this field to avoid this behaviour.
+	TREQ_SEL       CTRL = 0x3F << 17 //+ Select a Transfer Request signal. The channel uses the transfer request signal to pace its data transfer rate. Sources for TREQ signals are internal (TIMERS) or external (DREQ, a Data Request from the system). 0x0 to 0x3a -> select DREQ n as TREQ
+	PIO0_TX0       CTRL = 0x00 << 17 //  Select PIO0's TX FIFO 0 as TREQ
+	PIO0_TX1       CTRL = 0x01 << 17 //  Select PIO0's TX FIFO 1 as TREQ
+	PIO0_TX2       CTRL = 0x02 << 17 //  Select PIO0's TX FIFO 2 as TREQ
+	PIO0_TX3       CTRL = 0x03 << 17 //  Select PIO0's TX FIFO 3 as TREQ
+	PIO0_RX0       CTRL = 0x04 << 17 //  Select PIO0's RX FIFO 0 as TREQ
+	PIO0_RX1       CTRL = 0x05 << 17 //  Select PIO0's RX FIFO 1 as TREQ
+	PIO0_RX2       CTRL = 0x06 << 17 //  Select PIO0's RX FIFO 2 as TREQ
+	PIO0_RX3       CTRL = 0x07 << 17 //  Select PIO0's RX FIFO 3 as TREQ
+	PIO1_TX0       CTRL = 0x08 << 17 //  Select PIO1's TX FIFO 0 as TREQ
+	PIO1_TX1       CTRL = 0x09 << 17 //  Select PIO1's TX FIFO 1 as TREQ
+	PIO1_TX2       CTRL = 0x0A << 17 //  Select PIO1's TX FIFO 2 as TREQ
+	PIO1_TX3       CTRL = 0x0B << 17 //  Select PIO1's TX FIFO 3 as TREQ
+	PIO1_RX0       CTRL = 0x0C << 17 //  Select PIO1's RX FIFO 0 as TREQ
+	PIO1_RX1       CTRL = 0x0D << 17 //  Select PIO1's RX FIFO 1 as TREQ
+	PIO1_RX2       CTRL = 0x0E << 17 //  Select PIO1's RX FIFO 2 as TREQ
+	PIO1_RX3       CTRL = 0x0F << 17 //  Select PIO1's RX FIFO 3 as TREQ
+	PIO2_TX0       CTRL = 0x10 << 17 //  Select PIO2's TX FIFO 0 as TREQ
+	PIO2_TX1       CTRL = 0x11 << 17 //  Select PIO2's TX FIFO 1 as TREQ
+	PIO2_TX2       CTRL = 0x12 << 17 //  Select PIO2's TX FIFO 2 as TREQ
+	PIO2_TX3       CTRL = 0x13 << 17 //  Select PIO2's TX FIFO 3 as TREQ
+	PIO2_RX0       CTRL = 0x14 << 17 //  Select PIO2's RX FIFO 0 as TREQ
+	PIO2_RX1       CTRL = 0x15 << 17 //  Select PIO2's RX FIFO 1 as TREQ
+	PIO2_RX2       CTRL = 0x16 << 17 //  Select PIO2's RX FIFO 2 as TREQ
+	PIO2_RX3       CTRL = 0x17 << 17 //  Select PIO2's RX FIFO 3 as TREQ
+	SPI0_TX        CTRL = 0x18 << 17 //  Select SPI0's TX FIFO as TREQ
+	SPI0_RX        CTRL = 0x19 << 17 //  Select SPI0's RX FIFO as TREQ
+	SPI1_TX        CTRL = 0x1A << 17 //  Select SPI1's TX FIFO as TREQ
+	SPI1_RX        CTRL = 0x1B << 17 //  Select SPI1's RX FIFO as TREQ
+	UART0_TX       CTRL = 0x1C << 17 //  Select UART0's TX FIFO as TREQ
+	UART0_RX       CTRL = 0x1D << 17 //  Select UART0's RX FIFO as TREQ
+	UART1_TX       CTRL = 0x1E << 17 //  Select UART1's TX FIFO as TREQ
+	UART1_RX       CTRL = 0x1F << 17 //  Select UART1's RX FIFO as TREQ
+	PWM_WRAP0      CTRL = 0x20 << 17 //  Select PWM Counter 0's Wrap Value as TREQ
+	PWM_WRAP1      CTRL = 0x21 << 17 //  Select PWM Counter 1's Wrap Value as TREQ
+	PWM_WRAP2      CTRL = 0x22 << 17 //  Select PWM Counter 2's Wrap Value as TREQ
+	PWM_WRAP3      CTRL = 0x23 << 17 //  Select PWM Counter 3's Wrap Value as TREQ
+	PWM_WRAP4      CTRL = 0x24 << 17 //  Select PWM Counter 4's Wrap Value as TREQ
+	PWM_WRAP5      CTRL = 0x25 << 17 //  Select PWM Counter 5's Wrap Value as TREQ
+	PWM_WRAP6      CTRL = 0x26 << 17 //  Select PWM Counter 6's Wrap Value as TREQ
+	PWM_WRAP7      CTRL = 0x27 << 17 //  Select PWM Counter 7's Wrap Value as TREQ
+	PWM_WRAP8      CTRL = 0x28 << 17 //  Select PWM Counter 8's Wrap Value as TREQ
+	PWM_WRAP9      CTRL = 0x29 << 17 //  Select PWM Counter 9's Wrap Value as TREQ
+	PWM_WRAP10     CTRL = 0x2A << 17 //  Select PWM Counter 0's Wrap Value as TREQ
+	PWM_WRAP11     CTRL = 0x2B << 17 //  Select PWM Counter 1's Wrap Value as TREQ
+	I2C0_TX        CTRL = 0x2C << 17 //  Select I2C0's TX FIFO as TREQ
+	I2C0_RX        CTRL = 0x2D << 17 //  Select I2C0's RX FIFO as TREQ
+	I2C1_TX        CTRL = 0x2E << 17 //  Select I2C1's TX FIFO as TREQ
+	I2C1_RX        CTRL = 0x2F << 17 //  Select I2C1's RX FIFO as TREQ
+	ADC            CTRL = 0x30 << 17 //  Select the ADC as TREQ
+	XIP_STREAM     CTRL = 0x31 << 17 //  Select the XIP Streaming FIFO as TREQ
+	XIP_QMITX      CTRL = 0x32 << 17 //  Select XIP_QMITX as TREQ
+	XIP_QMIRX      CTRL = 0x33 << 17 //  Select XIP_QMIRX as TREQ
+	HSTX           CTRL = 0x34 << 17 //  Select HSTX as TREQ
+	CORESIGHT      CTRL = 0x35 << 17 //  Select CORESIGHT as TREQ
+	SHA256         CTRL = 0x36 << 17 //  Select SHA256 as TREQ
+	TIMER0         CTRL = 0x3B << 17 //  Select Timer 0 as TREQ
+	TIMER1         CTRL = 0x3C << 17 //  Select Timer 1 as TREQ
+	TIMER2         CTRL = 0x3D << 17 //  Select Timer 2 as TREQ (Optional)
+	TIMER3         CTRL = 0x3E << 17 //  Select Timer 3 as TREQ (Optional)
+	PERMANENT      CTRL = 0x3F << 17 //  Permanent request, for unpaced transfers.
+	IRQ_QUIET      CTRL = 0x01 << 23 //+ In QUIET mode, the channel does not generate IRQs at the end of every transfer block. Instead, an IRQ is raised when NULL is written to a trigger register, indicating the end of a control block chain. This reduces the number of interrupts to be serviced by the CPU when transferring a DMA chain of many small control blocks.
+	BSWAP          CTRL = 0x01 << 24 //+ Apply byte-swap transformation to DMA data. For byte data, this has no effect. For halfword data, the two bytes of each halfword are swapped. For word data, the four bytes of each word are swapped to reverse order.
+	SNIFF_EN       CTRL = 0x01 << 25 //+ If 1, this channel's data transfers are visible to the sniff hardware, and each transfer will advance the state of the checksum. This only applies if the sniff hardware is enabled, and has this channel selected. This allows checksum to be enabled or disabled on a per-control- block basis.
+	BUSY           CTRL = 0x01 << 26 //+ This flag goes high when the channel starts a new transfer sequence, and low when the last transfer of that sequence completes. Clearing EN while BUSY is high pauses the channel, and BUSY will stay high while paused. To terminate a sequence early (and clear the BUSY flag), see CHAN_ABORT.
+	WRITE_ERROR    CTRL = 0x01 << 29 //+ If 1, the channel received a write bus error. Write one to clear. WRITE_ADDR shows the approximate address where the bus error was encountered (will not be earlier, or more than 5 transfers later)
+	READ_ERROR     CTRL = 0x01 << 30 //+ If 1, the channel received a read bus error. Write one to clear. READ_ADDR shows the approximate address where the bus error was encountered (will not be earlier, or more than 3 transfers later)
+	AHB_ERROR      CTRL = 0x01 << 31 //+ Logical OR of the READ_ERROR and WRITE_ERROR flags. The channel halts when it encounters any bus error, and always raises its channel IRQ flag.
 )
 
 const (

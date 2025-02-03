@@ -47,7 +47,7 @@ func (p *Periph) BaseAddr() uintptr {
 type SCLK struct {
 	CTRL     mmio.R32[CTRL]
 	DIV      mmio.R32[DIV]
-	SELECTED mmio.R32[uint32]
+	SELECTED mmio.R32[SELECTED]
 }
 
 type CTRL uint32
@@ -143,6 +143,8 @@ func PERI_INT_(p *Periph, i int) mmio.RM32[DIV]   { return mmio.RM32[DIV]{&p.CLK
 func HSTX_INT_(p *Periph, i int) mmio.RM32[DIV]   { return mmio.RM32[DIV]{&p.CLK[i].DIV, HSTX_INT} }
 func USB_INT_(p *Periph, i int) mmio.RM32[DIV]    { return mmio.RM32[DIV]{&p.CLK[i].DIV, USB_INT} }
 func ADC_INT_(p *Periph, i int) mmio.RM32[DIV]    { return mmio.RM32[DIV]{&p.CLK[i].DIV, ADC_INT} }
+
+type SELECTED uint32
 
 type DFT_OSC_CTRL uint32
 
