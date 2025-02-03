@@ -7,6 +7,7 @@ package dma
 import (
 	"embedded/mmio"
 	"runtime"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
@@ -84,4 +85,31 @@ func DMA(n int) *Controller {
 		panic("wrong DMA number")
 	}
 	return (*Controller)(unsafe.Pointer(mmap.DMA_BASE))
+}
+
+func (d *Controller) Channel(n int) Channel {
+	return Channel{d, n}
+}
+
+var chanMask uint32 = 0xffff
+
+// AllocChannel allocates a free channel in the controller. It returns an
+// invalid channel if there is no free channel to be allocated. Use Channel.Free
+// to free an unused channel.
+func (d *Controller) AllocChannel() Channel {
+	for {
+		chs := atomic.LoadUint32(&chanMask)
+		if chs == 0 {
+			return Channel{}
+		}
+		n := 15
+		mask := uint32(1) << uint(n)
+		for chs&mask == 0 {
+			mask >>= 1
+			n--
+		}
+		if atomic.CompareAndSwapUint32(&chanMask, chs, chs&^mask) {
+			return Channel{d, n}
+		}
+	}
 }
