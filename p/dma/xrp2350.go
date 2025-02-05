@@ -40,27 +40,23 @@ func (p *Periph) BaseAddr() uintptr {
 }
 
 type SCH struct {
-	READ_ADDR            mmio.R32[READ_ADDR]
-	WRITE_ADDR           mmio.R32[WRITE_ADDR]
+	READ_ADDR            mmio.R32[uint32]
+	WRITE_ADDR           mmio.R32[uint32]
 	TRANS_COUNT          mmio.R32[TRANS_COUNT]
 	CTRL_TRIG            mmio.R32[CTRL]
 	AL1_CTRL             mmio.R32[CTRL]
-	AL1_READ_ADDR        mmio.R32[AL1_READ_ADDR]
-	AL1_WRITE_ADDR       mmio.R32[AL1_WRITE_ADDR]
+	AL1_READ_ADDR        mmio.R32[uint32]
+	AL1_WRITE_ADDR       mmio.R32[uint32]
 	AL1_TRANS_COUNT_TRIG mmio.R32[TRANS_COUNT]
 	AL2_CTRL             mmio.R32[CTRL]
 	AL2_TRANS_COUNT      mmio.R32[TRANS_COUNT]
-	AL2_READ_ADDR        mmio.R32[AL2_READ_ADDR]
-	AL2_WRITE_ADDR_TRIG  mmio.R32[AL2_WRITE_ADDR_TRIG]
+	AL2_READ_ADDR        mmio.R32[uint32]
+	AL2_WRITE_ADDR_TRIG  mmio.R32[uint32]
 	AL3_CTRL             mmio.R32[CTRL]
-	AL3_WRITE_ADDR       mmio.R32[AL3_WRITE_ADDR]
+	AL3_WRITE_ADDR       mmio.R32[uint32]
 	AL3_TRANS_COUNT      mmio.R32[TRANS_COUNT]
-	AL3_READ_ADDR_TRIG   mmio.R32[AL3_READ_ADDR_TRIG]
+	AL3_READ_ADDR_TRIG   mmio.R32[uint32]
 }
-
-type READ_ADDR uint32
-
-type WRITE_ADDR uint32
 
 type TRANS_COUNT uint32
 
@@ -73,32 +69,12 @@ func MODE_(p *Periph, i int) mmio.RM32[TRANS_COUNT] {
 
 type CTRL uint32
 
-type AL1_READ_ADDR uint32
-
-type AL1_WRITE_ADDR uint32
-
-type AL2_READ_ADDR uint32
-
-type AL2_WRITE_ADDR_TRIG uint32
-
-type AL3_WRITE_ADDR uint32
-
-type AL3_READ_ADDR_TRIG uint32
-
 type SINT struct {
-	R mmio.R32[R]
-	E mmio.R32[E]
-	F mmio.R32[F]
-	S mmio.R32[S]
+	R mmio.R32[uint32]
+	E mmio.R32[uint32]
+	F mmio.R32[uint32]
+	S mmio.R32[uint32]
 }
-
-type R uint32
-
-type E uint32
-
-type F uint32
-
-type S uint32
 
 type TIMER uint32
 
@@ -187,11 +163,9 @@ func NS_HIDE_ADDR_(p *Periph) mmio.RM32[MPU_CTRL] {
 }
 
 type SMPU struct {
-	BAR mmio.R32[BAR]
+	BAR mmio.R32[uint32]
 	LAR mmio.R32[LAR]
 }
-
-type BAR uint32
 
 type LAR uint32
 
@@ -201,10 +175,6 @@ func RSEC_(p *Periph, i int) mmio.RM32[LAR] { return mmio.RM32[LAR]{&p.MPU[i].LA
 func ADDR_(p *Periph, i int) mmio.RM32[LAR] { return mmio.RM32[LAR]{&p.MPU[i].LAR, ADDR} }
 
 type SCH_DBG struct {
-	DBG_CTDREQ mmio.R32[DBG_CTDREQ]
-	DBG_TCR    mmio.R32[DBG_TCR]
+	DBG_CTDREQ mmio.R32[uint32]
+	DBG_TCR    mmio.R32[uint32]
 }
-
-type DBG_CTDREQ uint32
-
-type DBG_TCR uint32

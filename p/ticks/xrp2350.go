@@ -23,15 +23,11 @@ func (p *Periph) BaseAddr() uintptr {
 
 type ST struct {
 	CTRL   mmio.R32[CTRL]
-	CYCLES mmio.R32[CYCLES]
-	COUNT  mmio.R32[COUNT]
+	CYCLES mmio.R32[uint32]
+	COUNT  mmio.R32[uint32]
 }
 
 type CTRL uint32
 
 func ENABLE_(p *Periph, i int) mmio.RM32[CTRL]  { return mmio.RM32[CTRL]{&p.T[i].CTRL, ENABLE} }
 func RUNNING_(p *Periph, i int) mmio.RM32[CTRL] { return mmio.RM32[CTRL]{&p.T[i].CTRL, RUNNING} }
-
-type CYCLES uint32
-
-type COUNT uint32
