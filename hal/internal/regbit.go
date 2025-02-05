@@ -27,3 +27,19 @@ func AtomicXor[T mmio.T32](r *mmio.R32[T], mask T) {
 func AtomicMod[T mmio.T32](r *mmio.R32[T], mask, prev, new T) {
 	(*mmio.R32[T])(unsafe.Pointer(r.Addr() + 0x1000)).Store((prev ^ new) & mask)
 }
+
+func AtomicSetU32(r *mmio.U32, mask uint32) {
+	(*mmio.U32)(unsafe.Pointer(r.Addr() + 0x2000)).Store(mask)
+}
+
+func AtomicClearU32(r *mmio.U32, mask uint32) {
+	(*mmio.U32)(unsafe.Pointer(r.Addr() + 0x3000)).Store(mask)
+}
+
+func AtomicXorU32(r *mmio.U32, mask uint32) {
+	(*mmio.U32)(unsafe.Pointer(r.Addr() + 0x1000)).Store(mask)
+}
+
+func AtomicModU32(r *mmio.U32, mask, prev, new uint32) {
+	(*mmio.U32)(unsafe.Pointer(r.Addr() + 0x1000)).Store((prev ^ new) & mask)
+}

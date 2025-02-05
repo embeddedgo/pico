@@ -6,8 +6,9 @@ package dma
 
 import (
 	"embedded/mmio"
+	"embedded/rtos"
 	"runtime"
-	"sync/atomic"
+	"sync"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
@@ -73,11 +74,6 @@ type Controller struct {
 }
 
 func init() {
-	RESETS := resets.RESETS()
-	RESETS.RESET.ClearBits(resets.DMA)
-	for RESETS.RESET_DONE.LoadBits(resets.DMA) == 0 {
-		runtime.Gosched()
-	}
 }
 
 func DMA(n int) *Controller {
@@ -87,29 +83,63 @@ func DMA(n int) *Controller {
 	return (*Controller)(unsafe.Pointer(mmap.DMA_BASE))
 }
 
-func (d *Controller) Channel(n int) Channel {
-	return Channel{d, n}
-}
-
-var chanMask uint32 = 0xffff
+var chanAlloc = struct {
+	mask uint32
+	mx   sync.Mutex
+}{mask: 0xffff_ffff}
 
 // AllocChannel allocates a free channel in the controller. It returns an
 // invalid channel if there is no free channel to be allocated. Use Channel.Free
 // to free an unused channel.
-func (d *Controller) AllocChannel() Channel {
-	for {
-		chs := atomic.LoadUint32(&chanMask)
-		if chs == 0 {
-			return Channel{}
+func (d *Controller) AllocChannel() (ch Channel) {
+	chanAlloc.mx.Lock()
+	if chanAlloc.mask != 0 {
+		mask := uint32(1)
+		if chanAlloc.mask+1 == 0 {
+			// Setup DMA before first use.
+			RESETS := resets.RESETS()
+			RESETS.RESET.ClearBits(resets.DMA) // remove reset
+			for RESETS.RESET_DONE.LoadBits(resets.DMA) == 0 {
+			}
+
+			runtime.LockOSThread()
+			pl, _ := rtos.SetPrivLevel(0)
+
+			// Allow access from user mode
+			for i := range d.seccfgCh {
+				d.seccfgCh[i].Store(0b10)
+			}
+			for i := range d.seccfgIRQ {
+				d.seccfgIRQ[i].Store(0b10)
+			}
+			d.seccfgMisc.Store(0b10_1010_1010)
+
+			rtos.SetPrivLevel(pl)
+			runtime.UnlockOSThread()
+
+			chanAlloc.mask = 0xfffe
+		} else {
+			// Find a free channel.
+			for chanAlloc.mask&mask == 0 {
+				mask <<= 1
+				ch.n++
+			}
+			chanAlloc.mask &^= mask
 		}
-		n := 15
-		mask := uint32(1) << uint(n)
-		for chs&mask == 0 {
-			mask >>= 1
-			n--
-		}
-		if atomic.CompareAndSwapUint32(&chanMask, chs, chs&^mask) {
-			return Channel{d, n}
-		}
+		ch.d = d
 	}
+	chanAlloc.mx.Unlock()
+	return
+}
+
+func (d *Controller) Trig(channels uint32) {
+	d.multiChanTrig.Store(channels)
+}
+
+func (d *Controller) ActiveIRQs() uint32 {
+	return d.irq[0].r.Load()
+}
+
+func (d *Controller) ClearIRQs(irqs uint32) {
+	d.irq[0].r.Store(irqs)
 }
