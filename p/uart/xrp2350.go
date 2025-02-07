@@ -23,10 +23,10 @@ type Periph struct {
 	LCR_H     mmio.R32[LCR_H]
 	CR        mmio.R32[CR]
 	IFLS      mmio.R32[IFLS]
-	IMSC      mmio.R32[IMSC]
-	RIS       mmio.R32[RIS]
-	MIS       mmio.R32[MIS]
-	ICR       mmio.R32[ICR]
+	IMSC      mmio.R32[IS]
+	RIS       mmio.R32[IS]
+	MIS       mmio.R32[IS]
+	ICR       mmio.R32[IS]
 	DMACR     mmio.R32[DMACR]
 	_         [997]uint32
 	PERIPHID0 mmio.R32[uint32]
@@ -95,61 +95,7 @@ type IFLS uint32
 func TXIFLSEL_(p *Periph) mmio.RM32[IFLS] { return mmio.RM32[IFLS]{&p.IFLS, TXIFLSEL} }
 func RXIFLSEL_(p *Periph) mmio.RM32[IFLS] { return mmio.RM32[IFLS]{&p.IFLS, RXIFLSEL} }
 
-type IMSC uint32
-
-func RIMIM_(p *Periph) mmio.RM32[IMSC]  { return mmio.RM32[IMSC]{&p.IMSC, RIMIM} }
-func CTSMIM_(p *Periph) mmio.RM32[IMSC] { return mmio.RM32[IMSC]{&p.IMSC, CTSMIM} }
-func DCDMIM_(p *Periph) mmio.RM32[IMSC] { return mmio.RM32[IMSC]{&p.IMSC, DCDMIM} }
-func DSRMIM_(p *Periph) mmio.RM32[IMSC] { return mmio.RM32[IMSC]{&p.IMSC, DSRMIM} }
-func RXIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, RXIM} }
-func TXIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, TXIM} }
-func RTIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, RTIM} }
-func FEIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, FEIM} }
-func PEIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, PEIM} }
-func BEIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, BEIM} }
-func OEIM_(p *Periph) mmio.RM32[IMSC]   { return mmio.RM32[IMSC]{&p.IMSC, OEIM} }
-
-type RIS uint32
-
-func RIRMIS_(p *Periph) mmio.RM32[RIS]  { return mmio.RM32[RIS]{&p.RIS, RIRMIS} }
-func CTSRMIS_(p *Periph) mmio.RM32[RIS] { return mmio.RM32[RIS]{&p.RIS, CTSRMIS} }
-func DCDRMIS_(p *Periph) mmio.RM32[RIS] { return mmio.RM32[RIS]{&p.RIS, DCDRMIS} }
-func DSRRMIS_(p *Periph) mmio.RM32[RIS] { return mmio.RM32[RIS]{&p.RIS, DSRRMIS} }
-func RXRIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, RXRIS} }
-func TXRIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, TXRIS} }
-func RTRIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, RTRIS} }
-func FERIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, FERIS} }
-func PERIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, PERIS} }
-func BERIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, BERIS} }
-func OERIS_(p *Periph) mmio.RM32[RIS]   { return mmio.RM32[RIS]{&p.RIS, OERIS} }
-
-type MIS uint32
-
-func RIMMIS_(p *Periph) mmio.RM32[MIS]  { return mmio.RM32[MIS]{&p.MIS, RIMMIS} }
-func CTSMMIS_(p *Periph) mmio.RM32[MIS] { return mmio.RM32[MIS]{&p.MIS, CTSMMIS} }
-func DCDMMIS_(p *Periph) mmio.RM32[MIS] { return mmio.RM32[MIS]{&p.MIS, DCDMMIS} }
-func DSRMMIS_(p *Periph) mmio.RM32[MIS] { return mmio.RM32[MIS]{&p.MIS, DSRMMIS} }
-func RXMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, RXMIS} }
-func TXMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, TXMIS} }
-func RTMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, RTMIS} }
-func FEMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, FEMIS} }
-func PEMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, PEMIS} }
-func BEMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, BEMIS} }
-func OEMIS_(p *Periph) mmio.RM32[MIS]   { return mmio.RM32[MIS]{&p.MIS, OEMIS} }
-
-type ICR uint32
-
-func RIMIC_(p *Periph) mmio.RM32[ICR]  { return mmio.RM32[ICR]{&p.ICR, RIMIC} }
-func CTSMIC_(p *Periph) mmio.RM32[ICR] { return mmio.RM32[ICR]{&p.ICR, CTSMIC} }
-func DCDMIC_(p *Periph) mmio.RM32[ICR] { return mmio.RM32[ICR]{&p.ICR, DCDMIC} }
-func DSRMIC_(p *Periph) mmio.RM32[ICR] { return mmio.RM32[ICR]{&p.ICR, DSRMIC} }
-func RXIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, RXIC} }
-func TXIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, TXIC} }
-func RTIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, RTIC} }
-func FEIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, FEIC} }
-func PEIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, PEIC} }
-func BEIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, BEIC} }
-func OEIC_(p *Periph) mmio.RM32[ICR]   { return mmio.RM32[ICR]{&p.ICR, OEIC} }
+type IS uint32
 
 type DMACR uint32
 

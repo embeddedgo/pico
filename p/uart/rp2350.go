@@ -20,10 +20,10 @@
 //	0x02C 32  LCR_H      Line Control Register
 //	0x030 32  CR         Control Register
 //	0x034 32  IFLS       Interrupt FIFO Level Select Register
-//	0x038 32  IMSC       Interrupt Mask Set/Clear Register
-//	0x03C 32  RIS        Raw Interrupt Status Register
-//	0x040 32  MIS        Masked Interrupt Status Register
-//	0x044 32  ICR        Interrupt Clear Register
+//	0x038 32  IMSC(IS)   Interrupt Mask Set/Clear Register
+//	0x03C 32  RIS(IS)    Raw Interrupt Status Register
+//	0x040 32  MIS(IS)    Masked Interrupt Status Register
+//	0x044 32  ICR(IS)    Interrupt Clear Register
 //	0x048 32  DMACR      DMA Control Register
 //	0xFE0 32  PERIPHID0  UARTPeriphID0 Register
 //	0xFE4 32  PERIPHID1  UARTPeriphID1 Register
@@ -138,45 +138,17 @@ const (
 )
 
 const (
-	RIMIM  IMSC = 0x01 << 0  //+ nUARTRI modem interrupt mask. A read returns the current mask for the UARTRIINTR interrupt. On a write of 1, the mask of the UARTRIINTR interrupt is set. A write of 0 clears the mask.
-	CTSMIM IMSC = 0x01 << 1  //+ nUARTCTS modem interrupt mask. A read returns the current mask for the UARTCTSINTR interrupt. On a write of 1, the mask of the UARTCTSINTR interrupt is set. A write of 0 clears the mask.
-	DCDMIM IMSC = 0x01 << 2  //+ nUARTDCD modem interrupt mask. A read returns the current mask for the UARTDCDINTR interrupt. On a write of 1, the mask of the UARTDCDINTR interrupt is set. A write of 0 clears the mask.
-	DSRMIM IMSC = 0x01 << 3  //+ nUARTDSR modem interrupt mask. A read returns the current mask for the UARTDSRINTR interrupt. On a write of 1, the mask of the UARTDSRINTR interrupt is set. A write of 0 clears the mask.
-	RXIM   IMSC = 0x01 << 4  //+ Receive interrupt mask. A read returns the current mask for the UARTRXINTR interrupt. On a write of 1, the mask of the UARTRXINTR interrupt is set. A write of 0 clears the mask.
-	TXIM   IMSC = 0x01 << 5  //+ Transmit interrupt mask. A read returns the current mask for the UARTTXINTR interrupt. On a write of 1, the mask of the UARTTXINTR interrupt is set. A write of 0 clears the mask.
-	RTIM   IMSC = 0x01 << 6  //+ Receive timeout interrupt mask. A read returns the current mask for the UARTRTINTR interrupt. On a write of 1, the mask of the UARTRTINTR interrupt is set. A write of 0 clears the mask.
-	FEIM   IMSC = 0x01 << 7  //+ Framing error interrupt mask. A read returns the current mask for the UARTFEINTR interrupt. On a write of 1, the mask of the UARTFEINTR interrupt is set. A write of 0 clears the mask.
-	PEIM   IMSC = 0x01 << 8  //+ Parity error interrupt mask. A read returns the current mask for the UARTPEINTR interrupt. On a write of 1, the mask of the UARTPEINTR interrupt is set. A write of 0 clears the mask.
-	BEIM   IMSC = 0x01 << 9  //+ Break error interrupt mask. A read returns the current mask for the UARTBEINTR interrupt. On a write of 1, the mask of the UARTBEINTR interrupt is set. A write of 0 clears the mask.
-	OEIM   IMSC = 0x01 << 10 //+ Overrun error interrupt mask. A read returns the current mask for the UARTOEINTR interrupt. On a write of 1, the mask of the UARTOEINTR interrupt is set. A write of 0 clears the mask.
-)
-
-const (
-	RIMIMn  = 0
-	CTSMIMn = 1
-	DCDMIMn = 2
-	DSRMIMn = 3
-	RXIMn   = 4
-	TXIMn   = 5
-	RTIMn   = 6
-	FEIMn   = 7
-	PEIMn   = 8
-	BEIMn   = 9
-	OEIMn   = 10
-)
-
-const (
-	RIRMIS  RIS = 0x01 << 0  //+ nUARTRI modem interrupt status. Returns the raw interrupt state of the UARTRIINTR interrupt.
-	CTSRMIS RIS = 0x01 << 1  //+ nUARTCTS modem interrupt status. Returns the raw interrupt state of the UARTCTSINTR interrupt.
-	DCDRMIS RIS = 0x01 << 2  //+ nUARTDCD modem interrupt status. Returns the raw interrupt state of the UARTDCDINTR interrupt.
-	DSRRMIS RIS = 0x01 << 3  //+ nUARTDSR modem interrupt status. Returns the raw interrupt state of the UARTDSRINTR interrupt.
-	RXRIS   RIS = 0x01 << 4  //+ Receive interrupt status. Returns the raw interrupt state of the UARTRXINTR interrupt.
-	TXRIS   RIS = 0x01 << 5  //+ Transmit interrupt status. Returns the raw interrupt state of the UARTTXINTR interrupt.
-	RTRIS   RIS = 0x01 << 6  //+ Receive timeout interrupt status. Returns the raw interrupt state of the UARTRTINTR interrupt. a
-	FERIS   RIS = 0x01 << 7  //+ Framing error interrupt status. Returns the raw interrupt state of the UARTFEINTR interrupt.
-	PERIS   RIS = 0x01 << 8  //+ Parity error interrupt status. Returns the raw interrupt state of the UARTPEINTR interrupt.
-	BERIS   RIS = 0x01 << 9  //+ Break error interrupt status. Returns the raw interrupt state of the UARTBEINTR interrupt.
-	OERIS   RIS = 0x01 << 10 //+ Overrun error interrupt status. Returns the raw interrupt state of the UARTOEINTR interrupt.
+	RIRMIS  IS = 0x01 << 0  //+ nUARTRI modem interrupt status. Returns the raw interrupt state of the UARTRIINTR interrupt.
+	CTSRMIS IS = 0x01 << 1  //+ nUARTCTS modem interrupt status. Returns the raw interrupt state of the UARTCTSINTR interrupt.
+	DCDRMIS IS = 0x01 << 2  //+ nUARTDCD modem interrupt status. Returns the raw interrupt state of the UARTDCDINTR interrupt.
+	DSRRMIS IS = 0x01 << 3  //+ nUARTDSR modem interrupt status. Returns the raw interrupt state of the UARTDSRINTR interrupt.
+	RXRIS   IS = 0x01 << 4  //+ Receive interrupt status. Returns the raw interrupt state of the UARTRXINTR interrupt.
+	TXRIS   IS = 0x01 << 5  //+ Transmit interrupt status. Returns the raw interrupt state of the UARTTXINTR interrupt.
+	RTRIS   IS = 0x01 << 6  //+ Receive timeout interrupt status. Returns the raw interrupt state of the UARTRTINTR interrupt. a
+	FERIS   IS = 0x01 << 7  //+ Framing error interrupt status. Returns the raw interrupt state of the UARTFEINTR interrupt.
+	PERIS   IS = 0x01 << 8  //+ Parity error interrupt status. Returns the raw interrupt state of the UARTPEINTR interrupt.
+	BERIS   IS = 0x01 << 9  //+ Break error interrupt status. Returns the raw interrupt state of the UARTBEINTR interrupt.
+	OERIS   IS = 0x01 << 10 //+ Overrun error interrupt status. Returns the raw interrupt state of the UARTOEINTR interrupt.
 )
 
 const (
@@ -191,62 +163,6 @@ const (
 	PERISn   = 8
 	BERISn   = 9
 	OERISn   = 10
-)
-
-const (
-	RIMMIS  MIS = 0x01 << 0  //+ nUARTRI modem masked interrupt status. Returns the masked interrupt state of the UARTRIINTR interrupt.
-	CTSMMIS MIS = 0x01 << 1  //+ nUARTCTS modem masked interrupt status. Returns the masked interrupt state of the UARTCTSINTR interrupt.
-	DCDMMIS MIS = 0x01 << 2  //+ nUARTDCD modem masked interrupt status. Returns the masked interrupt state of the UARTDCDINTR interrupt.
-	DSRMMIS MIS = 0x01 << 3  //+ nUARTDSR modem masked interrupt status. Returns the masked interrupt state of the UARTDSRINTR interrupt.
-	RXMIS   MIS = 0x01 << 4  //+ Receive masked interrupt status. Returns the masked interrupt state of the UARTRXINTR interrupt.
-	TXMIS   MIS = 0x01 << 5  //+ Transmit masked interrupt status. Returns the masked interrupt state of the UARTTXINTR interrupt.
-	RTMIS   MIS = 0x01 << 6  //+ Receive timeout masked interrupt status. Returns the masked interrupt state of the UARTRTINTR interrupt.
-	FEMIS   MIS = 0x01 << 7  //+ Framing error masked interrupt status. Returns the masked interrupt state of the UARTFEINTR interrupt.
-	PEMIS   MIS = 0x01 << 8  //+ Parity error masked interrupt status. Returns the masked interrupt state of the UARTPEINTR interrupt.
-	BEMIS   MIS = 0x01 << 9  //+ Break error masked interrupt status. Returns the masked interrupt state of the UARTBEINTR interrupt.
-	OEMIS   MIS = 0x01 << 10 //+ Overrun error masked interrupt status. Returns the masked interrupt state of the UARTOEINTR interrupt.
-)
-
-const (
-	RIMMISn  = 0
-	CTSMMISn = 1
-	DCDMMISn = 2
-	DSRMMISn = 3
-	RXMISn   = 4
-	TXMISn   = 5
-	RTMISn   = 6
-	FEMISn   = 7
-	PEMISn   = 8
-	BEMISn   = 9
-	OEMISn   = 10
-)
-
-const (
-	RIMIC  ICR = 0x01 << 0  //+ nUARTRI modem interrupt clear. Clears the UARTRIINTR interrupt.
-	CTSMIC ICR = 0x01 << 1  //+ nUARTCTS modem interrupt clear. Clears the UARTCTSINTR interrupt.
-	DCDMIC ICR = 0x01 << 2  //+ nUARTDCD modem interrupt clear. Clears the UARTDCDINTR interrupt.
-	DSRMIC ICR = 0x01 << 3  //+ nUARTDSR modem interrupt clear. Clears the UARTDSRINTR interrupt.
-	RXIC   ICR = 0x01 << 4  //+ Receive interrupt clear. Clears the UARTRXINTR interrupt.
-	TXIC   ICR = 0x01 << 5  //+ Transmit interrupt clear. Clears the UARTTXINTR interrupt.
-	RTIC   ICR = 0x01 << 6  //+ Receive timeout interrupt clear. Clears the UARTRTINTR interrupt.
-	FEIC   ICR = 0x01 << 7  //+ Framing error interrupt clear. Clears the UARTFEINTR interrupt.
-	PEIC   ICR = 0x01 << 8  //+ Parity error interrupt clear. Clears the UARTPEINTR interrupt.
-	BEIC   ICR = 0x01 << 9  //+ Break error interrupt clear. Clears the UARTBEINTR interrupt.
-	OEIC   ICR = 0x01 << 10 //+ Overrun error interrupt clear. Clears the UARTOEINTR interrupt.
-)
-
-const (
-	RIMICn  = 0
-	CTSMICn = 1
-	DCDMICn = 2
-	DSRMICn = 3
-	RXICn   = 4
-	TXICn   = 5
-	RTICn   = 6
-	FEICn   = 7
-	PEICn   = 8
-	BEICn   = 9
-	OEICn   = 10
 )
 
 const (
