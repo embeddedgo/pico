@@ -2,6 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package dma provides interface to the DMA controller. The interface is based
+// on two main types: Controller and Channel.
+//
+// Controller represents an instance of DMA controller (RP2350 provides only one
+// controller numbered as 0). Each controller provides 16 channels.
+//
+// Channel represents a DMA channel. As all available channels have identical
+// functionality this package doesn't allow you to select a specific channel.
+// Instead you can use Controller.AllocChannel to allocate an unused one.
 package dma
 
 import (
@@ -51,6 +60,7 @@ type chDbg struct {
 	tcr    mmio.U32
 }
 
+// A Controller represents a DMA controller.
 type Controller struct {
 	ch            [16]channel
 	irq           [4]irq
@@ -76,6 +86,7 @@ type Controller struct {
 func init() {
 }
 
+// DMA returns n-th controller (RP2350 suports onlu conrtoller 0).
 func DMA(n int) *Controller {
 	if n != 0 {
 		panic("wrong DMA number")
@@ -132,14 +143,17 @@ func (d *Controller) AllocChannel() (ch Channel) {
 	return
 }
 
+// Trig triggers the transfers on channels specified by the channels bitmask.
 func (d *Controller) Trig(channels uint32) {
 	d.multiChanTrig.Store(channels)
 }
 
+// ActiveIRQs returns a bitmask that represents active interrupt requests.
 func (d *Controller) ActiveIRQs() uint32 {
 	return d.irq[0].r.Load()
 }
 
+// ClearIRQs clears interrupt requests specified by bitmask.
 func (d *Controller) ClearIRQs(irqs uint32) {
 	d.irq[0].r.Store(irqs)
 }

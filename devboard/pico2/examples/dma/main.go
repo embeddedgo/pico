@@ -1,4 +1,4 @@
-// Copyright 2024 The Embedded Go Authors. All rights reserved.
+// Copyright 2025 The Embedded Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -38,7 +38,7 @@ func main() {
 	ch.SetTransCount(n, dma.Normal)
 	ch.ClearIRQ()
 	ch.EnableIRQ(0)
-	ch.SetConf(dma.En|dma.S32b|dma.IncR|dma.IncW|dma.Always, ch)
+	ch.SetConfig(dma.En|dma.S32b|dma.IncR|dma.IncW|dma.Always, ch)
 
 	delay := time.Second // blink slow if transfer OK
 
