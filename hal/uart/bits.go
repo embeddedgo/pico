@@ -73,20 +73,20 @@ const (
 	RXIFLSELn = 3
 )
 
-type IS uint32
+type INT uint32
 
 const (
-	RIRMIS  IS = 0x01 << 0  //+ nUARTRI modem interrupt status.
-	CTSRMIS IS = 0x01 << 1  //+ nUARTCTS modem interrupt status.
-	DCDRMIS IS = 0x01 << 2  //+ nUARTDCD modem interrupt status.
-	DSRRMIS IS = 0x01 << 3  //+ nUARTDSR modem interrupt status.
-	RXRIS   IS = 0x01 << 4  //+ Receive interrupt status.
-	TXRIS   IS = 0x01 << 5  //+ Transmit interrupt status.
-	RTRIS   IS = 0x01 << 6  //+ Receive timeout interrupt status.
-	FERIS   IS = 0x01 << 7  //+ Framing error interrupt status.
-	PERIS   IS = 0x01 << 8  //+ Parity error interrupt status.
-	BERIS   IS = 0x01 << 9  //+ Break error interrupt status.
-	OERIS   IS = 0x01 << 10 //+ Overrun error interrupt status.
+	RIMI  INT = 0x01 << 0  //+ nUARTRI modem interrupt.
+	CTSMI INT = 0x01 << 1  //+ nUARTCTS modem interrupt.
+	DCDMI INT = 0x01 << 2  //+ nUARTDCD modem interrupt.
+	DSRMI INT = 0x01 << 3  //+ nUARTDSR modem interrupt.
+	RXI   INT = 0x01 << 4  //+ Receive interrupt.
+	TXI   INT = 0x01 << 5  //+ Transmit interrupt.
+	RTI   INT = 0x01 << 6  //+ Receive timeout interrupt.
+	FEI   INT = 0x01 << 7  //+ Framing error interrupt.
+	PEI   INT = 0x01 << 8  //+ Parity error interrupt.
+	BEI   INT = 0x01 << 9  //+ Break error interrupt.
+	OEI   INT = 0x01 << 10 //+ Overrun error interrupt.
 )
 
 type DMACR uint32

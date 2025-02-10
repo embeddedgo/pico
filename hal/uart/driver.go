@@ -4,10 +4,27 @@
 
 package uart
 
-import "github.com/embeddedgo/pico/hal/system/clock"
+import (
+	"embedded/rtos"
+	"unsafe"
 
+	"github.com/embeddedgo/pico/hal/internal"
+	"github.com/embeddedgo/pico/hal/system/clock"
+)
+
+// Driver provides a driver for the UART peripheral.
+//
+// The driver Rx and Tx parts are independent in means that they can be used
+// conncurently by two goroutines. However, a given transmission direction can
+// only be used by one goroutine at the same time.
 type Driver struct {
 	p *Periph
+
+	wdata *byte
+	wi    int // ISR cannot alter the above pointer so it alters wi instead
+	wn    int
+	wdone rtos.Note
+	wbyte byte
 }
 
 // NewDriver returns a new driver for p.
@@ -18,6 +35,14 @@ func NewDriver(p *Periph) *Driver {
 // Periph returns the underlying LPSPI peripheral.
 func (d *Driver) Periph() *Periph {
 	return d.p
+}
+
+func (d *Driver) Enable() {
+	d.p.CR.SetBits(UARTEN)
+}
+
+func (d *Driver) Disable() {
+	d.p.CR.ClearBits(UARTEN)
 }
 
 type Config uint32
@@ -37,10 +62,13 @@ func (d *Driver) Config() Config {
 	return Config(d.p.LCR_H.Load())
 }
 
+// SetConfig sets the URAT configuration.
 func (d *Driver) SetConfig(cfg Config) {
-	// TODO: wait for the end of current transfer
-
-	d.p.LCR_H.Store(LCR_H(cfg) | FEN)
+	p := d.p
+	cr := p.CR.Load()
+	p.CR.Store(cr &^ UARTEN) // disable UART before accessing LCR
+	p.LCR_H.Store(LCR_H(cfg) | FEN)
+	p.CR.Store(cr)
 }
 
 func (d *Driver) Baudrate() int {
@@ -48,12 +76,12 @@ func (d *Driver) Baudrate() int {
 	p := d.p
 	ibrd := p.IBRD.Load()
 	fbrd := p.FBRD.Load()
-	return int(4 * periHz / int64(ibrd<<6+fbrd))
+	div := int64(ibrd<<6 + fbrd)
+	return int((uint(8*periHz/div) + 1) >> 1)
 }
 
+// SetBaudrate sets the UART baudrate.
 func (d *Driver) SetBaudrate(baudrate int) {
-	// TODO: wait for the end of current transfer
-
 	periHz := clock.PERI.Freq()
 	brdiv := uint32(8*periHz/int64(baudrate)) + 1
 	ibrd := brdiv >> 7
@@ -66,16 +94,55 @@ func (d *Driver) SetBaudrate(baudrate int) {
 		fbrd = 0
 	}
 	p := d.p
+	cr := p.CR.Load()
+	p.CR.Store(cr &^ UARTEN) // disable UART before accessing LCR
 	p.IBRD.Store(ibrd)
 	p.FBRD.Store(fbrd)
 	p.LCR_H.Store(p.LCR_H.Load()) // dummy write to latch IBRD and FBRD
+	p.CR.Store(cr)
 }
 
-// Setup resets the driver and the underlying UART peripheral and next calls the
-// SetConfig and SetBaudrate methods with the provided arguments.
+// Setup resets the underlying UART peripheral and configures it according to
+// the driver needs. Next it calls the SetConfig and SetBaudrate methods with
+// the provided arguments. You still need to call EnableTx/EnabeRx.
 func (d *Driver) Setup(cfg Config, baudrate int) {
-	d.p.SetReset(true)
-	d.p.SetReset(false)
+	p := d.p
+	p.SetReset(true)
+	p.SetReset(false)
 	d.SetConfig(cfg)
 	d.SetBaudrate(baudrate)
+}
+
+const fifoLen = 32
+
+// ISR is the interrupt handler that handles the data transfers scheduled by
+// the read and write methods.
+//
+//go:nosplit
+//go:nowritebarrierrec
+func (d *Driver) ISR() {
+	p := d.p
+	irqs := p.MIS.Load()
+	p.ICR.Store(irqs) // clear active interupts
+
+	// Write part.
+	if irqs&TXI != 0 {
+		data := unsafe.Slice(d.wdata, d.wn)
+		// Write fast up to fifoLen/2 bytes to the FIFO.
+		m := min(d.wi+fifoLen/2, len(data))
+		for _, b := range data[d.wi:m] {
+			p.DR.Store(uint32(b))
+		}
+		// Fill the FIFO to the end to reduce the interrupt rate.
+		for m < len(data) && p.FR.LoadBits(TXFF) == 0 {
+			p.DR.Store(uint32(data[m]))
+			m++
+		}
+		d.wi = m
+		if m == len(data) {
+			// Transfer completed.
+			internal.AtomicClear(&p.IMSC, TXI) // disable Tx FIFO interrupt
+			d.wdone.Wakeup()
+		}
+	}
 }

@@ -25,10 +25,10 @@ type Periph struct {
 	LCR_H     mmio.R32[LCR_H]
 	CR        mmio.R32[CR]
 	IFLS      mmio.U32
-	IMSC      mmio.R32[IS]
-	RIS       mmio.R32[IS]
-	MIS       mmio.R32[IS]
-	ICR       mmio.R32[IS]
+	IMSC      mmio.R32[INT]
+	RIS       mmio.R32[INT]
+	MIS       mmio.R32[INT]
+	ICR       mmio.R32[INT]
 	DMACR     mmio.R32[DMACR]
 	_         [997]uint32
 	PERIPHID0 mmio.U32
