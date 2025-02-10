@@ -24,7 +24,6 @@ type Driver struct {
 	wi    int // ISR cannot alter the above pointer so it alters wi instead
 	wn    int
 	wdone rtos.Note
-	wbyte byte
 }
 
 // NewDriver returns a new driver for p.
@@ -95,9 +94,9 @@ func (d *Driver) SetBaudrate(baudrate int) {
 	}
 	p := d.p
 	cr := p.CR.Load()
-	p.CR.Store(cr &^ UARTEN) // disable UART before accessing LCR
-	p.IBRD.Store(ibrd)
-	p.FBRD.Store(fbrd)
+	p.CR.Store(cr &^ UARTEN)      // disable UART before accessing LCR
+	p.IBRD.Store(ibrd)            // IBRD is internally part of LCR
+	p.FBRD.Store(fbrd)            // FBRD is internally part of LCR
 	p.LCR_H.Store(p.LCR_H.Load()) // dummy write to latch IBRD and FBRD
 	p.CR.Store(cr)
 }
@@ -109,6 +108,7 @@ func (d *Driver) Setup(cfg Config, baudrate int) {
 	p := d.p
 	p.SetReset(true)
 	p.SetReset(false)
+	p.CR.Store(0) // disable Rx and Tx
 	d.SetConfig(cfg)
 	d.SetBaudrate(baudrate)
 }

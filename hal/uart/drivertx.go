@@ -19,7 +19,7 @@ func (d *Driver) EnableTx() {
 // DisableTx waits for the end of transfer (see Flush) and disables the Tx part
 // of the UART.
 func (d *Driver) DisableTx() {
-	d.Flush()
+	d.WaitTxDone()
 	internal.AtomicClear(&d.p.CR, TXE)
 }
 
@@ -28,25 +28,32 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 		return
 	}
 	p := d.p
-	// To avoid interrupts first try to write directly into the FIFO.
-	fr := p.FR.Load()
-	if fr&TXFE != 0 {
-		// Empty FIFO
-		n = min(fifoLen, len(s))
-		for _, b := range s[:n] {
-			p.DR.Store(uint32(b))
+	// To avoid interrupts write FIFO in thread mode as much as possible.
+	if len(s) > 3 {
+		// The overhead required to setup a tight write loop may pay off.
+		var m int
+		if p.FR.LoadBits(TXFE) != 0 {
+			m = fifoLen
+		} else if p.RIS.LoadBits(TXI) != 0 {
+			m = fifoLen / 2
 		}
-	} else if fr&TXFF == 0 {
-		for n < len(s) {
-			p.DR.Store(uint32(s[n]))
-			n++
-			if p.FR.LoadBits(TXFF) != 0 {
-				break
+		if m != 0 {
+			// There is at least m free locations in the FIFO.
+			n = min(m, len(s))
+			for _, b := range s[:n] {
+				p.DR.Store(uint32(b))
+			}
+			if n == len(s) {
+				return
 			}
 		}
 	}
-	if n == len(s) {
-		return
+	for p.FR.LoadBits(TXFF) == 0 {
+		// There is at least 1 free location in the FIFO.
+		p.DR.Store(uint32(s[n]))
+		if n++; n >= len(s) {
+			return
+		}
 	}
 	// The remaining data will be written to the FIFO by the ISR.
 	d.wdata = &s[n]
@@ -69,8 +76,7 @@ func (d *Driver) WriteByte(b byte) error {
 		return nil
 	}
 	// No free space in the FIFO. Leave this byte to the ISR.
-	d.wbyte = b
-	d.wdata = &d.wbyte
+	d.wdata = &b
 	d.wi = 0
 	d.wn = 1
 	d.wdone.Clear()                  // memory barrier
@@ -79,9 +85,9 @@ func (d *Driver) WriteByte(b byte) error {
 	return nil
 }
 
-// Flush waits until the last byte (including all the stop bits) from the last
-// write operation has been sent.
-func (d *Driver) Flush() {
+// WaitTxDone waits until the last byte (including all the stop bits) from the
+// last write operation has been sent.
+func (d *Driver) WaitTxDone() {
 	fr := &d.p.FR
 	for fr.LoadBits(BUSY) != 0 {
 		runtime.Gosched()

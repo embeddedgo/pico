@@ -63,7 +63,7 @@ func (p *Periph) SetReset(assert bool) {
 		internal.AtomicSet(&RESETS.RESET, bit)
 	} else {
 		internal.AtomicClear(&RESETS.RESET, bit)
-		for RESETS.RESET_DONE.LoadBits(resets.UART0) == 0 {
+		for RESETS.RESET_DONE.LoadBits(bit) == 0 {
 		}
 	}
 }

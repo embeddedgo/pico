@@ -9,24 +9,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/uart"
 )
-
-func putc(u *uart.Periph, c byte) {
-	for u.FR.LoadBits(uart.TXFF) != 0 {
-	}
-	u.DR.Store(uint32(c))
-}
-
-func puts(u *uart.Periph, s string) {
-	for i := 0; i < len(s); i++ {
-		putc(u, s[i])
-	}
-}
 
 var d *uart.Driver
 
@@ -41,26 +28,25 @@ func main() {
 
 	u := uart.UART(0)
 	d = uart.NewDriver(u)
-	d.Setup(uart.Word8b, 115200)
+	d.Setup(uart.Word8b, 230400)
 	d.EnableTx()
 	irq.UART0.Enable(rtos.IntPrioLow, 0)
-	s := "+ 0123456780 - abcdefghijklmnoprstuvwxyz - ABCDEFGHIJKLMNOPRSTUVWXYZ +\r\n"
+	s := "+@#$%- 0123456780 - abcdefghijklmnoprstuvwxyz - ABCDEFGHIJKLMNOPRSTUVWXYZ -%$#@+\r\n"
 	for {
 		t0 := time.Now()
 		const n = 256
 		for i := 0; i < n; i++ {
 			d.WriteString(s)
 		}
-		d.Flush()
+		d.WaitTxDone()
 		dt := time.Now().Sub(t0)
-		baud := time.Duration(n*10*len(s)) * time.Second / dt
+		baud := (time.Duration(n*10*len(s))*time.Second + dt/2) / dt
 		fmt.Fprintf(d, "%v, %d baud\r\n", dt, baud)
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
 //go:interrupthandler
 func UART0_Handler() {
 	d.ISR()
-	leds.User.Toggle()
 }
