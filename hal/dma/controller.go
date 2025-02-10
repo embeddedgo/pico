@@ -144,16 +144,31 @@ func (d *Controller) AllocChannel() (ch Channel) {
 }
 
 // Trig triggers the transfers on channels specified by the channels bitmask.
+//
+//go:nosplit
 func (d *Controller) Trig(channels uint32) {
 	d.multiChanTrig.Store(channels)
 }
 
-// ActiveIRQs returns a bitmask that represents active interrupt requests.
-func (d *Controller) ActiveIRQs() uint32 {
+// RawIRQs returns the bitmask that represents the channels with an interrupt
+// asserted internally in the DMA controller.
+//
+//go:nosplit
+func (d *Controller) RawIRQs() uint32 {
 	return d.irq[0].r.Load()
 }
 
-// ClearIRQs clears interrupt requests specified by bitmask.
+// ActiveIRQs returns the bitmask that represents the channels with an active
+// interrupt requests to the CPU (only enabled interrupts are listed).
+//
+//go:nosplit
+func (d *Controller) ActiveIRQs() uint32 {
+	return d.irq[0].s.Load()
+}
+
+// ClearIRQs clears the interrupts for the channels specified by bitmask.
+//
+//go:nosplit
 func (d *Controller) ClearIRQs(irqs uint32) {
 	d.irq[0].r.Store(irqs)
 }
