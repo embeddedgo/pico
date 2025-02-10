@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	ADC  ADC_BASE  -  ADC_IRQ_FIFO  Control and data interface to SAR ADC
+//	ADC  ADC_BASE  -  ADC_FIFO  Control and data interface to SAR ADC
 //
 // Registers:
 //

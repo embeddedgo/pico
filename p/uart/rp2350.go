@@ -6,8 +6,8 @@
 //
 // Instances:
 //
-//	UART0  UART0_BASE  -  UART0_IRQ
-//	UART1  UART1_BASE  -  UART1_IRQ
+//	UART0  UART0_BASE  -  UART0
+//	UART1  UART1_BASE  -  UART1
 //
 // Registers:
 //
@@ -20,10 +20,10 @@
 //	0x02C 32  LCR_H      Line Control Register
 //	0x030 32  CR         Control Register
 //	0x034 32  IFLS       Interrupt FIFO Level Select Register
-//	0x038 32  IMSC(IS)   Interrupt Mask Set/Clear Register
-//	0x03C 32  RIS(IS)    Raw Interrupt Status Register
-//	0x040 32  MIS(IS)    Masked Interrupt Status Register
-//	0x044 32  ICR(IS)    Interrupt Clear Register
+//	0x038 32  IMSC(INT)  Interrupt Mask Set/Clear Register
+//	0x03C 32  RIS(INT)   Raw Interrupt Status Register
+//	0x040 32  MIS(INT)   Masked Interrupt Status Register
+//	0x044 32  ICR(INT)   Interrupt Clear Register
 //	0x048 32  DMACR      DMA Control Register
 //	0xFE0 32  PERIPHID0  UARTPeriphID0 Register
 //	0xFE4 32  PERIPHID1  UARTPeriphID1 Register
@@ -138,31 +138,31 @@ const (
 )
 
 const (
-	RIRMIS  IS = 0x01 << 0  //+ nUARTRI modem interrupt status. Returns the raw interrupt state of the UARTRIINTR interrupt.
-	CTSRMIS IS = 0x01 << 1  //+ nUARTCTS modem interrupt status. Returns the raw interrupt state of the UARTCTSINTR interrupt.
-	DCDRMIS IS = 0x01 << 2  //+ nUARTDCD modem interrupt status. Returns the raw interrupt state of the UARTDCDINTR interrupt.
-	DSRRMIS IS = 0x01 << 3  //+ nUARTDSR modem interrupt status. Returns the raw interrupt state of the UARTDSRINTR interrupt.
-	RXRIS   IS = 0x01 << 4  //+ Receive interrupt status. Returns the raw interrupt state of the UARTRXINTR interrupt.
-	TXRIS   IS = 0x01 << 5  //+ Transmit interrupt status. Returns the raw interrupt state of the UARTTXINTR interrupt.
-	RTRIS   IS = 0x01 << 6  //+ Receive timeout interrupt status. Returns the raw interrupt state of the UARTRTINTR interrupt. a
-	FERIS   IS = 0x01 << 7  //+ Framing error interrupt status. Returns the raw interrupt state of the UARTFEINTR interrupt.
-	PERIS   IS = 0x01 << 8  //+ Parity error interrupt status. Returns the raw interrupt state of the UARTPEINTR interrupt.
-	BERIS   IS = 0x01 << 9  //+ Break error interrupt status. Returns the raw interrupt state of the UARTBEINTR interrupt.
-	OERIS   IS = 0x01 << 10 //+ Overrun error interrupt status. Returns the raw interrupt state of the UARTOEINTR interrupt.
+	RIMI  INT = 0x01 << 0  //+ nUARTRI modem interrupt.
+	CTSMI INT = 0x01 << 1  //+ nUARTCTS modem interrupt.
+	DCDMI INT = 0x01 << 2  //+ nUARTDCD modem interrupt.
+	DSRMI INT = 0x01 << 3  //+ nUARTDSR modem interrupt.
+	RXI   INT = 0x01 << 4  //+ Receive interrupt.
+	TXI   INT = 0x01 << 5  //+ Transmit interrupt.
+	RTI   INT = 0x01 << 6  //+ Receive timeout interrupt.
+	FEI   INT = 0x01 << 7  //+ Framing error interrupt.
+	PEI   INT = 0x01 << 8  //+ Parity error interrupt.
+	BEI   INT = 0x01 << 9  //+ Break error interrupt.
+	OEI   INT = 0x01 << 10 //+ Overrun error interrupt.
 )
 
 const (
-	RIRMISn  = 0
-	CTSRMISn = 1
-	DCDRMISn = 2
-	DSRRMISn = 3
-	RXRISn   = 4
-	TXRISn   = 5
-	RTRISn   = 6
-	FERISn   = 7
-	PERISn   = 8
-	BERISn   = 9
-	OERISn   = 10
+	RIMIn  = 0
+	CTSMIn = 1
+	DCDMIn = 2
+	DSRMIn = 3
+	RXIn   = 4
+	TXIn   = 5
+	RTIn   = 6
+	FEIn   = 7
+	PEIn   = 8
+	BEIn   = 9
+	OEIn   = 10
 )
 
 const (

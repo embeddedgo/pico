@@ -33,7 +33,7 @@ type Periph struct {
 	CH_DBG             [16]SCH_DBG
 }
 
-func DMA() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.DMA_BASE))) }
+func DMA0() *Periph { return (*Periph)(unsafe.Pointer(uintptr(mmap.DMA_BASE))) }
 
 func (p *Periph) BaseAddr() uintptr {
 	return uintptr(unsafe.Pointer(p))

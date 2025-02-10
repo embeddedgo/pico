@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	DMA  DMA_BASE  -  DMA_IRQ_0,DMA_IRQ_1,DMA_IRQ_2,DMA_IRQ_3  DMA with separate read and write masters
+//	DMA0  DMA_BASE  -  DMA0_0,DMA0_1,DMA0_2,DMA0_3  DMA with separate read and write masters
 //
 // Registers:
 //

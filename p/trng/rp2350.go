@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	TRNG  TRNG_BASE  -  TRNG_IRQ  ARM TrustZone RNG register block
+//	TRNG  TRNG_BASE  -  TRNG  ARM TrustZone RNG register block
 //
 // Registers:
 //

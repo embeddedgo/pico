@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	PWM  PWM_BASE  -  PWM_IRQ_WRAP_0,PWM_IRQ_WRAP_1  Simple PWM
+//	PWM  PWM_BASE  -  PWM_WRAP_0,PWM_WRAP_1  Simple PWM
 //
 // Registers:
 //

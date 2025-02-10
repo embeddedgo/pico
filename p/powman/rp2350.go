@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	POWMAN  POWMAN_BASE  -  POWMAN_IRQ_POW,POWMAN_IRQ_TIMER  Controls vreg, bor, lposc, chip resets & xosc startup, powman and provides scratch register for general use and for bootcode use
+//	POWMAN  POWMAN_BASE  -  POWMAN_POW,POWMAN_TIMER  Controls vreg, bor, lposc, chip resets & xosc startup, powman and provides scratch register for general use and for bootcode use
 //
 // Registers:
 //

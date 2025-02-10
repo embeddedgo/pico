@@ -23,10 +23,10 @@ type Periph struct {
 	LCR_H     mmio.R32[LCR_H]
 	CR        mmio.R32[CR]
 	IFLS      mmio.R32[IFLS]
-	IMSC      mmio.R32[IS]
-	RIS       mmio.R32[IS]
-	MIS       mmio.R32[IS]
-	ICR       mmio.R32[IS]
+	IMSC      mmio.R32[INT]
+	RIS       mmio.R32[INT]
+	MIS       mmio.R32[INT]
+	ICR       mmio.R32[INT]
 	DMACR     mmio.R32[DMACR]
 	_         [997]uint32
 	PERIPHID0 mmio.R32[uint32]
@@ -95,7 +95,7 @@ type IFLS uint32
 func TXIFLSEL_(p *Periph) mmio.RM32[IFLS] { return mmio.RM32[IFLS]{&p.IFLS, TXIFLSEL} }
 func RXIFLSEL_(p *Periph) mmio.RM32[IFLS] { return mmio.RM32[IFLS]{&p.IFLS, RXIFLSEL} }
 
-type IS uint32
+type INT uint32
 
 type DMACR uint32
 

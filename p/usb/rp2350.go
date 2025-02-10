@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	USB  USB_BASE  -  USBCTRL_IRQ  USB FS/LS controller device registers
+//	USB  USB_BASE  -  USBCTRL  USB FS/LS controller device registers
 //
 // Registers:
 //

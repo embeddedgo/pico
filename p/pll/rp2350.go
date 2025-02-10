@@ -6,8 +6,8 @@
 //
 // Instances:
 //
-//	SYS  PLL_SYS_BASE  -  PLL_SYS_IRQ
-//	USB  PLL_USB_BASE  -  PLL_USB_IRQ
+//	SYS  PLL_SYS_BASE  -  PLL_SYS
+//	USB  PLL_USB_BASE  -  PLL_USB
 //
 // Registers:
 //

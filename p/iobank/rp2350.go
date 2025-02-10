@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	IO_BANK0  IO_BANK0_BASE  -  IO_IRQ_BANK0,IO_IRQ_BANK0_NS
+//	IO_BANK0  IO_BANK0_BASE  -  IO_BANK0,IO_BANK0_NS
 //
 // Registers:
 //

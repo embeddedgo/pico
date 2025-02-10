@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	CLOCKS  CLOCKS_BASE  -  CLOCKS_IRQ
+//	CLOCKS  CLOCKS_BASE  -  CLOCKS
 //
 // Registers:
 //

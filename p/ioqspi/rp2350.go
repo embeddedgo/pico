@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	IO_QSPI  IO_QSPI_BASE  -  IO_IRQ_QSPI,IO_IRQ_QSPI_NS
+//	IO_QSPI  IO_QSPI_BASE  -  IO_QSPI,IO_QSPI_NS
 //
 // Registers:
 //

@@ -6,8 +6,8 @@
 //
 // Instances:
 //
-//	SPI0  SPI0_BASE  -  SPI0_IRQ
-//	SPI1  SPI1_BASE  -  SPI1_IRQ
+//	SPI0  SPI0_BASE  -  SPI0
+//	SPI1  SPI1_BASE  -  SPI1
 //
 // Registers:
 //

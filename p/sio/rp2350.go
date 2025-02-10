@@ -6,8 +6,8 @@
 //
 // Instances:
 //
-//	SIO     SIO_BASE     -  SIO_IRQ_FIFO+,SIO_IRQ_BELL+,SIO_IRQ_FIFO_NS+,SIO_IRQ_BELL_NS+,SIO_IRQ_MTIMECMP+  Single-cycle IO block Provides core-local and inter-core hardware for the two processors, with single-cycle access.
-//	SIO_NS  SIO_NS_BASE  -  SIO_IRQ_FIFO+,SIO_IRQ_BELL+,SIO_IRQ_FIFO_NS+,SIO_IRQ_BELL_NS+,SIO_IRQ_MTIMECMP+  Single-cycle IO block Provides core-local and inter-core hardware for the two processors, with single-cycle access.
+//	SIO     SIO_BASE     -  SIO_FIFO+,SIO_BELL+,SIO_FIFO_NS+,SIO_BELL_NS+,SIO_MTIMECMP+  Single-cycle IO block Provides core-local and inter-core hardware for the two processors, with single-cycle access.
+//	SIO_NS  SIO_NS_BASE  -  SIO_FIFO+,SIO_BELL+,SIO_FIFO_NS+,SIO_BELL_NS+,SIO_MTIMECMP+  Single-cycle IO block Provides core-local and inter-core hardware for the two processors, with single-cycle access.
 //
 // Registers:
 //

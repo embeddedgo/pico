@@ -6,9 +6,9 @@
 //
 // Instances:
 //
-//	PIO0  PIO0_BASE  -  PIO0_IRQ_0,PIO0_IRQ_1  Programmable IO block
-//	PIO1  PIO1_BASE  -  PIO1_IRQ_0,PIO1_IRQ_1  Programmable IO block
-//	PIO2  PIO2_BASE  -  PIO2_IRQ_0,PIO2_IRQ_1  Programmable IO block
+//	PIO0  PIO0_BASE  -  PIO0_0,PIO0_1  Programmable IO block
+//	PIO1  PIO1_BASE  -  PIO1_0,PIO1_1  Programmable IO block
+//	PIO2  PIO2_BASE  -  PIO2_0,PIO2_1  Programmable IO block
 //
 // Registers:
 //

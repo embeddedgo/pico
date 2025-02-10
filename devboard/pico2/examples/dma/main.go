@@ -32,7 +32,7 @@ func main() {
 		src[i] = uint32(i)
 	}
 
-	irq.DMA_IRQ_0.Enable(rtos.IntPrioLow, 1) // enable DMA IRQ 0 on Core1
+	irq.DMA0_0.Enable(rtos.IntPrioLow, 1) // enable DMA IRQ 0 on Core1
 
 	ch = dma.DMA(0).AllocChannel()
 	ch.SetTransCount(n, dma.Normal)
@@ -65,7 +65,7 @@ func main() {
 }
 
 //go:interrupthandler
-func DMA_IRQ_0_Handler() {
+func DMA0_0_Handler() {
 	ch.ClearIRQ()
 	tce.Wakeup()
 }

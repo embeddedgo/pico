@@ -19,7 +19,7 @@ const irqPin = pins.GP15
 func main() {
 	irqPin.Setup(iomux.Schmitt | iomux.PullUp | iomux.InpEn)
 	irqPin.SetDstIRQ(iomux.Proc0, iomux.EdgeLow)
-	irq.IO_IRQ_BANK0.Enable(rtos.IntPrioLow, 0)
+	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0)
 
 	for {
 		time.Sleep(2 * time.Second)
@@ -30,7 +30,7 @@ func main() {
 }
 
 //go:interrupthandler
-func IO_IRQ_BANK0_Handler() {
+func IO_BANK0_Handler() {
 	irqPin.ClearIRQ(iomux.EdgeLow)
 	leds.User.Toggle()
 }

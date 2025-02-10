@@ -6,7 +6,7 @@
 //
 // Instances:
 //
-//	OTP  OTP_BASE  -  OTP_IRQ  SNPS OTP control IF (SBPI and RPi wrapper control)
+//	OTP  OTP_BASE  -  OTP  SNPS OTP control IF (SBPI and RPi wrapper control)
 //
 // Registers:
 //
