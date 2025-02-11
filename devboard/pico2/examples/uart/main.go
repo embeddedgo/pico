@@ -15,7 +15,7 @@ import (
 	"github.com/embeddedgo/pico/hal/uart"
 )
 
-var d *uart.Driver
+var u *uart.Driver
 
 func main() {
 	tx := pins.GP0
@@ -26,27 +26,26 @@ func main() {
 	tx.SetAltFunc(iomux.UART)
 	rx.SetAltFunc(iomux.UART)
 
-	u := uart.UART(0)
-	d = uart.NewDriver(u)
-	d.Setup(uart.Word8b, 230400)
-	d.EnableTx()
+	u = uart.NewDriver(uart.UART(0))
+	u.Setup(uart.Word8b, 230400)
+	u.EnableTx()
 	irq.UART0.Enable(rtos.IntPrioLow, 0)
 	s := "+@#$%- 0123456780 - abcdefghijklmnoprstuvwxyz - ABCDEFGHIJKLMNOPRSTUVWXYZ -%$#@+\r\n"
 	for {
 		t0 := time.Now()
 		const n = 256
 		for i := 0; i < n; i++ {
-			d.WriteString(s)
+			u.WriteString(s)
 		}
-		d.WaitTxDone()
+		u.WaitTxDone()
 		dt := time.Now().Sub(t0)
 		baud := (time.Duration(n*10*len(s))*time.Second + dt/2) / dt
-		fmt.Fprintf(d, "%v, %d baud\r\n", dt, baud)
+		fmt.Fprintf(u, "%v, %d baud\r\n", dt, baud)
 		time.Sleep(3 * time.Second)
 	}
 }
 
 //go:interrupthandler
 func UART0_Handler() {
-	d.ISR()
+	u.ISR()
 }
