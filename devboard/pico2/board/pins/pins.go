@@ -37,9 +37,3 @@ const (
 	GP27_A1 = iomux.P27
 	GP28_A2 = iomux.P28
 )
-
-const (
-	PS   = iomux.P23 // RT6150 Power Save pin
-	VBUS = iomux.P24 // VBUS presence
-	VSYS = iomux.P29 // analog VSYS/3
-)
