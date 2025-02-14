@@ -20,10 +20,14 @@ import (
 type Driver struct {
 	p *Periph
 
-	wdata *byte
-	wi    int // ISR cannot alter the above pointer so it alters wi instead
-	wn    int
-	wdone rtos.Note
+	wstart uintptr
+	wend   uintptr
+	wdone  rtos.Note
+
+	rstart uintptr
+	rend   uintptr
+	rerr   uint32
+	rready rtos.Note
 }
 
 // NewDriver returns a new driver for p.
@@ -127,22 +131,57 @@ func (d *Driver) ISR() {
 
 	// Write part.
 	if irqs&TXI != 0 {
-		data := unsafe.Slice(d.wdata, d.wn)
 		// Write fast up to fifoLen/2 bytes to the FIFO.
-		m := min(d.wi+fifoLen/2, len(data))
-		for _, b := range data[d.wi:m] {
+		addr, end := d.wstart, d.wend
+		fast := min(addr+fifoLen/2, end)
+		for addr < fast {
+			b := *(*byte)(unsafe.Pointer(addr))
 			p.DR.Store(uint32(b))
+			addr++
 		}
 		// Fill the FIFO to the end to reduce the interrupt rate.
-		for m < len(data) && p.FR.LoadBits(TXFF) == 0 {
-			p.DR.Store(uint32(data[m]))
-			m++
+		for addr < end && p.FR.LoadBits(TXFF) == 0 {
+			b := *(*byte)(unsafe.Pointer(addr))
+			p.DR.Store(uint32(b))
+			addr++
 		}
-		d.wi = m
-		if m == len(data) {
+		d.wstart = addr
+		if addr == end {
 			// Transfer completed.
 			internal.AtomicClear(&p.IMSC, TXI) // disable Tx FIFO interrupt
 			d.wdone.Wakeup()
 		}
+	}
+
+	// Read part
+	if irqs&(RXI|RTI) != 0 {
+		addr, end := d.rstart, d.rend
+		if irqs&RXI != 0 {
+			// Read fast up to fifoLen/2 bytes from the FIFO.
+			fast := min(addr+fifoLen/2, end)
+			for addr < fast {
+				v := p.DR.Load()
+				*(*byte)(unsafe.Pointer(addr)) = byte(v)
+				if e := v >> 8 & 15; e != 0 {
+					d.rerr = e
+					goto end
+				}
+				addr++
+			}
+		}
+		// Read the FIFO to the end to avoid overruns.
+		for addr < end && p.FR.LoadBits(RXFE) == 0 {
+			v := p.DR.Load()
+			*(*byte)(unsafe.Pointer(addr)) = byte(v)
+			if e := v >> 8 & 15; e != 0 {
+				d.rerr = e
+				goto end
+			}
+			addr++
+		}
+		d.rstart = addr
+	end:
+		internal.AtomicClear(&p.IMSC, RXI|RTI) // disable Rx FIFO interrupts
+		d.rready.Wakeup()
 	}
 }

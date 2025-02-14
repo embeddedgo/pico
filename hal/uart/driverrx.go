@@ -5,7 +5,7 @@
 package uart
 
 import (
-	"runtime"
+	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
 )
@@ -46,29 +46,90 @@ func (e *Error) Status() uint32 {
 }
 
 func (e *Error) Error() string {
-	return e.s[1:]
+	return "uart: " + e.s[1:]
 }
 
 func (d *Driver) Read(s []byte) (n int, err error) {
 	if len(s) == 0 {
 		return
 	}
+	var e uint32
 	p := d.p
-	for p.FR.LoadBits(RXFE) != 0 {
-		runtime.Gosched()
+	if p.FR.LoadBits(RXFE) != 0 {
+		// No data in the FIFO. The ISR will read the beggining of new data.
+		waitReadISR(d, &s[0], len(s))
+		n = len(s) - int(d.rend-d.rstart)
+		if e = d.rerr; e != 0 {
+			goto error
+		}
+		if n == len(s) {
+			return
+		}
+		// Check for more data available in the FIFO before return.
+	}
+	if len(s)-n > 3 && p.RIS.LoadBits(RXI) != 0 {
+		// There are at least fifoLen/2 ready bytes in the FIFO.
+		fast := s[:min(n+fifoLen/2, len(s))]
+		for {
+			v := p.DR.Load()
+			fast[n] = byte(v)
+			n++
+			if e = v >> 8 & 15; e != 0 {
+				goto error
+			}
+			if n >= len(fast) {
+				break
+			}
+		}
+		if n == len(s) {
+			return
+		}
 	}
 	for p.FR.LoadBits(RXFE) == 0 {
+		// There is at least 1 ready byte in the FIFO.
 		v := p.DR.Load()
 		s[n] = byte(v)
-		e := v >> 8 & 15
 		n++
-		if e != 0 {
-			err = &errStr[e-1]
-			break
+		if e = v >> 8 & 15; e != 0 {
+			goto error
 		}
 		if n >= len(s) {
 			break
 		}
 	}
 	return
+error:
+	err = &errStr[e-1]
+	return
+}
+
+func (d *Driver) ReadByte() (b byte, err error) {
+	var e uint32
+	p := d.p
+	if p.FR.LoadBits(RXFE) == 0 {
+		v := p.DR.Load()
+		b = byte(v)
+		if e = v >> 8 & 15; e != 0 {
+			goto error
+		}
+		return
+	}
+	// No data in the FIFO. The ISR will read a byte for us.
+	waitReadISR(d, &b, 1)
+	if e = d.rerr; e != 0 {
+		goto error
+	}
+	return
+error:
+	err = &errStr[e-1]
+	return
+}
+
+func waitReadISR(d *Driver, p *byte, n int) {
+	d.rstart = uintptr(unsafe.Pointer(p))
+	d.rend = d.rstart + uintptr(n)
+	d.rerr = 0
+	d.rready.Clear()
+	internal.AtomicSet(&d.p.IMSC, RXI|RTI) // enable Rx FIFO interrupts
+	d.rready.Sleep(-1)
 }

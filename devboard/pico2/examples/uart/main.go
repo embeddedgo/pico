@@ -17,22 +17,9 @@ import (
 
 var u *uart.Driver
 
-func puts(u *uart.Driver, s string) {
-	p := u.Periph()
-	for i := range len(s) {
-		for p.FR.LoadBits(uart.TXFF) != 0 {
-		}
-		p.DR.Store(uint32(s[i]))
-	}
-}
-
 func main() {
-	tx := pins.GP0
-	rx := pins.GP1
-	//ps := pins.PS
-
-	//ps.Setup(iomux.D4mA)
-	//ps.SetAltFunc(iomux.Null|iomux.OutHigh|iomux.OEEnable)
+	tx := pins.GP12
+	rx := pins.GP13
 
 	tx.Setup(iomux.D2mA)
 	rx.Setup(iomux.InpEn | iomux.OutDis)
@@ -53,14 +40,11 @@ func main() {
 	}
 	u.WaitTxDone()
 	dt := time.Now().Sub(t0)
-	baud := (time.Duration(n*10*len(s))*time.Second + dt/2) / dt
-	fmt.Fprintf(u, "%v, %d baud\r\n", dt, baud)
+	speed := (time.Duration(n*10*len(s))*time.Second + dt/2) / dt
+	baud := u.Baudrate()
+	fmt.Fprintf(u, "\r\n%v, speed: %d baud, uart hw: %d baud\r\n", dt, speed, baud)
 
 	var buf [128]byte
-	for range 70 {
-		u.WriteByte('>')
-	}
-	u.WriteString("\r\n")
 
 	for {
 		u.WriteString("> ")

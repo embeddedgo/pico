@@ -28,7 +28,7 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 		return
 	}
 	p := d.p
-	// To avoid interrupts write FIFO in thread mode as much as possible.
+	// Because of the interrupt cost write FIFO in thread mode if possible.
 	if len(s) > 3 {
 		// The overhead required to setup a tight write loop may pay off.
 		var m int
@@ -38,7 +38,7 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 			m = fifoLen / 2
 		}
 		if m != 0 {
-			// There is at least m free locations in the FIFO.
+			// There are at least m free locations in the FIFO.
 			n = min(m, len(s))
 			for _, b := range s[:n] {
 				p.DR.Store(uint32(b))
@@ -56,12 +56,7 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 		}
 	}
 	// The remaining data will be written to the FIFO by the ISR.
-	d.wdata = &s[n]
-	d.wi = 0
-	d.wn = len(s) - n
-	d.wdone.Clear()                  // memory barrier
-	internal.AtomicSet(&p.IMSC, TXI) // enable Tx FIFO interrupt
-	d.wdone.Sleep(-1)
+	waitWriteISR(d, &s[n], len(s)-n)
 	return len(s), nil
 }
 
@@ -76,13 +71,16 @@ func (d *Driver) WriteByte(b byte) error {
 		return nil
 	}
 	// No free space in the FIFO. Leave this byte to the ISR.
-	d.wdata = &b
-	d.wi = 0
-	d.wn = 1
-	d.wdone.Clear()                  // memory barrier
-	internal.AtomicSet(&p.IMSC, TXI) // enable Tx FIFO interrupt
-	d.wdone.Sleep(-1)
+	waitWriteISR(d, &b, 1)
 	return nil
+}
+
+func waitWriteISR(d *Driver, p *byte, n int) {
+	d.wstart = uintptr(unsafe.Pointer(p))
+	d.wend = d.wstart + uintptr(n)
+	d.wdone.Clear()                    // memory barrier
+	internal.AtomicSet(&d.p.IMSC, TXI) // enable Tx FIFO interrupt
+	d.wdone.Sleep(-1)
 }
 
 // WaitTxDone waits until the last byte (including all the stop bits) from the
