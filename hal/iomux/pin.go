@@ -95,32 +95,30 @@ func (p Pin) Setup(cfg Config) {
 type AltFunc uint32
 
 const (
-	Func AltFunc = 0x1F << 0 // Selects pin function
-	F0   AltFunc = 0x00 << 0
-	F1   AltFunc = 0x01 << 0
-	F2   AltFunc = 0x02 << 0
-	F3   AltFunc = 0x03 << 0
-	F4   AltFunc = 0x04 << 0
-	F5   AltFunc = 0x05 << 0
-	F6   AltFunc = 0x06 << 0
-	F7   AltFunc = 0x07 << 0
-	F8   AltFunc = 0x08 << 0
-	F9   AltFunc = 0x09 << 0
-	F10  AltFunc = 0x0A << 0
-	F11  AltFunc = 0x0B << 0
-	Null AltFunc = 0x1F << 0
-
-	HSTX     = F0
-	SPI      = F1
-	UART     = F2
-	I2C      = F3
-	PWM      = F4
-	GPIO     = F5
-	PIO0     = F6
-	PIO1     = F7
-	PIO2     = F8
-	USB      = F10
-	UART_AUX = F11
+	Func     AltFunc = 0x1F // Selects pin function
+	F0       AltFunc = 1
+	F1       AltFunc = 2
+	F2       AltFunc = 3
+	F3       AltFunc = 4
+	F4       AltFunc = 5
+	F5       AltFunc = 6
+	F6       AltFunc = 7
+	F7       AltFunc = 8
+	F8       AltFunc = 9
+	F9       AltFunc = 10
+	F10      AltFunc = 11
+	F11      AltFunc = 12
+	HSTX             = F0
+	SPI              = F1
+	UART             = F2
+	I2C              = F3
+	PWM              = F4
+	GPIO             = F5
+	PIO0             = F6
+	PIO1             = F7
+	PIO2             = F8
+	USB              = F10
+	UART_AUX         = F11
 
 	OutOver   AltFunc = 3 << 12 // Peripheral output override
 	OutNormal AltFunc = 0 << 12 // normal
@@ -149,11 +147,14 @@ const (
 
 // AltFunc returns a currently set muxmode for pin.
 func (p Pin) AltFunc() AltFunc {
-	return AltFunc(ib().gpio[p].ctrl.Load())
+	af := AltFunc(ib().gpio[p].ctrl.Load())
+	af = af&^Func | (af+1)&Func
+	return af
 }
 
 // SetAltFunc sets a mux mode for pin.
 func (p Pin) SetAltFunc(af AltFunc) {
+	af = af&^Func | (af-1)&Func
 	ib().gpio[p].ctrl.Store(uint32(af))
 }
 

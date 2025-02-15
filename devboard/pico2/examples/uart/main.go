@@ -5,32 +5,24 @@
 package main
 
 import (
-	"embedded/rtos"
 	"fmt"
 	"time"
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
-	"github.com/embeddedgo/pico/hal/iomux"
-	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/uart"
+	"github.com/embeddedgo/pico/hal/uart/uart0"
 )
-
-var u *uart.Driver
 
 func main() {
 	tx := pins.GP12
 	rx := pins.GP13
 
-	tx.Setup(iomux.D2mA)
-	rx.Setup(iomux.InpEn | iomux.OutDis)
-	tx.SetAltFunc(iomux.UART)
-	rx.SetAltFunc(iomux.UART)
-
-	u = uart.NewDriver(uart.UART(0))
+	u := uart0.Driver()
+	u.UsePin(tx, uart.TXD)
+	u.UsePin(rx, uart.RXD)
 	u.Setup(uart.Word8b, 115200)
 	u.EnableTx()
 	u.EnableRx()
-	irq.UART0.Enable(rtos.IntPrioLow, 0)
 
 	s := "+@#$%- 0123456780 - abcdefghijklmnoprstuvwxyz - ABCDEFGHIJKLMNOPRSTUVWXYZ -%$#@+\r\n"
 	t0 := time.Now()
@@ -56,9 +48,4 @@ func main() {
 		}
 	}
 
-}
-
-//go:interrupthandler
-func UART0_Handler() {
-	u.ISR()
 }

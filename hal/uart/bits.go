@@ -16,9 +16,9 @@ type FR uint32
 
 // FR bits
 const (
-	CTS  FR = 0x01 << 0 //+ Clear to send.
-	DSR  FR = 0x01 << 1 //+ Data set ready.
-	DCD  FR = 0x01 << 2 //+ Data carrier detect.
+	CTSn FR = 0x01 << 0 //+ Clear to send.
+	DSRn FR = 0x01 << 1 //+ Data set ready.
+	DCDn FR = 0x01 << 2 //+ Data carrier detect.
 	BUSY FR = 0x01 << 3 //+ UART busy.
 	RXFE FR = 0x01 << 4 //+ Receive FIFO empty.
 	TXFF FR = 0x01 << 5 //+ Transmit FIFO full.
@@ -53,8 +53,8 @@ const (
 	LBE    CR = 0x01 << 7  //+ Loopback enable.
 	TXE    CR = 0x01 << 8  //+ Transmit enable.
 	RXE    CR = 0x01 << 9  //+ Receive enable.
-	DTR    CR = 0x01 << 10 //+ Data transmit ready.
-	RTS    CR = 0x01 << 11 //+ Request to send.
+	DTRn   CR = 0x01 << 10 //+ Data transmit ready.
+	RTSn   CR = 0x01 << 11 //+ Request to send.
 	OUT1   CR = 0x01 << 12 //+ Complement of the UART Out1 modem status output.
 	OUT2   CR = 0x01 << 13 //+ Complement of the UART Out2 modem status output
 	RTSEN  CR = 0x01 << 14 //+ RTS hardware flow control enable.

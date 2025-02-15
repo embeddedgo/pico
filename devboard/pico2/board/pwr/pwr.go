@@ -24,8 +24,8 @@ func SetPowerSave(ps bool) {
 	pin := iomux.P23
 	pin.Setup(iomux.D4mA)
 	if ps {
-		pin.SetAltFunc(iomux.Null | iomux.OutLow | iomux.OEEnable)
+		pin.SetAltFunc(iomux.OutLow | iomux.OEEnable)
 	} else {
-		pin.SetAltFunc(iomux.Null | iomux.OutHigh | iomux.OEEnable)
+		pin.SetAltFunc(iomux.OutHigh | iomux.OEEnable)
 	}
 }
