@@ -8,37 +8,36 @@ import (
 	"embedded/rtos"
 	"time"
 
-	"github.com/embeddedgo/led"
-	"github.com/embeddedgo/led/ws281x/wsuart"
-	"github.com/embeddedgo/pico/devboard/cytronmaker/board/leds"
+	"github.com/embeddedgo/pico/devboard/cytronmaker/board/pins"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/uart"
+	"github.com/embeddedgo/pico/hal/uart/uart0"
+	"github.com/embeddedgo/rgbled"
+	"github.com/embeddedgo/rgbled/ws281x/wsuart"
 )
 
-var u *uart.Driver
-
 func main() {
-	tx := iomux.P28
-
-	tx.Setup(iomux.D2mA)
-	tx.SetAltFunc(iomux.UART | iomux.OutInvert)
+	tx := pins.GP28_A2
 
 	// WS2812 bit should take 1390 ns -> 463 ns for UART bit -> 2158273 bit/s.
 
-	u = uart.NewDriver(uart.UART(0))
-	u.Setup(uart.Word7b, 3000000000/1390)
+	tx.SetAltFunc(iomux.OutInvert)
+
+	u := uart0.Driver()
+	u.UsePin(tx, uart.TXD)
+	u.Setup(uart.Word7b, 3_000_000_000/1390)
 	u.EnableTx()
 	irq.UART0.Enable(rtos.IntPrioLow, 0)
 
-	colors := []led.Color{
-		led.RGB(255, 0, 0),
-		led.RGB(0, 255, 0),
-		led.RGB(0, 0, 255),
-		led.RGB(255, 255, 0),
-		led.RGB(0, 255, 255),
-		led.RGB(255, 0, 255),
-		led.RGB(255, 255, 255),
+	colors := []rgbled.Color{
+		rgbled.RGB(255, 0, 0),
+		rgbled.RGB(0, 255, 0),
+		rgbled.RGB(0, 0, 255),
+		rgbled.RGB(255, 255, 0),
+		rgbled.RGB(0, 255, 255),
+		rgbled.RGB(255, 0, 255),
+		rgbled.RGB(255, 255, 255),
 	}
 
 	grb := wsuart.GRB
@@ -51,11 +50,5 @@ func main() {
 			time.Sleep(time.Second / 30)
 		}
 		c1 = c2
-		leds.User.Toggle()
 	}
-}
-
-//go:interrupthandler
-func UART0_Handler() {
-	u.ISR()
 }

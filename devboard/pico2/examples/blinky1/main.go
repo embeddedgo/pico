@@ -18,7 +18,7 @@ func main() {
 	riscvst.Setup()
 
 	ledPin := iomux.P25
-	ledPin.Setup(iomux.D4mA)
+	ledPin.Setup(iomux.D8mA)
 
 	gpio.UsePin(ledPin)
 	led := gpio.BitForPin(ledPin)

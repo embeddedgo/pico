@@ -32,8 +32,8 @@ func main() {
 	oeset.Store(1 << LEDpin)
 
 	// Connect the input and output of the LED pin to the SIO without disabling
-	// its isolation latch. Set the output driver strength to 4 mA.
-	ledpin.Store(padsbank.ISO | padsbank.IE | padsbank.D4MA)
+	// its isolation latch. Set the output driver strength to 8 mA.
+	ledpin.Store(padsbank.ISO | padsbank.IE | padsbank.D8MA)
 	ledio.Store(iobank.F5_SIO)
 
 	// Disable the isolation latch.

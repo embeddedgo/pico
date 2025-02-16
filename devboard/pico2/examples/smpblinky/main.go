@@ -9,6 +9,9 @@
 // running thread between CPUs. The second part spawns two busy threads and
 // leaves the CPU selection to the schedulers. Now the onboard LED should bilink
 // unevenly if the threads run on both CPUs.
+//
+// See also weacta10/examples/smpblinky for better version of this program that
+// uses two LEDs.
 package main
 
 import (
@@ -21,7 +24,6 @@ import (
 )
 
 func blinkcpu(period int) {
-	runtime.LockOSThread()
 	CPUID := &sio.SIO().CPUID
 	for {
 		cpuid := 0
@@ -34,6 +36,7 @@ func blinkcpu(period int) {
 		} else {
 			leds.User.SetOn() // the above loop ran mostly on CPU1
 		}
+		runtime.Gosched()
 	}
 }
 

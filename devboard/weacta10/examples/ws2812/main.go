@@ -5,25 +5,24 @@
 package main
 
 import (
+	"runtime"
 	"time"
 
-	"github.com/embeddedgo/rgbled"
-	"github.com/embeddedgo/rgbled/ws281x/wsuart"
-	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
-	"github.com/embeddedgo/pico/devboard/pico2/board/pwr"
+	"github.com/embeddedgo/pico/devboard/weacta10/board/buttons"
+	"github.com/embeddedgo/pico/devboard/weacta10/board/pins"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart1"
+	"github.com/embeddedgo/rgbled"
+	"github.com/embeddedgo/rgbled/ws281x/wsuart"
 )
 
 func main() {
-	pwr.SetPowerSave(false)
-
 	tx := pins.GP22
-	tx.SetAltFunc(iomux.OutInvert)
 
 	// WS2812 bit should take 1390 ns -> 463 ns for UART bit -> 2158273 bit/s.
 
+	tx.SetAltFunc(iomux.OutInvert)
 	u := uart1.Driver()
 	u.UsePin(tx, uart.TXD)
 	u.Setup(uart.Word7b, 3_000_000_000/1390)
@@ -50,13 +49,14 @@ func main() {
 			rgbled.RGB(255, 255, 255),
 		} {
 			pixel := grb.Pixel(c)
-			for i := 0; i < 64; i += 8 {
+			for i := 0; i < 64; i++ {
 				strip.Clear()
-				for k := i; k < i+8; k++ {
-					strip[k] = pixel
-				}
+				strip[i] = pixel
 				u.Write(strip.Bytes())
-				time.Sleep(time.Second / 2)
+				for buttons.User.Read() == 0 {
+					runtime.Gosched()
+				}
+				time.Sleep(time.Second / 8)
 			}
 		}
 	}

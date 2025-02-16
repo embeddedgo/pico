@@ -10,17 +10,13 @@
 package leds
 
 import (
-	_ "github.com/embeddedgo/pico/devboard/cytronmaker/board/system"
 	"github.com/embeddedgo/pico/hal/gpio"
 	"github.com/embeddedgo/pico/hal/iomux"
 )
 
-// The onboard LED
-var User = Connect(iomux.P25, iomux.D4mA, false)
-
 type LED struct{ bit gpio.Bit }
 
-func Connect(pin iomux.Pin, drive iomux.Config, invert bool) LED {
+func ConnectLED(pin iomux.Pin, drive iomux.Config, invert bool) LED {
 	pin.Setup(drive)
 	af := iomux.GPIO
 	if invert {
