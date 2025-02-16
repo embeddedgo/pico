@@ -22,66 +22,92 @@ type Bit struct {
 }
 
 // IsValid reports whether b represents a valid bit.
+//
+//go:nosplit
 func (b Bit) IsValid() bool {
 	return b.h>>5 != 0
 }
 
 // Port returns the port where the bit is located.
+//
+//go:nosplit
 func (b Bit) Port() *Port {
 	return (*Port)(unsafe.Pointer(mmap.SIO_BASE + uintptr(b.h)>>5*4))
 }
 
 // Num returns the bit number in the port.
+//
+//go:nosplit
 func (b Bit) Num() int {
 	return int(b.h & 31)
 }
 
 // Mask returns a bitmask that represents the bit in a port
+//
+//go:nosplit
 func (b Bit) Mask() uint32 {
 	return 1 << uint(b.Num())
 }
 
 // OutEnabled reports the output enabled state.
+//
+//go:nosplit
 func (b Bit) OutEnabled() bool {
 	return b.Port().oe.LoadBits(b.Mask()) != 0
 }
 
 // EnableOut enables output for this bit.
+//
+//go:nosplit
 func (b Bit) EnableOut() {
 	b.Port().oeSet.Store(b.Mask())
 }
 
 // DisableOut disables output for this bit.
+//
+//go:nosplit
 func (b Bit) DisableOut() {
 	b.Port().oeClr.Store(b.Mask())
 }
 
 // Load samples the value of the connected pin.
+//
+//go:nosplit
 func (b Bit) Load() int {
 	return int(b.Port().in.Load()) >> uint(b.Num()) & 1
 }
 
 // LoadOut returns the output value set for this pin.
+//
+//go:nosplit
 func (b Bit) LoadOut() int {
 	return int(b.Port().out.Load()) >> uint(b.Num()) & 1
 }
 
 // Set sets the output value of this bit to 1 in one atomic operation.
+//
+//go:nosplit
 func (b Bit) Set() {
 	b.Port().outSet.Store(1 << uint(b.Num()))
 }
 
 // Clear sets the output value of this bit to 0 in one atomic operation.
+//
+//go:nosplit
 func (b Bit) Clear() {
 	b.Port().outClr.Store(1 << uint(b.Num()))
 }
 
 // Toggle toggles the output value of this bit in one atomic operation.
+//
+//go:nosplit
 func (b Bit) Toggle() {
 	b.Port().outXor.Store(1 << uint(b.Num()))
 }
 
 // Store sets the bit value to the least significant bit of val.
+//
+//go:nosplit
 func (b Bit) Store(val int) {
 	port := b.Port()
 	mask := uint32(1) << uint(b.Num())
@@ -93,6 +119,8 @@ func (b Bit) Store(val int) {
 }
 
 // Bit returns the n-th bit from the p port.
+//
+//go:nosplit
 func (p *Port) Bit(n int) Bit {
 	if uint(n) > 31 {
 		panic("bad GPIO bit number")
@@ -102,6 +130,8 @@ func (p *Port) Bit(n int) Bit {
 }
 
 // BitForPin returns the GPIO bit that corresponds to the given pin.
+//
+//go:nosplit
 func BitForPin(pin iomux.Pin) Bit {
 	return Bit{uint8(pin + 32)}
 }

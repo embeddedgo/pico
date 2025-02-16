@@ -35,6 +35,8 @@ type Port struct {
 }
 
 // P returns the n-th GPIO port.
+//
+//go:nosplit
 func P(n int) *Port {
 	if uint(n) > 1 {
 		return nil
@@ -43,57 +45,79 @@ func P(n int) *Port {
 }
 
 // Num returns the port number.
+//
+//go:nosplit
 func (p *Port) Num() int {
 	a := uintptr(unsafe.Pointer(p))
 	return int((a-mmap.SIO_BASE)/4 - 1)
 }
 
 // OutEnabled returns the bits in the output enable state.
+//
+//go:nosplit
 func (p *Port) OutEnabled() uint32 {
 	return p.oe.Load()
 }
 
 // EnableOut enables output for given bits.
+//
+//go:nosplit
 func (p *Port) EnableOut(bits uint32) {
 	p.oeSet.Store(bits)
 }
 
 // DisableOut disables output for given bits.
+//
+//go:nosplit
 func (p *Port) DisableOut(bits uint32) {
 	p.oeClr.Store(bits)
 }
 
 // Load samples the value of the pins connected to this port.
+//
+//go:nosplit
 func (p *Port) Load() uint32 {
 	return p.in.Load()
 }
 
 // LoadOut returns the output value for this port.
+//
+//go:nosplit
 func (p *Port) LoadOut() uint32 {
 	return p.out.Load()
 }
 
 // Set sets the output value for the given bits of this port to 1.
+//
+//go:nosplit
 func (p *Port) Set(bits uint32) {
 	p.outSet.Store(bits)
 }
 
 // Clear sets the output value for the given bits of this port to 0.
+//
+//go:nosplit
 func (p *Port) Clear(bits uint32) {
 	p.outClr.Store(bits)
 }
 
 // Toggle toggles the output value for the given bits of this port.
+//
+//go:nosplit
 func (p *Port) Toggle(bits uint32) {
 	p.outXor.Store(bits)
 }
 
 // Store sets the output of this port to bits.
+//
+//go:nosplit
 func (p *Port) Store(bits uint32) {
 	p.out.Store(bits)
 }
 
 // UsePin connects pin to the GPIO (SIO) peripheral.
+//
+//go:nosplit
 func UsePin(pin iomux.Pin) {
-	pin.SetAltFunc(iomux.GPIO)
+	pin.SetAltFunc(pin.AltFunc()&^iomux.Func | iomux.GPIO)
 }

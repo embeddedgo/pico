@@ -82,11 +82,15 @@ const (
 )
 
 // Config return pin configuration.
+//
+//go:nosplit
 func (p Pin) Config() Config {
 	return Config(pb().pad[p].Load())
 }
 
 // Setup configures pin.
+//
+//go:nosplit
 func (p Pin) Setup(cfg Config) {
 	pb().pad[p].Store(uint32(cfg))
 }
@@ -146,6 +150,8 @@ const (
 )
 
 // AltFunc returns a currently set muxmode for pin.
+//
+//go:nosplit
 func (p Pin) AltFunc() AltFunc {
 	af := AltFunc(ib().gpio[p].ctrl.Load())
 	af = af&^Func | (af+1)&Func
@@ -153,6 +159,8 @@ func (p Pin) AltFunc() AltFunc {
 }
 
 // SetAltFunc sets a mux mode for pin.
+//
+//go:nosplit
 func (p Pin) SetAltFunc(af AltFunc) {
 	af = af&^Func | (af-1)&Func
 	ib().gpio[p].ctrl.Store(uint32(af))
@@ -175,6 +183,8 @@ const (
 
 // SetDstIRQ sets pin as an IRQ source for dst. One pin may be a source for
 // multiple destinations with different conditions at the same time.
+//
+//go:nosplit
 func (p Pin) SetDstIRQ(dst int16, condition uint8) {
 	i := int(p) >> 3
 	shift := 4 * uint(p&7)
@@ -183,6 +193,8 @@ func (p Pin) SetDstIRQ(dst int16, condition uint8) {
 }
 
 // DstIRQ
+//
+//go:nosplit
 func (p Pin) DstIRQ(dst int16) (condition uint8) {
 	i := int(p) >> 3
 	shift := 4 * uint(p&7)
@@ -191,6 +203,8 @@ func (p Pin) DstIRQ(dst int16) (condition uint8) {
 }
 
 // IRQ returns the active IRQ condition for pin.
+//
+//go:nosplit
 func (p Pin) IRQ() (condition uint8) {
 	i := int(p) >> 3
 	shift := 4 * uint(p&7)
@@ -199,6 +213,8 @@ func (p Pin) IRQ() (condition uint8) {
 
 // IRQ clears the active IRQ condition for pin. Only edge conditions can be
 // cleared.
+//
+//go:nosplit
 func (p Pin) ClearIRQ(condition uint8) {
 	i := int(p) >> 3
 	shift := 4 * uint(p&7)

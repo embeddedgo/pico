@@ -16,6 +16,7 @@ type padsbank struct {
 	pad     [50]mmio.U32
 }
 
+//go:nosplit
 func pb() *padsbank {
 	return (*padsbank)(unsafe.Pointer(mmap.PADS_BANK0_BASE))
 }
@@ -44,6 +45,7 @@ type irqCtrl struct {
 	status [6]mmio.R32[uint32]
 }
 
+//go:nosplit
 func ib() *iobank {
 	return (*iobank)(unsafe.Pointer(uintptr(mmap.IO_BANK0_BASE)))
 }
