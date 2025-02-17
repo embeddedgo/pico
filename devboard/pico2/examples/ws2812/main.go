@@ -5,59 +5,63 @@
 package main
 
 import (
+	"image/color"
 	"time"
 
-	"github.com/embeddedgo/rgbled"
-	"github.com/embeddedgo/rgbled/ws281x/wsuart"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pwr"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart1"
+	"github.com/embeddedgo/rgbled/ws281x/wsuart"
 )
 
 func main() {
-	pwr.SetPowerSave(false)
+	// Reduce noise on WS2812 data signal. If we use a simple circuit, powering
+	// LEDs from VBUS (USB 5V) and sending data directly from UART TX pin (3.3V)
+	// our data signal is already out off spec and any additional ripple can
+	// only worse things. If your pico is powered from USB (VBUS) you can
+	// improve things slightly by powering LDEs from VSYS thanks to the voltage
+	// drop on the schottky diode between VBUS and VSYS (5V - 0.3V = 4.7V) but
+	// the total current flowing through the diode must be < 1A.
+	pwr.SetPowerSave(false) // force the onboard DCDC to work in PWM mode
 
 	tx := pins.GP22
 	tx.SetAltFunc(iomux.OutInvert)
 
-	// WS2812 bit should take 1390 ns -> 463 ns for UART bit -> 2158273 bit/s.
-
 	u := uart1.Driver()
 	u.UsePin(tx, uart.TXD)
-	u.Setup(uart.Word7b, 3_000_000_000/1390)
+	u.Setup(uart.Word7b, wsuart.BaudWS2812)
 	u.EnableTx()
 
+	colors := []color.RGBA{
+		{127, 0, 0, 255},
+		{255, 0, 0, 255},
+		{0, 127, 0, 255},
+		{0, 255, 0, 255},
+		{0, 0, 127, 255},
+		{0, 0, 255, 255},
+		{127, 127, 0, 255},
+		{255, 255, 0, 255},
+		{0, 127, 127, 255},
+		{0, 255, 255, 255},
+		{127, 0, 127, 255},
+		{255, 0, 255, 255},
+		{127, 127, 127, 255},
+		{255, 255, 255, 255},
+	}
 	grb := wsuart.GRB
 	strip := wsuart.Make(8 * 8)
 
-	for {
-		for _, c := range []rgbled.Color{
-			rgbled.RGB(127, 0, 0),
-			rgbled.RGB(255, 0, 0),
-			rgbled.RGB(0, 127, 0),
-			rgbled.RGB(0, 255, 0),
-			rgbled.RGB(0, 0, 127),
-			rgbled.RGB(0, 0, 255),
-			rgbled.RGB(127, 127, 0),
-			rgbled.RGB(255, 255, 0),
-			rgbled.RGB(0, 127, 127),
-			rgbled.RGB(0, 255, 255),
-			rgbled.RGB(127, 0, 127),
-			rgbled.RGB(255, 0, 255),
-			rgbled.RGB(127, 127, 127),
-			rgbled.RGB(255, 255, 255),
-		} {
-			pixel := grb.Pixel(c)
-			for i := 0; i < 64; i += 8 {
-				strip.Clear()
-				for k := i; k < i+8; k++ {
-					strip[k] = pixel
-				}
-				u.Write(strip.Bytes())
-				time.Sleep(time.Second / 2)
+	for i := 0; ; i++ {
+		pixel := grb.Pixel(colors[i%len(colors)])
+		for i := 0; i < 64; i += 8 {
+			strip.Clear()
+			for k := i; k < i+8; k++ {
+				strip[k] = pixel
 			}
+			u.Write(strip.Bytes())
+			time.Sleep(time.Second / 2)
 		}
 	}
 }
