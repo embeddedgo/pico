@@ -6,6 +6,8 @@ package uart
 
 import (
 	"embedded/rtos"
+	"errors"
+	"time"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -20,19 +22,21 @@ import (
 type Driver struct {
 	p *Periph
 
-	wstart uintptr
-	wend   uintptr
-	wdone  rtos.Note
+	wtimeout time.Duration
+	wstart   uintptr
+	wend     uintptr
+	wdone    rtos.Note
 
-	rstart uintptr
-	rend   uintptr
-	rerr   uint32
-	rready rtos.Note
+	rtimeout time.Duration
+	rstart   uintptr
+	rend     uintptr
+	rerr     uint32
+	rready   rtos.Note
 }
 
 // NewDriver returns a new driver for p.
 func NewDriver(p *Periph) *Driver {
-	return &Driver{p: p}
+	return &Driver{p: p, wtimeout: -1, rtimeout: -1}
 }
 
 // Periph returns the underlying LPSPI peripheral.
@@ -185,3 +189,16 @@ func (d *Driver) ISR() {
 		d.rready.Wakeup()
 	}
 }
+
+var ErrTimeout = errors.New("uart: timeout")
+
+// SetReadTimeout sets the read timeout used by Read* functions.
+func (d *Driver) SetReadTimeout(timeout time.Duration) {
+	d.rtimeout = timeout
+}
+
+// SetWriteTimeout sets the write timeout used by Write* functions.
+func (d *Driver) SetWriteTimeout(timeout time.Duration) {
+	d.wtimeout = timeout
+}
+

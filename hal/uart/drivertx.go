@@ -56,8 +56,11 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 		}
 	}
 	// The remaining data will be written to the FIFO by the ISR.
-	waitWriteISR(d, &s[n], len(s)-n)
-	return len(s), nil
+	if waitWriteISR(d, &s[n], len(s)-n) {
+		return len(s), nil
+	} else {
+		return n, ErrTimeout
+	}
 }
 
 func (d *Driver) WriteString(s string) (n int, err error) {
@@ -75,12 +78,16 @@ func (d *Driver) WriteByte(b byte) error {
 	return nil
 }
 
-func waitWriteISR(d *Driver, p *byte, n int) {
+func waitWriteISR(d *Driver, p *byte, n int) bool {
 	d.wstart = uintptr(unsafe.Pointer(p))
 	d.wend = d.wstart + uintptr(n)
 	d.wdone.Clear()                    // memory barrier
 	internal.AtomicSet(&d.p.IMSC, TXI) // enable Tx FIFO interrupt
-	d.wdone.Sleep(-1)
+	if !d.wdone.Sleep(d.wtimeout) {
+		internal.AtomicClear(&d.p.IMSC, TXI)
+		return false
+	}
+	return true
 }
 
 // WaitTxDone waits until the last byte (including all the stop bits) from the

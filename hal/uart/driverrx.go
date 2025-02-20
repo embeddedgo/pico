@@ -57,10 +57,13 @@ func (d *Driver) Read(s []byte) (n int, err error) {
 	p := d.p
 	if p.FR.LoadBits(RXFE) != 0 {
 		// No data in the FIFO. The ISR will read the beggining of new data.
-		waitReadISR(d, &s[0], len(s))
+		if !waitReadISR(d, &s[0], len(s)) {
+			err = ErrTimeout
+			return
+		}
 		n = len(s) - int(d.rend-d.rstart)
 		if e = d.rerr; e != 0 {
-			goto error
+			goto rxErr
 		}
 		if n == len(s) {
 			return
@@ -75,7 +78,7 @@ func (d *Driver) Read(s []byte) (n int, err error) {
 			fast[n] = byte(v)
 			n++
 			if e = v >> 8 & 15; e != 0 {
-				goto error
+				goto rxErr
 			}
 			if n >= len(fast) {
 				break
@@ -91,14 +94,14 @@ func (d *Driver) Read(s []byte) (n int, err error) {
 		s[n] = byte(v)
 		n++
 		if e = v >> 8 & 15; e != 0 {
-			goto error
+			goto rxErr
 		}
 		if n >= len(s) {
 			break
 		}
 	}
 	return
-error:
+rxErr:
 	err = &errStr[e-1]
 	return
 }
@@ -110,26 +113,33 @@ func (d *Driver) ReadByte() (b byte, err error) {
 		v := p.DR.Load()
 		b = byte(v)
 		if e = v >> 8 & 15; e != 0 {
-			goto error
+			goto rxErr
 		}
 		return
 	}
 	// No data in the FIFO. The ISR will read a byte for us.
-	waitReadISR(d, &b, 1)
+	if !waitReadISR(d, &b, 1) {
+		err = ErrTimeout
+		return
+	}
 	if e = d.rerr; e != 0 {
-		goto error
+		goto rxErr
 	}
 	return
-error:
+rxErr:
 	err = &errStr[e-1]
 	return
 }
 
-func waitReadISR(d *Driver, p *byte, n int) {
+func waitReadISR(d *Driver, p *byte, n int) bool {
 	d.rstart = uintptr(unsafe.Pointer(p))
 	d.rend = d.rstart + uintptr(n)
 	d.rerr = 0
 	d.rready.Clear()
 	internal.AtomicSet(&d.p.IMSC, RXI|RTI) // enable Rx FIFO interrupts
-	d.rready.Sleep(-1)
+	if !d.rready.Sleep(d.rtimeout) {
+		internal.AtomicClear(&d.p.IMSC, RXI|RTI)
+		return false
+	}
+	return true
 }

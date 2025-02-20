@@ -46,6 +46,7 @@ func (c Channel) Free() {
 	chanAlloc.mx.Lock()
 	chanAlloc.mask |= mask
 	chanAlloc.mx.Unlock()
+	// TODO: put controller into reset if last channel has been freed
 }
 
 //go:nosplit
