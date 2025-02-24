@@ -20,6 +20,7 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/embeddedgo/pico/hal/internal"
 	"github.com/embeddedgo/pico/p/mmap"
 	"github.com/embeddedgo/pico/p/resets"
 )
@@ -150,20 +151,51 @@ func (d *Controller) Trig(channels uint32) {
 	d.multiChanTrig.Store(channels)
 }
 
-// RawIRQs returns the bitmask that represents the channels with an interrupt
-// asserted internally in the DMA controller.
+// EnableIRQs enables routing the interrupts from the specified DMA channels to
+// the system-level DMA interrupt line irqn.
+func (d *Controller) EnableIRQs(irqn int, channels uint32) {
+	if uint(irqn) > 3 {
+		panic("dma: irqn")
+	}
+	internal.AtomicSetU32(&d.irq[irqn].e, channels)
+}
+
+// DisableIRQs disables routing the interrupts from the specified DMA channels
+// to the system-level DMA interrupt line irqn.
 //
 //go:nosplit
-func (d *Controller) RawIRQs() uint32 {
+func (d *Controller) DisableIRQs(irqn int, channels uint32) {
+	if uint(irqn) > 3 {
+		panic("dma: irqn")
+	}
+	internal.AtomicClearU32(&d.irq[irqn].e, channels)
+}
+
+// IRQsEnabled returns the bitmask that represents the DMA channels which
+// interrupts are routed to the system-level DMA interrupt line irqn.
+//
+//go:nosplit
+func (d *Controller) IRQsEnabled(irqn int) uint32 {
+	if uint(irqn) > 3 {
+		panic("dma: irqn")
+	}
+	return d.irq[irqn].e.Load()
+}
+
+// IRQs returns the bitmask that represents the interrupt status for all
+// channels regardless of whether theay cause any system-level DMA interrupt.
+//
+//go:nosplit
+func (d *Controller) IRQs() uint32 {
 	return d.irq[0].r.Load()
 }
 
-// ActiveIRQs returns the bitmask that represents the channels with an active
-// interrupt requests to the CPU (only enabled interrupts are listed).
+// ActiveIRQs returns the bitmask that represents the channels that cause the
+// system-level DMA interrupt irqn.
 //
 //go:nosplit
-func (d *Controller) ActiveIRQs() uint32 {
-	return d.irq[0].s.Load()
+func (d *Controller) ActiveIRQs(irqn int) uint32 {
+	return d.irq[irqn].s.Load()
 }
 
 // ClearIRQs clears the interrupts for the channels specified by bitmask.

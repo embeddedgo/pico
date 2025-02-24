@@ -324,7 +324,8 @@ func (c Channel) Trig() {
 	c.d.multiChanTrig.Store(1 << uint(c.n))
 }
 
-// EnableIRQ enables unsing interrup line irqn to sending interrupt request.
+// EnableIRQ enables routing the interrupts from this DMA channel to the
+// system-level DMA interrupt line irqn.
 //
 //go:nosplit
 func (c Channel) EnableIRQ(irqn int) {
@@ -334,7 +335,8 @@ func (c Channel) EnableIRQ(irqn int) {
 	internal.AtomicSetU32(&c.d.irq[irqn].e, 1<<uint(c.n))
 }
 
-// DisableIRQ disables unsing interrup line irqn to sending interrupt request.
+// DisableIRQ disables routing the interrupts from this DMA channel to the
+// system-level DMA interrupt line irqn.
 //
 //go:nosplit
 func (c Channel) DisableIRQ(irqn int) {
@@ -344,7 +346,8 @@ func (c Channel) DisableIRQ(irqn int) {
 	internal.AtomicClearU32(&c.d.irq[irqn].e, 1<<uint(c.n))
 }
 
-// IRQEnabled reports whether the interrupt line irqn is used by this channel.
+// IRQEnabled reports whether the the interrupts from this DMA channel are
+// routed to the system-level DMA interrupt line irqn.
 //
 //go:nosplit
 func (c Channel) IRQEnabled(irqn int) bool {
@@ -354,7 +357,16 @@ func (c Channel) IRQEnabled(irqn int) bool {
 	return c.d.irq[irqn].e.LoadBits(1<<uint(c.n)) != 0
 }
 
-// IsIRQ reports whether the interrupt request is active for this channel.
+// IsActiveIRQ reports whether the current DMA interrupt state causes the
+// interrupt request on the system-level DMA interrupt line irqn.
+//
+//go:nosplit
+func (c Channel) IsActiveIRQ(irqn int) bool {
+	return c.d.irq[0].s.LoadBits(1<<uint(c.n)) != 0
+}
+
+// IsIRQ reports the interrupt status for the channel regardless of whether it
+// causes any system-level DMA interrupt.
 //
 //go:nosplit
 func (c Channel) IsIRQ() bool {

@@ -17,13 +17,17 @@ import (
 )
 
 func main() {
-	// Reduce noise on WS2812 data signal. If we use a simple circuit, powering
-	// LEDs from VBUS (USB 5V) and sending data directly from UART TX pin (3.3V)
+	// Reduce the noise on the WS2812 data signal.
+	//
+	// If we use a simple circuit, powering LEDs from VBUS (USB 5V) and
+	// connecting the WS2812 data signal directly to the UART TX pin (3.3V),
 	// our data signal is already out off spec and any additional ripple can
-	// only worse things. If your pico is powered from USB (VBUS) you can
-	// improve things slightly by powering LDEs from VSYS thanks to the voltage
+	// only worse things. If your Pico is powered from USB (VBUS) you can
+	// improve things slightly by powering LDEs from VSYS, thanks to the voltage
 	// drop on the schottky diode between VBUS and VSYS (5V - 0.3V = 4.7V) but
-	// the total current flowing through the diode must be < 1A.
+	// the total current flowing through the diode must be < 1A. Also adding a
+	// 200 Ω series resisitor on the data line can reduce oscilations and
+	// protect the Pico IO pin a little from 5V in case of failure.
 	pwr.SetPowerSave(false) // force the onboard DCDC to work in PWM mode
 
 	tx := pins.GP22
