@@ -13,43 +13,59 @@ import (
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/hal/dma"
-	"github.com/embeddedgo/pico/hal/irq"
+	"github.com/embeddedgo/pico/hal/dma/dmairq"
 )
 
-var (
-	ch  dma.Channel
-	tce rtos.Note
-)
+type DMACopier struct {
+	ch   dma.Channel
+	done rtos.Note
+}
+
+func NewDMACopier(ch dma.Channel) *DMACopier {
+	ch.SetConfig(dma.En|dma.S32b|dma.IncR|dma.IncW|dma.Always, ch)
+	ch.ClearIRQ()
+	ch.EnableIRQ(0)
+	d := &DMACopier{ch: ch}
+	dmairq.SetISR(ch, d.isr)
+	return d
+}
+
+func (d *DMACopier) Copy(dst, src []uint32) int {
+	n := min(len(dst), len(src))
+	if n == 0 {
+		return 0
+	}
+	d.done.Clear()
+	ch := d.ch
+	ch.SetReadAddr(unsafe.Pointer(&src[0]))
+	ch.SetWriteAddr(unsafe.Pointer(&dst[0]))
+	ch.SetTransCount(n, dma.Normal)
+	ch.Trig()
+	d.done.Sleep(-1)
+	return n
+}
+
+//go:nosplit
+func (d *DMACopier) isr() {
+	d.ch.ClearIRQ()
+	d.done.Wakeup()
+}
 
 func main() {
 	n := 20000
 	src := make([]uint32, n)
 	dst := make([]uint32, n)
-	srcAddr := unsafe.Pointer(&src[0])
-	dstAddr := unsafe.Pointer(&dst[0])
 
 	for i := range src {
 		src[i] = uint32(i)
 	}
 
-	irq.DMA0_0.Enable(rtos.IntPrioLow, 1) // enable DMA IRQ 0 on Core1
-
-	ch = dma.DMA(0).AllocChannel()
-	ch.SetTransCount(n, dma.Normal)
-	ch.ClearIRQ()
-	ch.EnableIRQ(0)
-	ch.SetConfig(dma.En|dma.S32b|dma.IncR|dma.IncW|dma.Always, ch)
+	dmacp := NewDMACopier(dma.DMA(0).AllocChannel())
 
 	delay := time.Second // blink slow if transfer OK
-
-	for range 10 {
-		tce.Clear()
-		ch.SetReadAddr(srcAddr)
-		ch.SetWriteAddr(dstAddr)
-		ch.Trig()
-		tce.Sleep(-1)
-
-		if !slices.Equal(src, dst) {
+	for i := range 10 {
+		n := dmacp.Copy(dst, src[i:])
+		if !slices.Equal(dst[:n], src[i:]) {
 			delay /= 8 // blink fast in case of transfer error
 			break
 		}
@@ -62,10 +78,4 @@ func main() {
 		leds.User.SetOff()
 		time.Sleep(delay)
 	}
-}
-
-//go:interrupthandler
-func DMA0_0_Handler() {
-	ch.ClearIRQ()
-	tce.Wakeup()
 }
