@@ -8,8 +8,8 @@ import (
 	"embedded/rtos"
 	_ "unsafe"
 
-	"github.com/embeddedgo/pico/hal/internal"
 	"github.com/embeddedgo/pico/hal/irq"
+	"github.com/embeddedgo/pico/hal/system"
 	"github.com/embeddedgo/pico/hal/uart"
 )
 
@@ -19,7 +19,7 @@ var driver *uart.Driver
 func Driver() *uart.Driver {
 	if driver == nil {
 		driver = uart.NewDriver(uart.UART(0))
-		irq.UART0.Enable(rtos.IntPrioLow, internal.NextCPU())
+		irq.UART0.Enable(rtos.IntPrioLow, system.NextCPU())
 	}
 	return driver
 }
