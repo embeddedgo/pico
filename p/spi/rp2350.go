@@ -11,24 +11,24 @@
 //
 // Registers:
 //
-//	0x000 32  SSPCR0        Control register 0, SSPCR0 on page 3-4
-//	0x004 32  SSPCR1        Control register 1, SSPCR1 on page 3-5
-//	0x008 32  SSPDR         Data register, SSPDR on page 3-6
-//	0x00C 32  SSPSR         Status register, SSPSR on page 3-7
-//	0x010 32  SSPCPSR       Clock prescale register, SSPCPSR on page 3-8
-//	0x014 32  SSPIMSC       Interrupt mask set or clear register, SSPIMSC on page 3-9
-//	0x018 32  SSPRIS        Raw interrupt status register, SSPRIS on page 3-10
-//	0x01C 32  SSPMIS        Masked interrupt status register, SSPMIS on page 3-11
-//	0x020 32  SSPICR        Interrupt clear register, SSPICR on page 3-11
-//	0x024 32  SSPDMACR      DMA control register, SSPDMACR on page 3-12
-//	0xFE0 32  SSPPERIPHID0  Peripheral identification registers, SSPPeriphID0-3 on page 3-13
-//	0xFE4 32  SSPPERIPHID1  Peripheral identification registers, SSPPeriphID0-3 on page 3-13
-//	0xFE8 32  SSPPERIPHID2  Peripheral identification registers, SSPPeriphID0-3 on page 3-13
-//	0xFEC 32  SSPPERIPHID3  Peripheral identification registers, SSPPeriphID0-3 on page 3-13
-//	0xFF0 32  SSPPCELLID0   PrimeCell identification registers, SSPPCellID0-3 on page 3-16
-//	0xFF4 32  SSPPCELLID1   PrimeCell identification registers, SSPPCellID0-3 on page 3-16
-//	0xFF8 32  SSPPCELLID2   PrimeCell identification registers, SSPPCellID0-3 on page 3-16
-//	0xFFC 32  SSPPCELLID3   PrimeCell identification registers, SSPPCellID0-3 on page 3-16
+//	0x000 32  CR0        Control register 0, CR0 on page 3-4
+//	0x004 32  CR1        Control register 1, CR1 on page 3-5
+//	0x008 32  DR         Data register, DR on page 3-6
+//	0x00C 32  SR         Status register, SR on page 3-7
+//	0x010 32  CPSR       Clock prescale register, CPSR on page 3-8
+//	0x014 32  IMSC(INT)  Interrupt mask set or clear register, IMSC on page 3-9
+//	0x018 32  RIS(INT)   Raw interrupt status register, RIS on page 3-10
+//	0x01C 32  MIS(INT)   Masked interrupt status register, MIS on page 3-11
+//	0x020 32  ICR(INT)   Interrupt clear register, ICR on page 3-11
+//	0x024 32  DMACR      DMA control register, DMACR on page 3-12
+//	0xFE0 32  PERIPHID0  Peripheral identification registers, PeriphID0-3 on page 3-13
+//	0xFE4 32  PERIPHID1  Peripheral identification registers, PeriphID0-3 on page 3-13
+//	0xFE8 32  PERIPHID2  Peripheral identification registers, PeriphID0-3 on page 3-13
+//	0xFEC 32  PERIPHID3  Peripheral identification registers, PeriphID0-3 on page 3-13
+//	0xFF0 32  PCELLID0   PrimeCell identification registers, PCellID0-3 on page 3-16
+//	0xFF4 32  PCELLID1   PrimeCell identification registers, PCellID0-3 on page 3-16
+//	0xFF8 32  PCELLID2   PrimeCell identification registers, PCellID0-3 on page 3-16
+//	0xFFC 32  PCELLID3   PrimeCell identification registers, PCellID0-3 on page 3-16
 //
 // Import:
 //
@@ -36,11 +36,11 @@
 package spi
 
 const (
-	DSS SSPCR0 = 0x0F << 0 //+ Data Size Select: 0000 Reserved, undefined operation. 0001 Reserved, undefined operation. 0010 Reserved, undefined operation. 0011 4-bit data. 0100 5-bit data. 0101 6-bit data. 0110 7-bit data. 0111 8-bit data. 1000 9-bit data. 1001 10-bit data. 1010 11-bit data. 1011 12-bit data. 1100 13-bit data. 1101 14-bit data. 1110 15-bit data. 1111 16-bit data.
-	FRF SSPCR0 = 0x03 << 4 //+ Frame format: 00 Motorola SPI frame format. 01 TI synchronous serial frame format. 10 National Microwire frame format. 11 Reserved, undefined operation.
-	SPO SSPCR0 = 0x01 << 6 //+ SSPCLKOUT polarity, applicable to Motorola SPI frame format only. See Motorola SPI frame format on page 2-10.
-	SPH SSPCR0 = 0x01 << 7 //+ SSPCLKOUT phase, applicable to Motorola SPI frame format only. See Motorola SPI frame format on page 2-10.
-	SCR SSPCR0 = 0xFF << 8 //+ Serial clock rate. The value SCR is used to generate the transmit and receive bit rate of the PrimeCell SSP. The bit rate is: F SSPCLK CPSDVSR x (1+SCR) where CPSDVSR is an even value from 2-254, programmed through the SSPCPSR register and SCR is a value from 0-255.
+	DSS CR0 = 0x0F << 0 //+ Data Size Select: 0000 Reserved, undefined operation. 0001 Reserved, undefined operation. 0010 Reserved, undefined operation. 0011 4-bit data. 0100 5-bit data. 0101 6-bit data. 0110 7-bit data. 0111 8-bit data. 1000 9-bit data. 1001 10-bit data. 1010 11-bit data. 1011 12-bit data. 1100 13-bit data. 1101 14-bit data. 1110 15-bit data. 1111 16-bit data.
+	FRF CR0 = 0x03 << 4 //+ Frame format: 00 Motorola SPI frame format. 01 TI synchronous serial frame format. 10 National Microwire frame format. 11 Reserved, undefined operation.
+	SPO CR0 = 0x01 << 6 //+ SSPCLKOUT polarity, applicable to Motorola SPI frame format only. See Motorola SPI frame format on page 2-10.
+	SPH CR0 = 0x01 << 7 //+ SSPCLKOUT phase, applicable to Motorola SPI frame format only. See Motorola SPI frame format on page 2-10.
+	SCR CR0 = 0xFF << 8 //+ Serial clock rate. The value SCR is used to generate the transmit and receive bit rate of the PrimeCell SSP. The bit rate is: F SSPCLK CPSDVSR x (1+SCR) where CPSDVSR is an even value from 2-254, programmed through the SSPCPSR register and SCR is a value from 0-255.
 )
 
 const (
@@ -52,10 +52,10 @@ const (
 )
 
 const (
-	LBM SSPCR1 = 0x01 << 0 //+ Loop back mode: 0 Normal serial port operation enabled. 1 Output of transmit serial shifter is connected to input of receive serial shifter internally.
-	SSE SSPCR1 = 0x01 << 1 //+ Synchronous serial port enable: 0 SSP operation disabled. 1 SSP operation enabled.
-	MS  SSPCR1 = 0x01 << 2 //+ Master or slave mode select. This bit can be modified only when the PrimeCell SSP is disabled, SSE=0: 0 Device configured as master, default. 1 Device configured as slave.
-	SOD SSPCR1 = 0x01 << 3 //+ Slave-mode output disable. This bit is relevant only in the slave mode, MS=1. In multiple-slave systems, it is possible for an PrimeCell SSP master to broadcast a message to all slaves in the system while ensuring that only one slave drives data onto its serial output line. In such systems the RXD lines from multiple slaves could be tied together. To operate in such systems, the SOD bit can be set if the PrimeCell SSP slave is not supposed to drive the SSPTXD line: 0 SSP can drive the SSPTXD output in slave mode. 1 SSP must not drive the SSPTXD output in slave mode.
+	LBM CR1 = 0x01 << 0 //+ Loop back mode: 0 Normal serial port operation enabled. 1 Output of transmit serial shifter is connected to input of receive serial shifter internally.
+	SSE CR1 = 0x01 << 1 //+ Synchronous serial port enable: 0 SSP operation disabled. 1 SSP operation enabled.
+	MS  CR1 = 0x01 << 2 //+ Master or slave mode select. This bit can be modified only when the PrimeCell SSP is disabled, SSE=0: 0 Device configured as master, default. 1 Device configured as slave.
+	SOD CR1 = 0x01 << 3 //+ Slave-mode output disable. This bit is relevant only in the slave mode, MS=1. In multiple-slave systems, it is possible for an PrimeCell SSP master to broadcast a message to all slaves in the system while ensuring that only one slave drives data onto its serial output line. In such systems the RXD lines from multiple slaves could be tied together. To operate in such systems, the SOD bit can be set if the PrimeCell SSP slave is not supposed to drive the SSPTXD line: 0 SSP can drive the SSPTXD output in slave mode. 1 SSP must not drive the SSPTXD output in slave mode.
 )
 
 const (
@@ -66,11 +66,11 @@ const (
 )
 
 const (
-	TFE SSPSR = 0x01 << 0 //+ Transmit FIFO empty, RO: 0 Transmit FIFO is not empty. 1 Transmit FIFO is empty.
-	TNF SSPSR = 0x01 << 1 //+ Transmit FIFO not full, RO: 0 Transmit FIFO is full. 1 Transmit FIFO is not full.
-	RNE SSPSR = 0x01 << 2 //+ Receive FIFO not empty, RO: 0 Receive FIFO is empty. 1 Receive FIFO is not empty.
-	RFF SSPSR = 0x01 << 3 //+ Receive FIFO full, RO: 0 Receive FIFO is not full. 1 Receive FIFO is full.
-	BSY SSPSR = 0x01 << 4 //+ PrimeCell SSP busy flag, RO: 0 SSP is idle. 1 SSP is currently transmitting and/or receiving a frame or the transmit FIFO is not empty.
+	TFE SR = 0x01 << 0 //+ Transmit FIFO empty, RO: 0 Transmit FIFO is not empty. 1 Transmit FIFO is empty.
+	TNF SR = 0x01 << 1 //+ Transmit FIFO not full, RO: 0 Transmit FIFO is full. 1 Transmit FIFO is not full.
+	RNE SR = 0x01 << 2 //+ Receive FIFO not empty, RO: 0 Receive FIFO is empty. 1 Receive FIFO is not empty.
+	RFF SR = 0x01 << 3 //+ Receive FIFO full, RO: 0 Receive FIFO is not full. 1 Receive FIFO is full.
+	BSY SR = 0x01 << 4 //+ PrimeCell SSP busy flag, RO: 0 SSP is idle. 1 SSP is currently transmitting and/or receiving a frame or the transmit FIFO is not empty.
 )
 
 const (
@@ -82,60 +82,22 @@ const (
 )
 
 const (
-	RORIM SSPIMSC = 0x01 << 0 //+ Receive overrun interrupt mask: 0 Receive FIFO written to while full condition interrupt is masked. 1 Receive FIFO written to while full condition interrupt is not masked.
-	RTIM  SSPIMSC = 0x01 << 1 //+ Receive timeout interrupt mask: 0 Receive FIFO not empty and no read prior to timeout period interrupt is masked. 1 Receive FIFO not empty and no read prior to timeout period interrupt is not masked.
-	RXIM  SSPIMSC = 0x01 << 2 //+ Receive FIFO interrupt mask: 0 Receive FIFO half full or less condition interrupt is masked. 1 Receive FIFO half full or less condition interrupt is not masked.
-	TXIM  SSPIMSC = 0x01 << 3 //+ Transmit FIFO interrupt mask: 0 Transmit FIFO half empty or less condition interrupt is masked. 1 Transmit FIFO half empty or less condition interrupt is not masked.
+	RORI INT = 0x01 << 0 //+ Receive overrun interrupt.
+	RTI  INT = 0x01 << 1 //+ Receive timeout interrupt.
+	RXI  INT = 0x01 << 2 //+ Receive FIFO interrupt.
+	TXI  INT = 0x01 << 3 //+ Transmit FIFO interrupt.
 )
 
 const (
-	RORIMn = 0
-	RTIMn  = 1
-	RXIMn  = 2
-	TXIMn  = 3
+	RORIn = 0
+	RTIn  = 1
+	RXIn  = 2
+	TXIn  = 3
 )
 
 const (
-	RORRIS SSPRIS = 0x01 << 0 //+ Gives the raw interrupt state, prior to masking, of the SSPRORINTR interrupt
-	RTRIS  SSPRIS = 0x01 << 1 //+ Gives the raw interrupt state, prior to masking, of the SSPRTINTR interrupt
-	RXRIS  SSPRIS = 0x01 << 2 //+ Gives the raw interrupt state, prior to masking, of the SSPRXINTR interrupt
-	TXRIS  SSPRIS = 0x01 << 3 //+ Gives the raw interrupt state, prior to masking, of the SSPTXINTR interrupt
-)
-
-const (
-	RORRISn = 0
-	RTRISn  = 1
-	RXRISn  = 2
-	TXRISn  = 3
-)
-
-const (
-	RORMIS SSPMIS = 0x01 << 0 //+ Gives the receive over run masked interrupt status, after masking, of the SSPRORINTR interrupt
-	RTMIS  SSPMIS = 0x01 << 1 //+ Gives the receive timeout masked interrupt state, after masking, of the SSPRTINTR interrupt
-	RXMIS  SSPMIS = 0x01 << 2 //+ Gives the receive FIFO masked interrupt state, after masking, of the SSPRXINTR interrupt
-	TXMIS  SSPMIS = 0x01 << 3 //+ Gives the transmit FIFO masked interrupt state, after masking, of the SSPTXINTR interrupt
-)
-
-const (
-	RORMISn = 0
-	RTMISn  = 1
-	RXMISn  = 2
-	TXMISn  = 3
-)
-
-const (
-	RORIC SSPICR = 0x01 << 0 //+ Clears the SSPRORINTR interrupt
-	RTIC  SSPICR = 0x01 << 1 //+ Clears the SSPRTINTR interrupt
-)
-
-const (
-	RORICn = 0
-	RTICn  = 1
-)
-
-const (
-	RXDMAE SSPDMACR = 0x01 << 0 //+ Receive DMA Enable. If this bit is set to 1, DMA for the receive FIFO is enabled.
-	TXDMAE SSPDMACR = 0x01 << 1 //+ Transmit DMA Enable. If this bit is set to 1, DMA for the transmit FIFO is enabled.
+	RXDMAE DMACR = 0x01 << 0 //+ Receive DMA Enable. If this bit is set to 1, DMA for the receive FIFO is enabled.
+	TXDMAE DMACR = 0x01 << 1 //+ Transmit DMA Enable. If this bit is set to 1, DMA for the transmit FIFO is enabled.
 )
 
 const (
@@ -144,8 +106,8 @@ const (
 )
 
 const (
-	PARTNUMBER1 SSPPERIPHID1 = 0x0F << 0 //+ These bits read back as 0x0
-	DESIGNER0   SSPPERIPHID1 = 0x0F << 4 //+ These bits read back as 0x1
+	PARTNUMBER1 PERIPHID1 = 0x0F << 0 //+ These bits read back as 0x0
+	DESIGNER0   PERIPHID1 = 0x0F << 4 //+ These bits read back as 0x1
 )
 
 const (
@@ -154,8 +116,8 @@ const (
 )
 
 const (
-	DESIGNER1 SSPPERIPHID2 = 0x0F << 0 //+ These bits read back as 0x4
-	REVISION  SSPPERIPHID2 = 0x0F << 4 //+ These bits return the peripheral revision
+	DESIGNER1 PERIPHID2 = 0x0F << 0 //+ These bits read back as 0x4
+	REVISION  PERIPHID2 = 0x0F << 4 //+ These bits return the peripheral revision
 )
 
 const (

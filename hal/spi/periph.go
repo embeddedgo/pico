@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package uart
+package spi
 
 import (
 	"embedded/mmio"
@@ -14,23 +14,17 @@ import (
 )
 
 type Periph struct {
+	CR0       mmio.R32[CR0]
+	CR1       mmio.R32[CR1]
 	DR        mmio.U32
-	RSR       mmio.U32
-	_         [4]uint32
-	FR        mmio.R32[FR]
-	_         uint32
-	ILPR      mmio.U32
-	IBRD      mmio.U32
-	FBRD      mmio.U32
-	LCR_H     mmio.R32[LCR_H]
-	CR        mmio.R32[CR]
-	IFLS      mmio.U32
+	SR        mmio.R32[SR]
+	CPSR      mmio.U32
 	IMSC      mmio.R32[INT]
 	RIS       mmio.R32[INT]
 	MIS       mmio.R32[INT]
 	ICR       mmio.R32[INT]
 	DMACR     mmio.R32[DMACR]
-	_         [997]uint32
+	_         [1006]uint32
 	PERIPHID0 mmio.U32
 	PERIPHID1 mmio.U32
 	PERIPHID2 mmio.U32
@@ -41,22 +35,22 @@ type Periph struct {
 	PCELLID3  mmio.U32
 }
 
-// UART returns the UART peripheral.
-func UART(n int) *Periph {
+// SPI returns the n-th SPI peripheral.
+func SPI(n int) *Periph {
 	if uint(n) > 1 {
-		panic("wrong UART number")
+		panic("wrong SPI number")
 	}
-	const base = mmap.UART0_BASE
-	const step = mmap.UART1_BASE - mmap.UART0_BASE
+	const base = mmap.SPI0_BASE
+	const step = mmap.SPI1_BASE - mmap.SPI0_BASE
 	return (*Periph)(unsafe.Pointer(base + uintptr(n)*step))
 }
 
 func num(p *Periph) int {
-	const step = mmap.UART1_BASE - mmap.UART0_BASE
-	return int((uintptr(unsafe.Pointer(p)) - mmap.UART0_BASE) / step)
+	const step = mmap.SPI1_BASE - mmap.SPI0_BASE
+	return int((uintptr(unsafe.Pointer(p)) - mmap.SPI0_BASE) / step)
 }
 
-// SetReset allows to assert/deassert the reset signal to the UART peripheral.
+// SetReset allows to assert/deassert the reset signal to the SPI peripheral.
 func (p *Periph) SetReset(assert bool) {
-	internal.SetReset(resets.UART0 << uint(num(p)), assert)
+	internal.SetReset(resets.SPI0<<uint(num(p)), assert)
 }

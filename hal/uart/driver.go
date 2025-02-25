@@ -39,7 +39,7 @@ func NewDriver(p *Periph) *Driver {
 	return &Driver{p: p, wtimeout: -1, rtimeout: -1}
 }
 
-// Periph returns the underlying LPSPI peripheral.
+// Periph returns the underlying UART peripheral.
 func (d *Driver) Periph() *Periph {
 	return d.p
 }
@@ -79,26 +79,24 @@ func (d *Driver) SetConfig(cfg Config) {
 }
 
 func (d *Driver) Baudrate() int {
-	periHz := clock.PERI.Freq()
 	p := d.p
 	ibrd := p.IBRD.Load()
 	fbrd := p.FBRD.Load()
 	div := int64(ibrd<<6 + fbrd)
-	return int((uint(8*periHz/div) + 1) >> 1)
+	return int((uint(8*clock.PERI.Freq()/div) + 1) / 2)
 }
 
 // SetBaudrate sets the UART baudrate.
-func (d *Driver) SetBaudrate(baudrate int) {
+func (d *Driver) SetBaudrate(baudrate int) (actual int) {
+	if baudrate <= 0 {
+		return -1
+	}
 	periHz := clock.PERI.Freq()
 	brdiv := uint32(8*periHz/int64(baudrate)) + 1
 	ibrd := brdiv >> 7
 	fbrd := brdiv & 0x7f >> 1
-	if ibrd == 0 {
-		ibrd = 1
-		fbrd = 0
-	} else if ibrd >= 0xffff {
-		ibrd = 0xffff
-		fbrd = 0
+	if ibrd == 0 || ibrd > 0xffff {
+		return -1
 	}
 	p := d.p
 	cr := p.CR.Load()
@@ -107,18 +105,20 @@ func (d *Driver) SetBaudrate(baudrate int) {
 	p.FBRD.Store(fbrd)            // FBRD is internally part of LCR
 	p.LCR_H.Store(p.LCR_H.Load()) // dummy write to latch IBRD and FBRD
 	p.CR.Store(cr)
+	div := int64(ibrd<<6 + fbrd)
+	return int((uint(8*periHz/div) + 1) / 2)
 }
 
 // Setup resets the underlying UART peripheral and configures it according to
 // the driver needs. Next it calls the SetConfig and SetBaudrate methods with
 // the provided arguments. You still need to call EnableTx/EnabeRx.
-func (d *Driver) Setup(cfg Config, baudrate int) {
+func (d *Driver) Setup(cfg Config, baudrate int) (actualBaud int) {
 	p := d.p
 	p.SetReset(true)
 	p.SetReset(false)
 	p.CR.Store(0) // disable Rx and Tx
 	d.SetConfig(cfg)
-	d.SetBaudrate(baudrate)
+	return d.SetBaudrate(baudrate)
 }
 
 const fifoLen = 32
@@ -201,4 +201,3 @@ func (d *Driver) SetReadTimeout(timeout time.Duration) {
 func (d *Driver) SetWriteTimeout(timeout time.Duration) {
 	d.wtimeout = timeout
 }
-
