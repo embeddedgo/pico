@@ -161,7 +161,6 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 
 	// Disable resus that may be enabled from previous software.
 	clk := clocks.CLOCKS()
-	clk.SYS_RESUS_CTRL.Load()
 	clk.SYS_RESUS_CTRL.Store(0)
 
 	// Enable the xosc.
@@ -212,17 +211,17 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 	)
 	setClock(
 		clocks.SYS,
-		clocks.SYS_CLKSRC_CLK_SYS_AUX, clocks.USB_CLKSRC_PLL_SYS,
+		clocks.SYS_CLKSRC_CLK_SYS_AUX, clocks.SYS_CLKSRC_PLL_SYS,
 		uint(sysHz), 1<<clocks.SYS_INTn,
 	)
 	setClock(
 		clocks.PERI,
-		0, clocks.PERI_CLKSRC_PLL_SYS,
+		0, clocks.PERI_CLK_SYS,
 		uint(sysHz), 1<<clocks.PERI_INTn,
 	)
 	setClock(
 		clocks.HSTX,
-		0, clocks.HSTX_CLKSRC_PLL_SYS,
+		0, clocks.HSTX_CLK_SYS,
 		uint(sysHz), 1<<clocks.HSTX_INTn,
 	)
 	setClock(
@@ -238,6 +237,13 @@ func Setup(xoscHz int64, sys, usb PLL, maxFlashHz int64) {
 
 	// pico-sdk starts all tick generators here, all configurrd to 1 MHz. We
 	// leave them disabled and enable one by one if needed.
+
+	// 00600 PICO_RUNTIME_INIT_POST_CLOCK_RESETS
+
+	// Remove reset from all peripherals
+	internal.AtomicClear(&rst.RESET, allp)
+	for rst.RESET_DONE.LoadBits(allp) != allp {
+	}
 
 	// Increase the QSPI Flash clock speed.
 	qmiDiv := (uint(sysHz)-1)/uint(maxFlashHz) + 1
