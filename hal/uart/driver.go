@@ -55,14 +55,16 @@ func (d *Driver) Disable() {
 type Config uint32
 
 const (
-	Break      = Config(BRK)        // send break
-	ParityEven = Config(PEN | EPS)  // even parity
-	ParityOdd  = Config(PEN)        // odd parity
-	Stop2b     = Config(STP2)       // two stop bits instead of one
-	Word5b     = Config(2 << WLENn) // 5 bit data word
-	Word6b     = Config(2 << WLENn) // 6 bit data word
-	Word7b     = Config(2 << WLENn) // 7 bit data word
-	Word8b     = Config(3 << WLENn) // 8 bit data word
+	Break      = Config(BRK)       // send break
+	ParityEven = Config(PEN | EPS) // even parity
+	ParityOdd  = Config(PEN)       // odd parity
+	Stop2b     = Config(STP2)      // two stop bits instead of one
+
+	WordLen = Config(3 << WLENn) // Data word length:
+	Word5b  = Config(0 << WLENn) // - 5 bit
+	Word6b  = Config(1 << WLENn) // - 6 bit
+	Word7b  = Config(2 << WLENn) // - 7 bit
+	Word8b  = Config(3 << WLENn) // - 8 bit
 )
 
 func (d *Driver) Config() Config {
