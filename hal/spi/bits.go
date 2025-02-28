@@ -56,7 +56,7 @@ const (
 	TFE SR = 0x01 << 0 //+ Transmit FIFO empty.
 	TNF SR = 0x01 << 1 //+ Transmit FIFO not full.
 	RNE SR = 0x01 << 2 //+ Receive FIFO not empty.
-	RFF SR = 0x01 << 3 //+ Receive FIFO full..
+	RFF SR = 0x01 << 3 //+ Receive FIFO full.
 	BSY SR = 0x01 << 4 //+ PrimeCell SSP busy flag.
 )
 

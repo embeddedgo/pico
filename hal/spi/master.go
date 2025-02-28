@@ -5,13 +5,17 @@
 package spi
 
 import (
+	"runtime"
+	"unsafe"
+
 	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/system/clock"
 )
 
 // A Master is a driver to the SPI peripheral used in master mode.
 type Master struct {
-	p *Periph
+	p    *Periph
+	slow bool
 
 	rxdma dma.Channel
 	txdma dma.Channel
@@ -117,7 +121,9 @@ func (d *Master) SetBaudrate(baudrate int) (actual int) {
 	p.CR0.StoreBits(SCR, CR0(scr-1)<<SCRn)
 	p.CR1.Store(cr1)
 	div = scr * cpsr
-	return int((uint(2*periHz/int64(div)) + 1) / 2)
+	actual = int((uint(2*periHz/int64(div)) + 1) / 2)
+	d.slow = actual <= 1e5
+	return
 }
 
 // Setup resets the underlying SPI peripheral and configures it according to
@@ -131,4 +137,71 @@ func (d *Master) Setup(cfg Config, baudrate int) (actualBaud int) {
 	actualBaud = d.SetBaudrate(baudrate)
 	d.Enable()
 	return
+}
+
+const fifoLen = 8
+
+// WriteReadCPU writes and reads n bytes from/to out/in. Its speed is crucial
+// to achive fast  bitrates so we use unsafe pointers instead of slices to speed
+// things up (smaller code size, no bound checking, minimal number of increment
+// operations in the loop).
+func writeRead8(d *Master, pw, pr unsafe.Pointer, n int) {
+	p, slow := d.p, d.slow
+	nf := min(n, fifoLen)
+
+	// Fill the Tx FIFO.
+	for end := unsafe.Add(pw, nf); pw != end; pw = unsafe.Add(pw, 1) {
+		p.DR.Store(uint32(*(*uint8)(pw)))
+	}
+	n -= nf
+
+	// Read and write.
+	for end := unsafe.Add(pw, n); pw != end; pw = unsafe.Add(pw, 1) {
+		for p.SR.LoadBits(RNE) == 0 {
+			if slow {
+				runtime.Gosched()
+			}
+		}
+		*(*uint8)(pr) = uint8(p.DR.Load())
+		p.DR.Store(uint32(*(*uint8)(pw)))
+		pr = unsafe.Add(pr, 1)
+	}
+
+	// Read the remaining data
+	for end := unsafe.Add(pr, nf); pr != end; pr = unsafe.Add(pr, 1) {
+		for p.SR.LoadBits(RNE) == 0 {
+			if slow {
+				runtime.Gosched()
+			}
+		}
+		*(*uint8)(pr) = uint8(p.DR.Load())
+	}
+}
+
+// WriteRead writes n = min(len(out), len(in)) bytes to the transmit FIFO. At
+// the same time it reads n bytes into in.
+func (d *Master) WriteRead(out, in []byte) (n int) {
+	n = min(len(out), len(in))
+	if n == 0 {
+		return
+	}
+	pw := unsafe.Pointer(unsafe.SliceData(out))
+	pr := unsafe.Pointer(unsafe.SliceData(in))
+
+	// Use DMA only for long transfers. Short ones are handled by CPU.
+	if n <= 32 || !d.rxdma.IsValid() || !d.txdma.IsValid() {
+		writeRead8(d, pw, pr, n)
+	} else {
+		writeReadDMA(d, pw, pr, n, dma.S8b)
+	}
+	return
+}
+
+// WriteStringRead works like WriteRead but writes a string.
+func (d *Master) WriteStringRead(out string, in []byte) int {
+	return d.WriteRead(unsafe.Slice(unsafe.StringData(out), len(out)), in)
+}
+
+func writeReadDMA(d *Master, pw, pr unsafe.Pointer, n int, dmacfg dma.Config) {
+
 }

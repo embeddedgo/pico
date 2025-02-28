@@ -39,26 +39,19 @@ func main() {
 	u.EnableRx()
 
 	// Setup SPI0 driver
-	dma0 := dma.DMA(0)
-	sm := spi.NewMaster(spi.SPI(0), dma0.AllocChannel(), dma0.AllocChannel())
+	//dma0 := dma.DMA(0)
+	sm := spi.NewMaster(spi.SPI(0), dma.Channel{}, dma.Channel{})
 	sm.UsePin(miso, spi.RXD)
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(csn, spi.CSN)
 	sm.UsePin(sck, spi.SCK)
 	sm.Disable()
-	spiBaud := sm.Setup(spi.Word8b, 1e6)
-	p := sm.Periph()
-	for tx := uint32(0); ; tx = (tx + 1) & 0xff {
-		for p.SR.LoadBits(spi.TNF) == 0 {
-		}
-		p.DR.Store(tx)
-		for p.SR.LoadBits(spi.RNE) == 0 {
-		}
-		rx := p.DR.Load()
-		fmt.Fprintf(
-			u, "spiBaud=%d tx=%08b rx=%08b\r\n",
-			spiBaud, tx, rx,
-		)
+	sm.Setup(spi.Word8b, 1e6)
+	buf := make([]byte, 128)
+	for {
+		n := sm.WriteStringRead("0123456789_abcdefghijklmnoprstuvwxyz", buf)
+		fmt.Fprintf(u, "'%s'\r\n", buf[:n])
+		clear(buf)
 		time.Sleep(time.Second)
 	}
 }
