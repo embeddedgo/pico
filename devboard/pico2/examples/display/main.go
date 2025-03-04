@@ -16,7 +16,7 @@ import (
 	"github.com/embeddedgo/pico/hal/gpio"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/spi"
-	"github.com/embeddedgo/pico/hal/spi/spi0"
+	"github.com/embeddedgo/pico/hal/spi/spi1"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -29,19 +29,26 @@ func main() {
 	const (
 		conTx = pins.GP0
 		conRx = pins.GP1
-		mosi  = pins.GP3
-		miso  = pins.GP4
-		csn   = pins.GP5
-		sck   = pins.GP6
-		dc    = pins.GP7
-		rst   = pins.GP8 // optional, connect to 3V (exception SSD1306)
+
+		// This ridiculous pinout makes this example compatible with the
+		// Waveshare Pico-LCD-1.3 hat.
+		dc   = pins.GP8
+		csn  = pins.GP9
+		sck  = pins.GP10
+		mosi = pins.GP11
+		rst  = pins.GP12 // optional, connect to 3V (exception SSD1306)
+		//bl   = pins.GP13
+
+		// This is the only SPI1 RX capable pin left by Pico-LCD-1.3 (it uses
+		// the remaining two for DC and RST).
+		miso = pins.GP28_A2
 	)
 
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
-	// Setup SPI0 driver
-	sm := spi0.Master()
+	// Setup SPI driver
+	sm := spi1.Master()
 	sm.UsePin(miso, spi.RXD)
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(sck, spi.SCK)
@@ -67,8 +74,7 @@ func main() {
 	//dp.MaxWriteClk *= 2
 
 	dci := tftdci.NewSPI(
-		spi0.Master(),
-		csn, dc,
+		sm, csn, dc,
 		spi.CPOL1|spi.CPHA1, // faster than CPOL0,CPHA0 (no gaps between words)
 		dp.MaxReadClk, dp.MaxWriteClk,
 	)
