@@ -20,8 +20,7 @@ func main() {
 	ledPin := iomux.P25
 	ledPin.Setup(iomux.D8mA)
 
-	gpio.UsePin(ledPin)
-	led := gpio.BitForPin(ledPin)
+	led := gpio.UsePin(ledPin)
 	led.EnableOut()
 
 	for {

@@ -8,7 +8,6 @@ import (
 	"embedded/mmio"
 	"unsafe"
 
-	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
@@ -113,11 +112,4 @@ func (p *Port) Toggle(bits uint32) {
 //go:nosplit
 func (p *Port) Store(bits uint32) {
 	p.out.Store(bits)
-}
-
-// UsePin connects pin to the GPIO (SIO) peripheral.
-//
-//go:nosplit
-func UsePin(pin iomux.Pin) {
-	pin.SetAltFunc(pin.AltFunc()&^iomux.Func | iomux.GPIO)
 }

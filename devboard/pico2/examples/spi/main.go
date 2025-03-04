@@ -10,8 +10,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/spi"
+	"github.com/embeddedgo/pico/hal/spi/spi0"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
 
@@ -40,18 +40,16 @@ func main() {
 	u.EnableRx()
 
 	// Setup SPI0 driver
-	//dma0 := dma.DMA(0)
-	sm := spi.NewMaster(spi.SPI(0), dma.Channel{}, dma.Channel{})
+	sm := spi0.Master()
 	sm.UsePin(miso, spi.RXD)
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(csn, spi.CSN)
 	sm.UsePin(sck, spi.SCK)
-	sm.Disable()
-	sm.Setup(spi.Word8b, 1e6)
+	sm.SetBaudrate(1e6)
 
 	// Data to sent.
 	s8 := ">> 0123456789 abcdefghijklmnoprstuvwxyz ABCDEFGHIJKLMNOPRSTUVWXYZ <<"
-	s16 := make([]uint16, 70)
+	s16 := make([]uint16, 77)
 	for i := range s16 {
 		s16[i] = uint16(0x9000 + i)
 	}
@@ -87,7 +85,7 @@ func main() {
 			fmt.Fprintf(u, "WriteRead16 err: %x\r\n", buf16[:n])
 		}
 
-		for i := range 0x10000 {
+		for i := range 10000 {
 			w := uint16(i)
 			if sm.WriteReadWord16(w) != w {
 				fmt.Fprintf(u, "WriteReadWord16 err: %x\r\n", w)

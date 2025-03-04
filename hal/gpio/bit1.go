@@ -97,3 +97,12 @@ func (p *Port) Bit(n int) Bit {
 func BitForPin(pin iomux.Pin) Bit {
 	return Bit{P(int(pin >> 5)), 1 << uint(pin&31)}
 }
+
+// UsePin connects pin to the GPIO (SIO) peripheral and returns the
+// corresponding GPIO bit (see also BitForPin).
+//
+//go:nosplit
+func UsePin(pin iomux.Pin) Bit {
+	pin.SetAltFunc(pin.AltFunc()&^iomux.Func | iomux.GPIO)
+	return Bit{P(int(pin >> 5)), 1 << uint(pin&31)}
+}

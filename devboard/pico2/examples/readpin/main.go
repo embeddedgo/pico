@@ -14,8 +14,7 @@ import (
 func main() {
 	pin := pins.GP15
 	pin.Setup(iomux.Schmitt | iomux.PullUp | iomux.InpEn)
-	gpio.UsePin(pin)
-	inp := gpio.BitForPin(pin)
+	inp := gpio.UsePin(pin)
 
 	for {
 		if inp.Load() == 0 {
