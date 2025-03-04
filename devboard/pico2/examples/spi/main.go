@@ -12,6 +12,7 @@ import (
 
 	"github.com/embeddedgo/pico/hal/spi"
 	"github.com/embeddedgo/pico/hal/spi/spi0"
+	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
 
@@ -32,12 +33,7 @@ func main() {
 	)
 
 	// Serial console
-	u := uart0.Driver()
-	u.UsePin(conTx, uart.TXD)
-	u.UsePin(conRx, uart.RXD)
-	u.Setup(uart.Word8b, 115200)
-	u.EnableTx()
-	u.EnableRx()
+	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// Setup SPI0 driver
 	sm := spi0.Master()
@@ -62,37 +58,37 @@ func main() {
 		sm.SetConfig(spi.Word8b)
 		n := sm.WriteStringRead(s8, buf8)
 		if s8 == string(buf8[:n]) {
-			fmt.Fprint(u, "WriteStringRead ok\r\n")
+			fmt.Print("WriteStringRead ok\n")
 		} else {
-			fmt.Fprintf(u, "WriteStringRead err: '%s'\r\n", buf8[:n])
+			fmt.Printf("WriteStringRead err: '%s'\n", buf8[:n])
 		}
 
 		for i := range 0x100 {
 			b := byte(i)
 			if sm.WriteReadByte(b) != b {
-				fmt.Fprintf(u, "WriteReadByte err: %x\r\n", b)
+				fmt.Printf("WriteReadByte err: %x\n", b)
 				goto ok1
 			}
 		}
-		fmt.Fprint(u, "WriteReadByte ok\r\n")
+		fmt.Print("WriteReadByte ok\n")
 	ok1:
 
 		sm.SetConfig(spi.Word16b)
 		n = sm.WriteRead16(s16, buf16)
 		if slices.Equal(s16, buf16[:n]) {
-			fmt.Fprint(u, "WriteRead16 ok\r\n")
+			fmt.Print("WriteRead16 ok\n")
 		} else {
-			fmt.Fprintf(u, "WriteRead16 err: %x\r\n", buf16[:n])
+			fmt.Printf("WriteRead16 err: %x\n", buf16[:n])
 		}
 
 		for i := range 10000 {
 			w := uint16(i)
 			if sm.WriteReadWord16(w) != w {
-				fmt.Fprintf(u, "WriteReadWord16 err: %x\r\n", w)
+				fmt.Printf("WriteReadWord16 err: %x\n", w)
 				goto ok2
 			}
 		}
-		fmt.Fprint(u, "WriteReadWord16 ok\r\n")
+		fmt.Print("WriteReadWord16 ok\n")
 	ok2:
 
 		clear(buf8)

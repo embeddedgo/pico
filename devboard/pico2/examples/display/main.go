@@ -17,6 +17,7 @@ import (
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/spi"
 	"github.com/embeddedgo/pico/hal/spi/spi0"
+	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
 
@@ -37,12 +38,7 @@ func main() {
 	)
 
 	// Serial console
-	u := uart0.Driver()
-	u.UsePin(conTx, uart.TXD)
-	u.UsePin(conRx, uart.RXD)
-	u.Setup(uart.Word8b, 115200)
-	u.EnableTx()
-	u.EnableRx()
+	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// Setup SPI0 driver
 	sm := spi0.Master()
@@ -73,11 +69,11 @@ func main() {
 	dci := tftdci.NewSPI(
 		spi0.Master(),
 		csn, dc,
-		spi.CPOL0|spi.CPHA0,
+		spi.CPOL1|spi.CPHA1, // faster than CPOL0,CPHA0 (no gaps between words)
 		dp.MaxReadClk, dp.MaxWriteClk,
 	)
 
-	fmt.Fprintln(u, "*** Start ***")
+	fmt.Println("*** Start ***")
 
 	disp := dp.New(dci)
 	for {

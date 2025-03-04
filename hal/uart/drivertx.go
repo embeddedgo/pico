@@ -5,6 +5,7 @@
 package uart
 
 import (
+	"embedded/rtos"
 	"runtime"
 	"unsafe"
 
@@ -23,6 +24,7 @@ func (d *Driver) DisableTx() {
 	internal.AtomicClear(&d.p.CR, TXE)
 }
 
+//go:nosplit
 func (d *Driver) Write(s []byte) (n int, err error) {
 	if len(s) == 0 {
 		return
@@ -48,12 +50,17 @@ func (d *Driver) Write(s []byte) (n int, err error) {
 			}
 		}
 	}
+pollFF:
 	for p.FR.LoadBits(TXFF) == 0 {
 		// There is at least 1 free location in the FIFO.
 		p.DR.Store(uint32(s[n]))
 		if n++; n >= len(s) {
 			return
 		}
+	}
+	if rtos.HandlerMode() {
+		// Write called in handler mode by print or println.
+		goto pollFF
 	}
 	// The remaining data will be written to the FIFO by the ISR.
 	if waitWriteISR(d, &s[n], len(s)-n) {
