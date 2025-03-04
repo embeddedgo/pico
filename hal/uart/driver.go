@@ -49,6 +49,7 @@ func (d *Driver) Enable() {
 }
 
 func (d *Driver) Disable() {
+	d.WaitTxDone()
 	d.p.CR.ClearBits(UARTEN)
 }
 
@@ -73,6 +74,7 @@ func (d *Driver) Config() Config {
 
 // SetConfig sets the URAT configuration.
 func (d *Driver) SetConfig(cfg Config) {
+	d.WaitTxDone()
 	p := d.p
 	cr := p.CR.Load()
 	p.CR.Store(cr &^ UARTEN) // disable UART before accessing LCR
@@ -100,6 +102,7 @@ func (d *Driver) SetBaudrate(baudrate int) (actual int) {
 	if ibrd == 0 || ibrd > 0xffff {
 		return -1
 	}
+	d.WaitTxDone()
 	p := d.p
 	cr := p.CR.Load()
 	p.CR.Store(cr &^ UARTEN)      // disable UART before accessing LCR
