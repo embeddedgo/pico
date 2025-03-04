@@ -17,24 +17,27 @@ type SPI struct {
 	dc      gpio.Bit
 	csn     gpio.Bit
 	mode    spi.Config
-	rclkHz  int
-	wclkHz  int
+	rclk    int
+	wclk    int
 	started bool
 	reconf  bool
 }
 
 // NewSPI returns new SPI based implementation of tftdrv.DCI.
-func NewSPI(drv *spi.Master, csn, dc iomux.Pin, mode spi.Config, rclkHz, wclkHz int) *SPI {
-	dci := new(SPI)
-	dci.spi = drv
-	dci.dc = gpio.BitForPin(dc)
-	dci.csn = gpio.BitForPin(csn)
-	dci.mode = mode
+func NewSPI(drv *spi.Master, csn, dc iomux.Pin, mode spi.Config, rcHz, wcHz int) *SPI {
+	dci := &SPI{
+		spi:  drv,
+		dc:   gpio.UsePin(dc),
+		csn:  gpio.UsePin(csn),
+		mode: mode,
+		rclk: rcHz,
+		wclk: wcHz,
+	}
 
-	gpio.UsePin(csn)
-	gpio.UsePin(dc)
 	dci.csn.Set()
+	dci.csn.EnableOut()
 	dci.dc.Clear()
+	dci.dc.EnableOut()
 	csn.Setup(iomux.D4mA)
 	dc.Setup(iomux.D4mA)
 
@@ -47,7 +50,8 @@ func (dci *SPI) Err(clear bool) error { return nil }
 func start(dci *SPI) {
 	dci.started = true
 	d := dci.spi
-	d.SetBaudrate(dci.wclkHz)
+	d.Lock()
+	d.SetBaudrate(dci.wclk)
 	d.Enable()
 	dci.csn.Clear()
 }
@@ -56,20 +60,23 @@ func (dci *SPI) Cmd(p []byte, _ int) {
 	if !dci.started {
 		start(dci)
 	}
-	dci.dc.Clear()
 	d := dci.spi
+	d.WaitTxDone()
+	dci.dc.Clear()
 	d.SetConfig(dci.mode | spi.Word8b)
 	d.Write(p)
+	d.WaitTxDone()
 	dci.dc.Set()
 }
 
-// End ends the SPI transaction. It sets CSn pin high and disables the SPI
-// peripheral. Other usesrs of the same master driver can then take controll of
-// the SPI bus.
+// End ends the SPI transaction. It sets CSn pin high, disables the SPI
+// peripheral and unlocks the driver. Other usesrs of the same master driver
+// can then take controll of the SPI bus locking the driver before use.
 func (dci *SPI) End() {
 	dci.started = false
-	dci.csn.Set()
 	dci.spi.Disable()
+	dci.csn.Set()
+	dci.spi.Unlock()
 }
 
 func (dci *SPI) WriteBytes(p []uint8) {
@@ -123,7 +130,7 @@ func (dci *SPI) ReadBytes(p []byte) {
 	}
 	d := dci.spi
 	d.SetConfig(dci.mode | spi.Word8b)
-	d.SetBaudrate(dci.rclkHz)
+	d.SetBaudrate(dci.rclk)
 	d.Read(p)
-	d.SetBaudrate(dci.wclkHz)
+	d.SetBaudrate(dci.wclk)
 }
