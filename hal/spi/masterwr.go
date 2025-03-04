@@ -60,8 +60,7 @@ func writeRead[T dataWord](d *Master, pw, pr unsafe.Pointer, n int) {
 	nf := min(n, fifoLen)
 
 	if d.rdirty {
-		drainRxFIFO(p)
-		d.rdirty = false
+		drainRxFIFO(d)
 	}
 
 	// Fill the Tx FIFO.
@@ -109,8 +108,7 @@ func writeReadWord(d *Master, w uint32) uint32 {
 	p, slow := d.p, d.slow
 
 	if d.rdirty {
-		drainRxFIFO(p)
-		d.rdirty = false
+		drainRxFIFO(d)
 	}
 
 	p.DR.Store(w) // the Tx FIFO is empty

@@ -5,12 +5,17 @@
 package spi
 
 import (
+	"runtime"
+	"sync"
+
 	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/system/clock"
 )
 
 // A Master is a driver to the SPI peripheral used in master mode.
 type Master struct {
+	sync.Mutex // helps in case of concurent use of Master (not used internally)
+
 	p      *Periph
 	slow   bool
 	rdirty bool
@@ -35,8 +40,20 @@ func (d *Master) Enable() {
 	d.p.CR1.SetBits(SSE)
 }
 
+// Disable waits for the last bit of the last transfer to be sent and next it
+// disables the SPI peripheral.
 func (d *Master) Disable() {
+	d.WaitTxDone()
 	d.p.CR1.ClearBits(SSE)
+}
+
+func (d *Master) WaitTxDone() {
+	p, slow := d.p, d.slow
+	for p.SR.LoadBits(TFE|BSY) != TFE {
+		if slow {
+			runtime.Gosched()
+		}
+	}
 }
 
 type Config uint32
@@ -74,12 +91,10 @@ func (d *Master) Config() Config {
 }
 
 func (d *Master) SetConfig(cfg Config) {
+	d.WaitTxDone()
 	p := d.p
-	cr1 := p.CR1.Load()
-	p.CR1.Store(cr1 &^ SSE) // disable SPI
-	p.CR0.StoreBits(FRF|SPH|SPO|DSS, CR0(cfg))
-	p.DMACR.Store(3)
-	p.CR1.Store(cr1)
+	p.CR0.StoreBits(FRF|SPH|SPO|DSS, CR0(cfg)) // only MS requires disabled SSP
+	//p.DMACR.Store(3)
 }
 
 func (d *Master) Baudrate() int {
@@ -113,12 +128,10 @@ func (d *Master) SetBaudrate(baudrate int) (actual int) {
 			return -1
 		}
 	}
+	d.WaitTxDone()
 	p := d.p
-	cr1 := p.CR1.Load()
-	p.CR1.Store(cr1 &^ SSE) // disable SPI
 	p.CPSR.Store(uint32(cpsr))
-	p.CR0.StoreBits(SCR, CR0(scr-1)<<SCRn)
-	p.CR1.Store(cr1)
+	p.CR0.StoreBits(SCR, CR0(scr-1)<<SCRn) // only MS requires disabled SSP
 	div = scr * cpsr
 	actual = int((uint(2*periHz/int64(div)) + 1) / 2)
 	d.slow = actual <= 1e5
@@ -143,15 +156,20 @@ const (
 	fifoLen = 8
 )
 
-func drainRxFIFO(p *Periph) {
+func drainRxFIFO(d *Master) {
+	p, slow := d.p, d.slow
 	for {
 		for p.SR.LoadBits(RNE) != 0 {
 			p.DR.Load()
 		}
 		if p.SR.LoadBits(BSY) == 0 {
-			return
+			break
+		}
+		if slow {
+			runtime.Gosched()
 		}
 	}
+	d.rdirty = false
 }
 
 type dataWord interface{ ~uint8 | ~uint16 }

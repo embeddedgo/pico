@@ -55,8 +55,7 @@ func read[T dataWord](d *Master, pr unsafe.Pointer, n int) {
 	nf := min(n, fifoLen)
 
 	if d.rdirty {
-		drainRxFIFO(p)
-		d.rdirty = false
+		drainRxFIFO(d)
 	}
 
 	// Fill the Tx FIFO.
