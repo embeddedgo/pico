@@ -96,12 +96,12 @@ func setConf(r *mmio.U32, c Channel, cfg Config, chainTo Channel) {
 
 //go:nosplit
 func status(r *mmio.U32) uint8 {
-	return uint8(r.Load() >> 25)
+	return uint8(r.Load() >> 26)
 }
 
 //go:nosplit
 func clear(r *mmio.U32, status uint8) {
-	internal.AtomicSetU32(r, uint32(status)<<25)
+	internal.AtomicSetU32(r, uint32(status)<<26)
 }
 
 //go:nosplit
