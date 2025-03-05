@@ -5,10 +5,13 @@
 package spi
 
 import (
+	"embedded/rtos"
 	"runtime"
 	"sync"
+	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/dma"
+	"github.com/embeddedgo/pico/hal/system"
 	"github.com/embeddedgo/pico/hal/system/clock"
 )
 
@@ -16,19 +19,33 @@ import (
 type Master struct {
 	sync.Mutex // helps in case of concurent use of Master (not used internally)
 
-	p      *Periph
-	slow   bool
-	rdirty bool
-	repw   uint16
+	p     *Periph
+	slow  bool
+	wonly bool
+	repw  uint16
 
-	rdma dma.Channel
-	wdma dma.Channel
+	rdma, wdma dma.Channel
+	rdc, wdc   dma.Config
+
+	irqn int
+	done rtos.Note
 }
 
 // NewMaster returns a new master-mode driver for p. If valid DMA channels are
 // given, the DMA will be used for bigger data transfers.
-func NewMaster(p *Periph, rxdma, txdma dma.Channel) *Master {
-	return &Master{p: p, rdma: rxdma, wdma: txdma}
+func NewMaster(p *Periph, rdma, wdma dma.Channel) *Master {
+	irqn := int(system.NextCPU())
+	d := &Master{p: p, rdma: rdma, wdma: wdma, irqn: irqn}
+	radd := dma.Config(num(p)) * (dma.SPI1_TX - dma.SPI0_TX)
+	if rdma.IsValid() {
+		d.rdc = dma.En | (dma.SPI0_RX + radd)
+		rdma.SetReadAddr(unsafe.Pointer(&p.DR))
+	}
+	if wdma.IsValid() {
+		d.wdc = dma.En | (dma.SPI0_TX + radd)
+		wdma.SetWriteAddr(unsafe.Pointer(&p.DR))
+	}
+	return d
 }
 
 // Periph returns the underlying SPI peripheral.
@@ -94,7 +111,7 @@ func (d *Master) SetConfig(cfg Config) {
 	d.WaitTxDone()
 	p := d.p
 	p.CR0.StoreBits(FRF|SPH|SPO|DSS, CR0(cfg)) // only MS requires disabled SSP
-	//p.DMACR.Store(3)
+	p.DMACR.Store(RXDMAE | TXDMAE)
 }
 
 func (d *Master) Baudrate() int {
@@ -151,6 +168,18 @@ func (d *Master) Setup(cfg Config, baudrate int) (actualBaud int) {
 	return
 }
 
+// DMAISR should be configured as a DMA interrupt handler if DMA is used.
+//
+//go:nosplit
+func (d *Master) DMAISR() {
+	ch := d.rdma
+	if d.wonly {
+		ch = d.wdma
+	}
+	ch.DisableIRQ(d.irqn)
+	d.done.Wakeup()
+}
+
 const (
 	minDMA  = 32
 	fifoLen = 8
@@ -169,7 +198,7 @@ func drainRxFIFO(d *Master) {
 			runtime.Gosched()
 		}
 	}
-	d.rdirty = false
+	d.wonly = false
 }
 
 type dataWord interface{ ~uint8 | ~uint16 }

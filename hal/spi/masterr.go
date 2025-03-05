@@ -27,7 +27,8 @@ func (d *Master) Read(s []byte) (n int, err error) {
 	if n < minDMA || !d.rdma.IsValid() {
 		read[uint8](d, pr, n)
 	} else {
-		readDMA(d, pr, n, dma.S8b)
+		pw := unsafe.Pointer(&d.repw)
+		writeReadDMA(d, pw, pr, n, dma.S8b, dma.S8b|dma.IncW)
 	}
 	return
 }
@@ -44,7 +45,8 @@ func (d *Master) Read16(s []uint16) (n int, err error) {
 	if n < minDMA || !d.rdma.IsValid() {
 		read[uint16](d, pr, n)
 	} else {
-		readDMA(d, pr, n, dma.S16b)
+		pw := unsafe.Pointer(&d.repw)
+		writeReadDMA(d, pw, pr, n, dma.S16b, dma.S16b|dma.IncW)
 	}
 	return
 }
@@ -54,7 +56,7 @@ func read[T dataWord](d *Master, pr unsafe.Pointer, n int) {
 	p, slow, repw := d.p, d.slow, uint32(d.repw)
 	nf := min(n, fifoLen)
 
-	if d.rdirty {
+	if d.wonly {
 		drainRxFIFO(d)
 	}
 
@@ -84,10 +86,6 @@ func read[T dataWord](d *Master, pr unsafe.Pointer, n int) {
 		}
 		*(*T)(pr) = T(p.DR.Load())
 	}
-}
-
-func readDMA(d *Master, pr unsafe.Pointer, n int, dmacfg dma.Config) {
-	// TODO
 }
 
 func (d *Master) ReadByte() (b byte, err error) {

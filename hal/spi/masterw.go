@@ -16,6 +16,7 @@ func (d *Master) Write(s []byte) (n int, err error) {
 	if len(s) == 0 {
 		return
 	}
+	d.wonly = true
 	pw := unsafe.Pointer(unsafe.SliceData(s))
 	n = len(s)
 
@@ -23,7 +24,7 @@ func (d *Master) Write(s []byte) (n int, err error) {
 	if n < minDMA || !d.wdma.IsValid() {
 		write[uint8](d, pw, n)
 	} else {
-		writeDMA(d, pw, n, dma.S8b)
+		writeDMA(d, pw, n, dma.S8b|dma.IncR)
 	}
 	return
 }
@@ -38,6 +39,7 @@ func (d *Master) Write16(s []uint16) (n int, err error) {
 	if len(s) == 0 {
 		return
 	}
+	d.wonly = true
 	pw := unsafe.Pointer(unsafe.SliceData(s))
 	n = len(s)
 
@@ -45,7 +47,7 @@ func (d *Master) Write16(s []uint16) (n int, err error) {
 	if n < minDMA || !d.wdma.IsValid() {
 		write[uint16](d, pw, n)
 	} else {
-		writeDMA(d, pw, n, dma.S16b)
+		writeDMA(d, pw, n, dma.S16b|dma.IncR)
 	}
 	return
 }
@@ -72,42 +74,34 @@ func write[T dataWord](d *Master, pw unsafe.Pointer, n int) {
 		}
 		p.DR.Store(uint32(*(*T)(pw)))
 	}
-
-	d.rdirty = true // we left unread garbage
-}
-
-func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
-	// TODO
 }
 
 func (d *Master) WriteByteN(b byte, n int) {
 	if n <= 0 {
 		return
 	}
+	d.wonly = true
 
 	// Use DMA only for long transfers. Short ones are handled by CPU.
 	if n < minDMA || !d.wdma.IsValid() {
 		writeWordN(d, uint32(b), n)
 	} else {
-		//writeDMA(d, pw, n, dma.S16b)
+		writeDMA(d, unsafe.Pointer(&b), n, dma.S8b)
 	}
-
-	d.rdirty = true // we left unread garbage
 }
 
 func (d *Master) WriteWord16N(w uint16, n int) {
 	if n <= 0 {
 		return
 	}
+	d.wonly = true
 
 	// Use DMA only for long transfers. Short ones are handled by CPU.
 	if n < minDMA || !d.wdma.IsValid() {
 		writeWordN(d, uint32(w), n)
 	} else {
-		//writeDMA(d, pw, n, dma.S16b)
+		writeDMA(d, unsafe.Pointer(&w), n, dma.S16b)
 	}
-
-	d.rdirty = true // we left unread garbage
 }
 
 func writeWordN(d *Master, w uint32, n int) {
@@ -131,16 +125,16 @@ func writeWordN(d *Master, w uint32, n int) {
 		}
 		p.DR.Store(w)
 	}
-
-	d.rdirty = true // we left unread garbage
 }
 
 func (d *Master) WriteByte(b byte) error {
+	d.wonly = true
 	writeWord(d, uint32(b))
 	return nil
 }
 
 func (d *Master) WriteWord16(w uint16) error {
+	d.wonly = true
 	writeWord(d, uint32(w))
 	return nil
 }
@@ -154,6 +148,15 @@ func writeWord(d *Master, w uint32) {
 		}
 	}
 	p.DR.Store(w)
+}
 
-	d.rdirty = true // we left unread garbage
+func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
+	d.done.Clear() // memory barrier
+	wdma := d.wdma
+	wdma.ClearIRQ()
+	wdma.SetReadAddr(pw)
+	wdma.SetTransCount(n, dma.Normal)
+	wdma.SetConfigTrig(d.wdc|dmacfg, wdma)
+	wdma.EnableIRQ(d.irqn)
+	d.done.Sleep(-1)
 }

@@ -2,22 +2,21 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package spi1
+package spi0dma
 
 import (
 	_ "unsafe"
 
-	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/spi"
+	"github.com/embeddedgo/pico/hal/spi/internal"
 )
 
-var driver *spi.Master
+var master *spi.Master
 
 // Master returns ready to use driver for SPI master.
 func Master() *spi.Master {
-	if driver == nil {
-		driver = spi.NewMaster(spi.SPI(1), dma.Channel{}, dma.Channel{})
-		driver.Setup(spi.Word8b, 1e5) // make this driver somewhat ready to use
+	if master == nil {
+		master = internal.MasterDMA(spi.SPI(0))
 	}
-	return driver
+	return master
 }

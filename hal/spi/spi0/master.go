@@ -17,7 +17,7 @@ var driver *spi.Master
 func Master() *spi.Master {
 	if driver == nil {
 		driver = spi.NewMaster(spi.SPI(0), dma.Channel{}, dma.Channel{})
-		driver.Setup(spi.Word8b, 1e5)
+		driver.Setup(spi.Word8b, 1e5) // make this driver somewhat ready to use
 	}
 	return driver
 }

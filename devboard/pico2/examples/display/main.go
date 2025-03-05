@@ -16,7 +16,7 @@ import (
 	"github.com/embeddedgo/pico/hal/gpio"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/spi"
-	"github.com/embeddedgo/pico/hal/spi/spi1"
+	"github.com/embeddedgo/pico/hal/spi/spi1dma"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -37,7 +37,7 @@ func main() {
 		sck  = pins.GP10
 		mosi = pins.GP11
 		rst  = pins.GP12 // optional, connect to 3V (exception SSD1306)
-		//bl   = pins.GP13
+		//bl   = pins.GP13 // backlight, optional
 
 		// This is the only SPI1 RX capable pin left by Pico-LCD-1.3 (it uses
 		// the remaining two for DC and RST).
@@ -48,7 +48,7 @@ func main() {
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// Setup SPI driver
-	sm := spi1.Master()
+	sm := spi1dma.Master()
 	sm.UsePin(miso, spi.RXD)
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(sck, spi.SCK)

@@ -36,7 +36,7 @@ func main() {
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// Setup SPI0 driver
-	sm := spi0.Master()
+	sm := spi0dma.Master()
 	sm.UsePin(miso, spi.RXD)
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(csn, spi.CSN)

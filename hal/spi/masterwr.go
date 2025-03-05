@@ -25,7 +25,7 @@ func (d *Master) WriteRead(out, in []byte) (n int) {
 	if n < minDMA || !d.rdma.IsValid() || !d.wdma.IsValid() {
 		writeRead[uint8](d, pw, pr, n)
 	} else {
-		writeReadDMA(d, pw, pr, n, dma.S8b)
+		writeReadDMA(d, pw, pr, n, dma.S8b|dma.IncR, dma.S8b|dma.IncW)
 	}
 	return
 }
@@ -49,7 +49,7 @@ func (d *Master) WriteRead16(out, in []uint16) (n int) {
 	if n < minDMA || !d.rdma.IsValid() || !d.wdma.IsValid() {
 		writeRead[uint16](d, pw, pr, n)
 	} else {
-		writeReadDMA(d, pw, pr, n, dma.S16b)
+		writeReadDMA(d, pw, pr, n, dma.S16b|dma.IncR, dma.S16b|dma.IncW)
 	}
 	return
 }
@@ -59,7 +59,7 @@ func writeRead[T dataWord](d *Master, pw, pr unsafe.Pointer, n int) {
 	p, slow := d.p, d.slow
 	nf := min(n, fifoLen)
 
-	if d.rdirty {
+	if d.wonly {
 		drainRxFIFO(d)
 	}
 
@@ -92,10 +92,6 @@ func writeRead[T dataWord](d *Master, pw, pr unsafe.Pointer, n int) {
 	}
 }
 
-func writeReadDMA(d *Master, pw, pr unsafe.Pointer, n int, dmacfg dma.Config) {
-	// TODO
-}
-
 func (d *Master) WriteReadByte(b byte) byte {
 	return byte(writeReadWord(d, uint32(b)))
 }
@@ -107,7 +103,7 @@ func (d *Master) WriteReadWord16(w uint16) uint16 {
 func writeReadWord(d *Master, w uint32) uint32 {
 	p, slow := d.p, d.slow
 
-	if d.rdirty {
+	if d.wonly {
 		drainRxFIFO(d)
 	}
 
@@ -118,4 +114,19 @@ func writeReadWord(d *Master, w uint32) uint32 {
 		}
 	}
 	return p.DR.Load()
+}
+
+func writeReadDMA(d *Master, pw, pr unsafe.Pointer, n int, wdc, rdc dma.Config) {
+	d.done.Clear() // memory barrier
+	rdma := d.rdma
+	rdma.ClearIRQ()
+	rdma.SetWriteAddr(pr)
+	rdma.SetTransCount(n, dma.Normal)
+	rdma.SetConfigTrig(d.rdc|rdc, rdma)
+	rdma.EnableIRQ(d.irqn)
+	wdma := d.wdma
+	wdma.SetReadAddr(pw)
+	wdma.SetTransCount(n, dma.Normal)
+	wdma.SetConfigTrig(d.wdc|wdc, wdma)
+	d.done.Sleep(-1)
 }
