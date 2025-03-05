@@ -89,10 +89,12 @@ func (dci *SPI) Cmd(p []byte, _ int) {
 // peripheral and unlocks the driver. Other usesrs of the same master driver
 // can then take controll of the SPI bus locking the driver before use.
 func (dci *SPI) End() {
-	dci.started = false
-	dci.spi.Disable()
-	dci.csn.Set()
-	dci.spi.Unlock()
+	if dci.started {
+		dci.started = false
+		dci.spi.Disable()
+		dci.csn.Set()
+		dci.spi.Unlock()
+	}
 }
 
 func (dci *SPI) WriteBytes(p []uint8) {
