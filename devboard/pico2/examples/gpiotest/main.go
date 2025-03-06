@@ -8,8 +8,8 @@ package main
 import (
 	"time"
 
-	"github.com/embeddedgo/pico/devboard/cytronmaker/board/leds"
-	"github.com/embeddedgo/pico/devboard/cytronmaker/board/pins"
+	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
+	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/gpio"
 	"github.com/embeddedgo/pico/hal/iomux"
 )

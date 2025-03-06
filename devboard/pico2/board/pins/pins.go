@@ -5,8 +5,8 @@
 package pins
 
 import (
-	_ "github.com/embeddedgo/pico/devboard/pico2/board/system"
 	"github.com/embeddedgo/pico/hal/iomux"
+	_ "github.com/embeddedgo/pico/hal/system/init"
 )
 
 const (

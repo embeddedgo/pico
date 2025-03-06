@@ -20,7 +20,7 @@ Every supported board has its directory here. Each of them contains three subdir
 
 #### board
 
-The `board` directory contains Go packages that provide the interface to the peripherals available on the board such as buttons, LEDs, etc. It also contains a `system` package which, when imported, configures the whole system for typical use. Other packages in the `board` directory import the `system` package to ensure the proper operation of the board. If you don't import any package from the `board` directory in your application you should import the `board/system` package anonymously or copy the code from its `init` function which has the advantage that you can adjust it to better suit your needs.
+The `board` directory contains Go packages that provide the interface to the peripherals available on the board such as buttons, LEDs, etc.
 
 #### doc
 

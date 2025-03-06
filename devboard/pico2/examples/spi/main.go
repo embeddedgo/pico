@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/embeddedgo/pico/hal/spi"
-	"github.com/embeddedgo/pico/hal/spi/spi0"
+	"github.com/embeddedgo/pico/hal/spi/spi0dma"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"

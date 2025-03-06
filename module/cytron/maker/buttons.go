@@ -2,20 +2,19 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package buttons
+package maker
 
 import (
 	"github.com/embeddedgo/pico/devboard/common"
-	_ "github.com/embeddedgo/pico/devboard/cytronmaker/board/system"
 	"github.com/embeddedgo/pico/hal/iomux"
+	_ "github.com/embeddedgo/pico/hal/system/init"
 )
 
 // The onboard buttons.
 const (
-	B0   = common.Button(iomux.P20)
-	B1   = common.Button(iomux.P21)
-	B2   = common.Button(iomux.P22)
-	User = B0
+	B0 = common.Button(iomux.P20)
+	B1 = common.Button(iomux.P21)
+	B2 = common.Button(iomux.P22)
 )
 
 func init() {
