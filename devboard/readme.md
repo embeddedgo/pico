@@ -16,7 +16,7 @@ WeAct Studio [RP2350A-V10-16MB](https://weactstudio.aliexpress.com/store/9105670
 
 ### Directory structure
 
-Every supported board has its directory here. Each of them contains three subdirectories:
+Every supported board has its directory here. Each of them contains three or four subdirectories:
 
 #### board
 
@@ -29,3 +29,7 @@ The `doc` directory may contain documentation, diagrams, photos and other useful
 #### examples
 
 The `examples` directory contains simple programs that demonstrate how to work with the board in Go.
+
+#### module (optional)
+
+If there are add-on modules available for the board the `module` directory contains drivers and examples for the supported modules.

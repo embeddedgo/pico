@@ -20,7 +20,7 @@ import (
 
 const Backlight = common.LED(iomux.P13) // TODO: PWM
 
-var Disp *pix.Display
+var Display *pix.Display
 
 func init() {
 	// Display
@@ -50,7 +50,7 @@ func init() {
 		spi.CPOL1|spi.CPHA1, // faster than CPOL0,CPHA0 (no gaps between words)
 		dp.MaxReadClk, dp.MaxWriteClk,
 	)
-	Disp = dp.New(dci)
+	Display = dp.New(dci)
 
 	// Backlight
 

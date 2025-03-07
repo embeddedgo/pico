@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Display draws on the connected display.
 package main
 
 import (
@@ -31,7 +30,7 @@ func main() {
 		NewSquare(200, 210, color.RGBA{255, 255, 0, 255}, buttons.Y),
 	}
 
-	disp := lcd.Disp
+	disp := lcd.Display
 	a := disp.NewArea(disp.Bounds())
 	a.SetColor(color.Black)
 	a.Fill(a.Bounds())
