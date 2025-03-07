@@ -22,3 +22,6 @@ func (b Button) Read() int { return gpio.BitForPin(iomux.Pin(b)).Load() }
 
 //go:nosplit
 func (b Button) Pin() iomux.Pin { return iomux.Pin(b) }
+
+//go:nosplit
+func (b Button) Bit() gpio.Bit { return  gpio.BitForPin(iomux.Pin(b)) }
