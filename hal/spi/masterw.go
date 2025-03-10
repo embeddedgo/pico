@@ -16,7 +16,6 @@ func (d *Master) Write(s []byte) (n int, err error) {
 	if len(s) == 0 {
 		return
 	}
-	d.wonly = true
 	pw := unsafe.Pointer(unsafe.SliceData(s))
 	n = len(s)
 
@@ -39,7 +38,6 @@ func (d *Master) Write16(s []uint16) (n int, err error) {
 	if len(s) == 0 {
 		return
 	}
-	d.wonly = true
 	pw := unsafe.Pointer(unsafe.SliceData(s))
 	n = len(s)
 
@@ -55,6 +53,7 @@ func (d *Master) Write16(s []uint16) (n int, err error) {
 func write[T dataWord](d *Master, pw unsafe.Pointer, n int) {
 	sz := int(unsafe.Sizeof(T(0)))
 	p, slow := d.p, d.slow
+	d.wonly = true
 
 	// Fill the FIFO fast if empty.
 	if p.SR.LoadBits(TFE) != 0 {
@@ -80,7 +79,6 @@ func (d *Master) WriteByteN(b byte, n int) {
 	if n <= 0 {
 		return
 	}
-	d.wonly = true
 
 	// Use DMA only for long transfers. Short ones are handled by CPU.
 	if n < minDMA || !d.wdma.IsValid() {
@@ -94,7 +92,6 @@ func (d *Master) WriteWord16N(w uint16, n int) {
 	if n <= 0 {
 		return
 	}
-	d.wonly = true
 
 	// Use DMA only for long transfers. Short ones are handled by CPU.
 	if n < minDMA || !d.wdma.IsValid() {
@@ -106,6 +103,7 @@ func (d *Master) WriteWord16N(w uint16, n int) {
 
 func writeWordN(d *Master, w uint32, n int) {
 	p, slow := d.p, d.slow
+	d.wonly = true
 
 	// Fill the FIFO fast if empty.
 	if p.SR.LoadBits(TFE) != 0 {
@@ -128,19 +126,18 @@ func writeWordN(d *Master, w uint32, n int) {
 }
 
 func (d *Master) WriteByte(b byte) error {
-	d.wonly = true
 	writeWord(d, uint32(b))
 	return nil
 }
 
 func (d *Master) WriteWord16(w uint16) error {
-	d.wonly = true
 	writeWord(d, uint32(w))
 	return nil
 }
 
 func writeWord(d *Master, w uint32) {
 	p, slow := d.p, d.slow
+	d.wonly = true
 
 	for p.SR.LoadBits(TNF) == 0 {
 		if slow {
@@ -151,6 +148,7 @@ func writeWord(d *Master, w uint32) {
 }
 
 func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
+	d.wonly = true
 	d.done.Clear() // memory barrier
 	wdma := d.wdma
 	wdma.ClearIRQ()

@@ -36,13 +36,13 @@ type Master struct {
 func NewMaster(p *Periph, rdma, wdma dma.Channel) *Master {
 	irqn := int(system.NextCPU())
 	d := &Master{p: p, rdma: rdma, wdma: wdma, irqn: irqn}
-	radd := dma.Config(num(p)) * (dma.SPI1_TX - dma.SPI0_TX)
+	reqAdd := dma.Config(num(p)) * (dma.SPI1_TX - dma.SPI0_TX)
 	if rdma.IsValid() {
-		d.rdc = dma.En | (dma.SPI0_RX + radd)
+		d.rdc = dma.En | (dma.SPI0_RX + reqAdd)
 		rdma.SetReadAddr(unsafe.Pointer(&p.DR))
 	}
 	if wdma.IsValid() {
-		d.wdc = dma.En | (dma.SPI0_TX + radd)
+		d.wdc = dma.En | (dma.SPI0_TX + reqAdd)
 		wdma.SetWriteAddr(unsafe.Pointer(&p.DR))
 	}
 	return d
