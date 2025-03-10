@@ -42,7 +42,7 @@ func (c Channel) Num() int {
 // Free frees the channel so the Controller.AllocChannel can allocate it next
 // time.
 func (c Channel) Free() {
-	mask := uint32(1) << uint(c.n)
+	mask := uint16(1 << uint(c.n))
 	chanAlloc.mx.Lock()
 	chanAlloc.mask |= mask
 	chanAlloc.mx.Unlock()

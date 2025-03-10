@@ -16,6 +16,7 @@ package dma
 import (
 	"embedded/mmio"
 	"embedded/rtos"
+	"math/bits"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -84,9 +85,6 @@ type Controller struct {
 	chDbg         [16]chDbg
 }
 
-func init() {
-}
-
 // DMA returns n-th controller (RP2350 suports onlu conrtoller 0).
 func DMA(n int) *Controller {
 	if n != 0 {
@@ -95,49 +93,43 @@ func DMA(n int) *Controller {
 	return (*Controller)(unsafe.Pointer(mmap.DMA_BASE))
 }
 
+func init() {
+	// Setup DMA before first use.
+	RESETS := resets.RESETS()
+	RESETS.RESET.ClearBits(resets.DMA) // remove reset
+	for RESETS.RESET_DONE.LoadBits(resets.DMA) == 0 {
+	}
+
+	runtime.LockOSThread()
+	pl, _ := rtos.SetPrivLevel(0)
+
+	d := DMA(0)
+	// Allow access from user mode
+	for i := range d.seccfgCh {
+		d.seccfgCh[i].Store(0b10)
+	}
+	for i := range d.seccfgIRQ {
+		d.seccfgIRQ[i].Store(0b10)
+	}
+	d.seccfgMisc.Store(0b10_1010_1010)
+
+	rtos.SetPrivLevel(pl)
+	runtime.UnlockOSThread()
+}
+
 var chanAlloc = struct {
-	mask uint32
 	mx   sync.Mutex
-}{mask: 0xffff_ffff}
+	mask uint16
+}{mask: 0xffff}
 
 // AllocChannel allocates a free channel in the controller. It returns an
 // invalid channel if there is no free channel to be allocated. Use Channel.Free
 // to free an unused channel.
 func (d *Controller) AllocChannel() (ch Channel) {
 	chanAlloc.mx.Lock()
-	if chanAlloc.mask != 0 {
-		mask := uint32(1)
-		if chanAlloc.mask+1 == 0 {
-			// Setup DMA before first use.
-			RESETS := resets.RESETS()
-			RESETS.RESET.ClearBits(resets.DMA) // remove reset
-			for RESETS.RESET_DONE.LoadBits(resets.DMA) == 0 {
-			}
-
-			runtime.LockOSThread()
-			pl, _ := rtos.SetPrivLevel(0)
-
-			// Allow access from user mode
-			for i := range d.seccfgCh {
-				d.seccfgCh[i].Store(0b10)
-			}
-			for i := range d.seccfgIRQ {
-				d.seccfgIRQ[i].Store(0b10)
-			}
-			d.seccfgMisc.Store(0b10_1010_1010)
-
-			rtos.SetPrivLevel(pl)
-			runtime.UnlockOSThread()
-
-			chanAlloc.mask = 0xfffe
-		} else {
-			// Find a free channel.
-			for chanAlloc.mask&mask == 0 {
-				mask <<= 1
-				ch.n++
-			}
-			chanAlloc.mask &^= mask
-		}
+	if n := bits.TrailingZeros16(chanAlloc.mask); n != 16 {
+		chanAlloc.mask &^= 1 << uint(n)
+		ch.n = n
 		ch.d = d
 	}
 	chanAlloc.mx.Unlock()
