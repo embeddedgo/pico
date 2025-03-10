@@ -15,7 +15,6 @@ import (
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/spi"
 	"github.com/embeddedgo/pico/hal/spi/spi1dma"
-	_ "github.com/embeddedgo/pico/hal/system/init"
 )
 
 const Backlight = common.LED(iomux.P13) // TODO: PWM

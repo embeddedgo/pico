@@ -76,7 +76,7 @@ func main() {
 
 	dci := tftdci.NewSPI(
 		sm, csn, dc,
-		spi.CPOL1|spi.CPHA1, // faster than CPOL0,CPHA0 (no gaps between words)
+		spi.CPOL1|spi.CPHA1, // faster than CPOL0|CPHA0 (no gaps between words)
 		dp.MaxReadClk, dp.MaxWriteClk,
 	)
 

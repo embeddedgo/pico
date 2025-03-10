@@ -7,7 +7,6 @@ package buttons
 import (
 	"github.com/embeddedgo/pico/devboard/common"
 	"github.com/embeddedgo/pico/hal/iomux"
-	_ "github.com/embeddedgo/pico/hal/system/init"
 )
 
 const (

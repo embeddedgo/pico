@@ -8,7 +8,7 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/embeddedgo/pico/devboard/cytronmaker/board/pins"
+	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"

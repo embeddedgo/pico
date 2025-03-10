@@ -4,10 +4,7 @@
 
 package pwr
 
-import (
-	"github.com/embeddedgo/pico/hal/iomux"
-	_ "github.com/embeddedgo/pico/hal/system/init"
-)
+import "github.com/embeddedgo/pico/hal/iomux"
 
 const (
 	VBUS = iomux.P24 // VBUS presence

@@ -12,7 +12,7 @@
 // build tag configures both the CPU and Flash to run at 133 MHz. The 150MHz tag
 // sets the CPU clock to 150 MHz and the Flash clock to 75 MHz.
 //
-// Packages from the devboard and modules directories import this package to
-// ensure proper system initialization. You can avoid any effects of importing
-// this package by setting the nosysinit build flag.
+// All peripheral drivers from the hal directory import this package to ensure
+// proper system initialization. You can avoid any effects of importing this
+// package by setting the nosysinit build flag.
 package init
