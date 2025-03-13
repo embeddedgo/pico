@@ -13,9 +13,8 @@ import (
 
 func main() {
 	d := segled.Display
-	for i := -99; ; i++ {
-		d.Clear()
+	for i := -99;; i++ {
 		fmt.Fprintf(d, "%4d\n", i)
-		time.Sleep(time.Second / 4)
+		time.Sleep(time.Second/4)
 	}
 }
