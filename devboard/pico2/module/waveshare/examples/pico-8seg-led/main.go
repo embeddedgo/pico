@@ -13,8 +13,12 @@ import (
 
 func main() {
 	d := segled.Display
-	for i := -99;; i++ {
-		fmt.Fprintf(d, "%4d\n", i)
-		time.Sleep(time.Second/4)
+	for {
+		for c := 'A'; c <= 'Z'; c++ {
+			for i := -99; i <= 99; i++ {
+				fmt.Fprintf(d, "%c%3d\n", c, i)
+				time.Sleep(time.Second / 8)
+			}
+		}
 	}
 }

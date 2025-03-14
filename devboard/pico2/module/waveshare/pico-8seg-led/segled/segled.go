@@ -54,7 +54,8 @@ func (sr *ShiftReg) Latch() {
 var Display *segdisp.Seg8
 
 func init() {
-	tm := segdisp.NewTimeMux8(NewShiftReg(pins.GP11, pins.GP10, pins.GP9), 60)
+	sr := NewShiftReg(pins.GP11, pins.GP10, pins.GP9)
+	tm := segdisp.NewTimeMux8(sr, false, 60)
 	tm.Start()
 	Display = segdisp.NewSeg8(4, 1, tm)
 }
