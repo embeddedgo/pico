@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Pico-lcd-1.3 is similar to the Waveshare demo code for this module. It allows
+// you to test the display and the onboard joystick and buttons.
 package main
 
 import (

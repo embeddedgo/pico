@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Irqbtn shows how to use interrupts to wait for the onboard button to be
+// pressed. See also ../../../pico2/examples/irqpin/main.go.
 package main
 
 import (
@@ -15,7 +17,7 @@ import (
 )
 
 func main() {
-	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0)
+	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0) // enable the IO_BANK0 IRQ on Proc0
 	leds.Green.SetOn()
 	leds.Blue.SetOff()
 	for {

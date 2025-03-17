@@ -15,6 +15,7 @@ import (
 	"github.com/embeddedgo/rgbled/ws281x/wsuart"
 )
 
+// WS2812 uses the UART peripheral to drive the string of the WS2812 RGB LEDs.
 func main() {
 	tx := pins.GP22
 

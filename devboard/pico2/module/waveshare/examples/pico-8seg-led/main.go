@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Pico-8seg-led uses standard fmt.Fprintf function to prints different chars
+// and numbers on the 8-segment display.
 package main
 
 import (

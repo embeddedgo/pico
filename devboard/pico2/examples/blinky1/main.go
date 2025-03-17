@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Blinky flashes the on-board LED. It also shows how to configure and connect
+// the pin to the GPIO peripheral. Check ../blinky to see a simpler version of
+// this program that uses the board/leds package.
 package main
 
 import (
@@ -9,14 +12,9 @@ import (
 
 	"github.com/embeddedgo/pico/hal/gpio"
 	"github.com/embeddedgo/pico/hal/iomux"
-	"github.com/embeddedgo/pico/hal/system"
-	"github.com/embeddedgo/pico/hal/system/timer/riscvst"
 )
 
 func main() {
-	system.SetupPico2_125MHz()
-	riscvst.Setup()
-
 	ledPin := iomux.P25
 	ledPin.Setup(iomux.D8mA)
 

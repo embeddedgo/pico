@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Blinky flashes the both on-board LEDs using two goroutines.
 package main
 
 import (

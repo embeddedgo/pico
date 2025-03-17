@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Gpiotest tests all GPIOs exposed as the Pico 2 GPIO pins.
+// Gpiotest tests all GPIOs exposed as the Pico 2 GPIO pins. It is intended to
+// run with the expansion board or test module that provides LEDs on all
+// available pins (e.g. Cytron Maker).
 package main
 
 import (
@@ -31,7 +33,7 @@ func main() {
 	p0.EnableOut(pins) // enable GPIO output on available pins
 	p0.Clear(pins)     // set all pins to the low state
 
-	// Blink all pin LEDs on the Cytron Maker board.
+	// Blink all pin LEDs on the expatnsion board.
 	for {
 		for pin := uint32(1); pin != 0; pin <<= 1 {
 			if pin&pins == 0 {

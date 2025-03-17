@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// WS2812 uses the UART peripheral to drive the string of the WS2812 RGB LEDs.
 package main
 
 import (

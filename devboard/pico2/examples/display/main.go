@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Display draws on the connected display.
+// Display draws on the connected display. See also  ../../module/waveshare/examples/pico-lcd-1.3/main.go.
 package main
 
 import (

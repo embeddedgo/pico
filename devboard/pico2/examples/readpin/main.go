@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Readpin polls the state of the GP15 pin and shows it using the onboard LED.
 package main
 
 import (
