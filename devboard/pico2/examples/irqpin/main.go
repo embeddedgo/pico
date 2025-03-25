@@ -21,7 +21,7 @@ const irqPin = pins.GP15
 func main() {
 	irqPin.Setup(iomux.Schmitt | iomux.PullUp | iomux.InpEn)
 	irqPin.SetDstIRQ(iomux.Proc0, iomux.EdgeLow) // detect high to low transiton
-	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0)      // enable IO_BANK0 IRQ on CPU0
+	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0)      // enable IO_BANK0 IRQ on Proc0
 
 	// Run the infinite loop that slowly blinks the onboard LED. The IRQs
 	// shoould be as a deviation from the regular blink pattern.
