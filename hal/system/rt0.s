@@ -73,6 +73,7 @@ TEXT _rt0_thumb_noos(SB),NOSPLIT|NOFRAME,$0
 	MOVW  $runtime·runOtherCPUs(SB), R0
 waitTaskerReady:
 	WFE
+	DMB   MB_ISH
 	MOVB  (R0), R1
 	CMP   $0, R1
 	BEQ   waitTaskerReady
