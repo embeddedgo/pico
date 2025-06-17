@@ -2,5 +2,5 @@
 
 name=$(basename $(pwd))
 
-picotool load $name.uf2
+picotool load $name.elf
 picotool reboot
