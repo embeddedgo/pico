@@ -117,6 +117,11 @@ func writeReadWord(d *Master, w uint32) uint32 {
 }
 
 func writeReadDMA(d *Master, pw, pr unsafe.Pointer, n int, wdc, rdc dma.Config) {
+	_writeReadDMA(d, uintptr(pw), uintptr(pr), n, wdc, rdc)
+}
+
+//go:uintptrescapes
+func _writeReadDMA(d *Master, pw, pr uintptr, n int, wdc, rdc dma.Config) {
 	if d.wonly {
 		drainRxFIFO(d)
 	}
@@ -124,12 +129,12 @@ func writeReadDMA(d *Master, pw, pr unsafe.Pointer, n int, wdc, rdc dma.Config) 
 	d.done.Clear() // memory barrier
 	rdma := d.rdma
 	rdma.ClearIRQ()
-	rdma.SetWriteAddr(pr)
+	rdma.SetWriteAddr(unsafe.Pointer(pr))
 	rdma.SetTransCount(n, dma.Normal)
 	rdma.SetConfigTrig(d.rdc|rdc, rdma)
 	rdma.EnableIRQ(d.irqn)
 	wdma := d.wdma
-	wdma.SetReadAddr(pw)
+	wdma.SetReadAddr(unsafe.Pointer(pw))
 	wdma.SetTransCount(n, dma.Normal)
 	wdma.SetConfigTrig(d.wdc|wdc, wdma)
 	d.done.Sleep(-1)

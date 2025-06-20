@@ -148,11 +148,16 @@ func writeWord(d *Master, w uint32) {
 }
 
 func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
+	_writeDMA(d, uintptr(pw), n, dmacfg)
+}
+
+//go:uintptrescapes
+func _writeDMA(d *Master, pw uintptr, n int, dmacfg dma.Config) {
 	d.wonly = true
 	d.done.Clear() // memory barrier
 	wdma := d.wdma
 	wdma.ClearIRQ()
-	wdma.SetReadAddr(pw)
+	wdma.SetReadAddr(unsafe.Pointer(pw))
 	wdma.SetTransCount(n, dma.Normal)
 	wdma.SetConfigTrig(d.wdc|dmacfg, wdma)
 	wdma.EnableIRQ(d.irqn)
