@@ -25,12 +25,12 @@ func AlignOffsets(ptr unsafe.Pointer, size uintptr) (start, end uintptr) {
 }
 
 func alloc(size uintptr) unsafe.Pointer {
-	size = (size + (MemAlign - 1)) &^ (MemAlign - 1)
+	const alignMask = MemAlign - 1
+	size = (size + alignMask) &^ alignMask
 	size += MemAlign // extra space for address alignment
 	buf := make([]byte, size)
-	addr := uintptr(unsafe.Pointer(&buf[0]))
-	addr = (addr + (MemAlign - 1)) &^ (MemAlign - 1)
-	return unsafe.Pointer(addr)
+	addr := unsafe.Pointer(&buf[0])
+	return unsafe.Pointer((uintptr(addr) + alignMask) &^ alignMask)
 }
 
 // New works like new(T) but guarantees that the allocated variable has the
