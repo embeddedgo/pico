@@ -70,15 +70,21 @@ func main() {
 	//dp := displays.Waveshare_1i5_128x128_OLED_SSD1351()
 	//dp := displays.Waveshare_1i3_240x240_IPS_ST7789()
 
-	// Most of the displays accept significant overclocking.
-	//dp.MaxReadClk *= 2
-	//dp.MaxWriteClk *= 2
+	// Most of the displays accept significant overclocking. The values below
+	// work for the ILI9341 controller (80/26.8 MHz calculated, 62.5/20.8 MHz
+	// actual values in case of 125 MHz Pico).
+	//dp.MaxWriteClk *= 8
+	//dp.MaxReadClk *= 4
 
 	dci := tftdci.NewSPI(
 		sm, csn, dc,
 		spi.CPOL1|spi.CPHA1, // faster than CPOL0|CPHA0 (no gaps between words)
 		dp.MaxReadClk, dp.MaxWriteClk,
 	)
+
+	fmt.Println("SPI baudrate:")
+	fmt.Println("- write:", sm.SetBaudrate(dp.MaxWriteClk))
+	fmt.Println("- read: ", sm.SetBaudrate(dp.MaxReadClk))
 
 	fmt.Println("*** Start ***")
 
