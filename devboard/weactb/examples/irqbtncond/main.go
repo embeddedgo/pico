@@ -10,21 +10,18 @@ import (
 	"embedded/rtos"
 	"time"
 
-	"github.com/embeddedgo/pico/devboard/weacta10/board/buttons"
-	"github.com/embeddedgo/pico/devboard/weacta10/board/leds"
+	"github.com/embeddedgo/pico/devboard/weactb/board/buttons"
+	"github.com/embeddedgo/pico/devboard/weactb/board/leds"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/irq"
 )
 
 func main() {
 	irq.IO_BANK0.Enable(rtos.IntPrioLow, 0) // enable the IO_BANK0 IRQ on Proc0
-	leds.Green.SetOn()
-	leds.Blue.SetOff()
 	for {
 		waitBtn(0)
 		waitBtn(1)
-		leds.Green.Toggle()
-		leds.Blue.Toggle()
+		leds.User.Toggle()
 	}
 }
 
