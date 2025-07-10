@@ -17,7 +17,7 @@ func (d *Driver) EnableTx() {
 	internal.AtomicSet(&d.p.CR, UARTEN|TXE)
 }
 
-// DisableTx waits for the end of transfer (see Flush) and disables the Tx part
+// DisableTx waits for the end of transfer (see WaitTxDone) and disables the Tx part
 // of the UART.
 func (d *Driver) DisableTx() {
 	d.WaitTxDone()
@@ -98,7 +98,14 @@ func waitWriteISR(d *Driver, p *byte, n int) bool {
 }
 
 // WaitTxDone waits until the last byte (including all the stop bits) from the
-// last write operation has been sent.
+// last write operation has been sent. Be aware that your program may not be
+// fast enough to perform a time critital action after this function returns.
+// Use it only to avoid distrubing your own UART transmision by the following
+// actions in program order. For example, disabling the RS485 output driver just
+// after returning from WaitTxDone may be done too late because of the other
+// gorutines or interrupt handlers so the slave device may start sending a
+// response on the bus that is still connected to your RS485 driver (use PIO or
+// a hardware solution instaed).
 func (d *Driver) WaitTxDone() {
 	fr := &d.p.FR
 	for fr.LoadBits(BUSY) != 0 {
