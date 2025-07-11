@@ -1,6 +1,6 @@
 module github.com/embeddedgo/pico
 
-go 1.22
+go 1.24
 
 require (
 	github.com/embeddedgo/display v1.4.0
