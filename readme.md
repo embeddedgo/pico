@@ -38,16 +38,16 @@ Your program will run on both ARM cores (the RISCV mode is not supported).
    }
    ```
 
-4. Initialize your project
+4. Initialize your project.
 
    ```sh
    go mod init firstprog
    go mod tidy
    ```
 
-5. Copy the `go.env` file suitable for your board (here is one for [Pico 2](https://github.com/embeddedgo/pico/tree/master/devboard/pico2/examples/go.env) and another one for a [board with 16 MB flash](https://github.com/embeddedgo/pico/tree/master/devboard/wiacta10/examples/go.env)).
+5. Copy the `go.env` file suitable for your board (here is one for [Pico 2](devboard/pico2/examples/go.env) and another one for a [board with 16 MB flash](devboard/weacta10/examples/go.env)).
 
-6. Compile your first program
+6. Compile your first program.
 
    ```sh
    export GOENV=go.env
@@ -59,6 +59,14 @@ Your program will run on both ARM cores (the RISCV mode is not supported).
    ```sh
    GOENV=go.env go build
    ```
+
+   or
+
+   ```sh
+   egtool build
+   ```
+
+   The last one is like `GOENV=go.env go build` but looks for the `go.env` file up the current module directory tree.
 
 7. Connect your Pico 2 to your computer in the BOOT mode (press the onboard button while connecting it to the USB).
 
