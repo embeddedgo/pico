@@ -12,7 +12,7 @@ svdxgen github.com/embeddedgo/pico/p ../svd/*.svd
 for p in clocks dma iobank padsbank pll qmi resets sio spi ticks uart xosc; do
 	cd $p
 	xgen -g *.go
-	GOOS=noos GOARCH=thumb $(emgo env GOROOT)/bin/go build -tags rp2350
+	GOTOOLCHAIN=go1.24.5-embedded GOOS=noos GOARCH=thumb go build -tags rp2350
 	cd ..
 done
 
