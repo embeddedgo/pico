@@ -1,8 +1,8 @@
-## Support for Raspberry PI microcontrollers
+## Support for the Raspberry PI microcontrollers
 
 Embedded Go supports the RP2350 family, aka Pico 2 (there is no support for RP2040).
 
-Your program will run on both ARM cores (the RISCV mode is not supported).
+Go programs use both ARM cores. The RISCV mode is currently not supported.
 
 ### Prerequisites
 
