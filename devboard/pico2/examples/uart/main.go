@@ -15,8 +15,8 @@ import (
 )
 
 func main() {
-	tx := pins.GP12
-	rx := pins.GP13
+	tx := pins.GP0
+	rx := pins.GP1
 
 	u := uart0.Driver()
 	u.UsePin(tx, uart.TXD)
