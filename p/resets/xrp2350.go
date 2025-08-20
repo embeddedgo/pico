@@ -6,12 +6,15 @@ package resets
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	RESET      mmio.R32[uint32]
 	WDSEL      mmio.R32[uint32]
 	RESET_DONE mmio.R32[uint32]

@@ -6,6 +6,7 @@ package spi
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -14,6 +15,8 @@ import (
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CR0       mmio.R32[CR0]
 	CR1       mmio.R32[CR1]
 	DR        mmio.U32
@@ -35,7 +38,7 @@ type Periph struct {
 	PCELLID3  mmio.U32
 }
 
-// SPI returns the n-th SPI peripheral.
+// SPI returns the n-th instance of the SPI peripheral.
 func SPI(n int) *Periph {
 	if uint(n) > 1 {
 		panic("wrong SPI number")

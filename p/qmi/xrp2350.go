@@ -6,12 +6,15 @@ package qmi
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	DIRECT_CSR mmio.R32[DIRECT_CSR]
 	DIRECT_TX  mmio.R32[DIRECT_TX]
 	DIRECT_RX  mmio.R32[uint32]
@@ -83,6 +86,8 @@ func NOPUSH_(p *Periph) mmio.RM32[DIRECT_TX] {
 }
 
 type SM struct {
+	_ structs.HostLayout
+
 	TIMING mmio.R32[TIMING]
 	RFMT   mmio.R32[FMT]
 	RCMD   mmio.R32[CMD]

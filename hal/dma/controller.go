@@ -18,6 +18,7 @@ import (
 	"embedded/rtos"
 	"math/bits"
 	"runtime"
+	"structs"
 	"sync"
 	"unsafe"
 
@@ -27,6 +28,8 @@ import (
 )
 
 type channel struct {
+	_ structs.HostLayout
+
 	readAddr   mmio.U32
 	writeAddr  mmio.U32
 	transCount mmio.U32
@@ -53,17 +56,23 @@ type irq struct {
 }
 
 type mpu struct {
+	_ structs.HostLayout
+
 	bar mmio.U32
 	lar mmio.U32
 }
 
 type chDbg struct {
+	_ structs.HostLayout
+
 	ctdReq mmio.U32
 	tcr    mmio.U32
 }
 
 // A Controller represents a DMA controller.
 type Controller struct {
+	_ structs.HostLayout
+
 	ch            [16]channel
 	irq           [4]irq
 	timer         [4]mmio.U32

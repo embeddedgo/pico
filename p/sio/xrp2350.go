@@ -6,12 +6,15 @@ package sio
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CPUID               mmio.R32[uint32]
 	GPIO_IN             mmio.R32[uint32]
 	GPIO_HI_IN          mmio.R32[uint32]

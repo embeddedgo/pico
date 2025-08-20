@@ -6,12 +6,15 @@ package i2c
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CON                mmio.R32[CON]
 	TAR                mmio.R32[TAR]
 	SAR                mmio.R32[uint32]

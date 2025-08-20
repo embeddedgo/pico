@@ -6,12 +6,15 @@ package padsbank
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	VOLTAGE_SELECT mmio.R32[VOLTAGE_SELECT]
 	GPIO           [48]mmio.R32[GPIO]
 	SWCLK          mmio.R32[GPIO]

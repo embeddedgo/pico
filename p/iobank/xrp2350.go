@@ -6,12 +6,15 @@ package iobank
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	GPIO                              [48]SGPIO
 	_                                 [32]uint32
 	IRQSUMMARY_PROC0_SECURE           [2]mmio.R32[uint32]
@@ -39,6 +42,8 @@ func (p *Periph) BaseAddr() uintptr {
 }
 
 type SGPIO struct {
+	_ structs.HostLayout
+
 	STATUS mmio.R32[STATUS]
 	CTRL   mmio.R32[CTRL]
 }

@@ -6,12 +6,15 @@ package spi
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CR0       mmio.R32[CR0]
 	CR1       mmio.R32[CR1]
 	DR        mmio.R32[uint32]

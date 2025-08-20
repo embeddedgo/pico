@@ -6,12 +6,15 @@ package iomux
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type padsbank struct {
+	_ structs.HostLayout
+
 	voltage mmio.U32
 	pad     [50]mmio.U32
 }
@@ -22,6 +25,8 @@ func pb() *padsbank {
 }
 
 type iobank struct {
+	_ structs.HostLayout
+
 	gpio                              [48]sgpio
 	_                                 [32]uint32
 	irqsummary_proc0_secure           [2]mmio.R32[uint32]
@@ -35,11 +40,15 @@ type iobank struct {
 }
 
 type sgpio struct {
+	_ structs.HostLayout
+
 	status mmio.R32[uint32]
 	ctrl   mmio.R32[uint32]
 }
 
 type irqCtrl struct {
+	_ structs.HostLayout
+
 	enable [6]mmio.R32[uint32]
 	force  [6]mmio.R32[uint32]
 	status [6]mmio.R32[uint32]

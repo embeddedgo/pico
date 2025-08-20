@@ -6,6 +6,7 @@ package gpio
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
@@ -13,6 +14,8 @@ import (
 
 // Port represents an 32-bit GPIO port.
 type Port struct {
+	_ structs.HostLayout
+
 	// go1.22 inilining works much better for mmio.U32 than for mmio.R32[uint32]
 	in     mmio.U32
 	_      [2]uint32

@@ -6,6 +6,7 @@ package uart
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -14,6 +15,8 @@ import (
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	DR        mmio.U32
 	RSR       mmio.U32
 	_         [4]uint32
@@ -41,7 +44,7 @@ type Periph struct {
 	PCELLID3  mmio.U32
 }
 
-// UART returns the UART peripheral.
+// UART returns the n-th instance of the UART peripheral.
 func UART(n int) *Periph {
 	if uint(n) > 1 {
 		panic("wrong UART number")
@@ -58,5 +61,5 @@ func num(p *Periph) int {
 
 // SetReset allows to assert/deassert the reset signal to the UART peripheral.
 func (p *Periph) SetReset(assert bool) {
-	internal.SetReset(resets.UART0 << uint(num(p)), assert)
+	internal.SetReset(resets.UART0<<uint(num(p)), assert)
 }

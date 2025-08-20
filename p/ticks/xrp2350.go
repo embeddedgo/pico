@@ -6,12 +6,15 @@ package ticks
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	T [6]ST
 }
 
@@ -22,6 +25,8 @@ func (p *Periph) BaseAddr() uintptr {
 }
 
 type ST struct {
+	_ structs.HostLayout
+
 	CTRL   mmio.R32[CTRL]
 	CYCLES mmio.R32[uint32]
 	COUNT  mmio.R32[uint32]

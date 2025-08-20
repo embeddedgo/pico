@@ -6,12 +6,15 @@ package dma
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CH                 [16]SCH
 	INT                [4]SINT
 	TIMER              [4]mmio.R32[TIMER]
@@ -40,6 +43,8 @@ func (p *Periph) BaseAddr() uintptr {
 }
 
 type SCH struct {
+	_ structs.HostLayout
+
 	READ_ADDR            mmio.R32[uint32]
 	WRITE_ADDR           mmio.R32[uint32]
 	TRANS_COUNT          mmio.R32[TRANS_COUNT]
@@ -70,6 +75,8 @@ func MODE_(p *Periph, i int) mmio.RM32[TRANS_COUNT] {
 type CTRL uint32
 
 type SINT struct {
+	_ structs.HostLayout
+
 	R mmio.R32[uint32]
 	E mmio.R32[uint32]
 	F mmio.R32[uint32]
@@ -179,6 +186,8 @@ func NS_HIDE_ADDR_(p *Periph) mmio.RM32[MPU_CTRL] {
 }
 
 type SMPU struct {
+	_ structs.HostLayout
+
 	BAR mmio.R32[uint32]
 	LAR mmio.R32[LAR]
 }
@@ -191,6 +200,8 @@ func RSEC_(p *Periph, i int) mmio.RM32[LAR] { return mmio.RM32[LAR]{R: &p.MPU[i]
 func ADDR_(p *Periph, i int) mmio.RM32[LAR] { return mmio.RM32[LAR]{R: &p.MPU[i].LAR, Mask: ADDR} }
 
 type SCH_DBG struct {
+	_ structs.HostLayout
+
 	DBG_CTDREQ mmio.R32[uint32]
 	DBG_TCR    mmio.R32[uint32]
 }

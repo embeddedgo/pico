@@ -6,12 +6,15 @@ package xosc
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CTRL    mmio.R32[CTRL]
 	STATUS  mmio.R32[CTRL]
 	DORMANT mmio.R32[uint32]

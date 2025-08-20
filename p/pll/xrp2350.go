@@ -6,12 +6,15 @@ package pll
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CS        mmio.R32[CS]
 	PWR       mmio.R32[PWR]
 	FBDIV_INT mmio.R32[uint32]

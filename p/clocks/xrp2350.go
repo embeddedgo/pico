@@ -6,12 +6,15 @@ package clocks
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	CLK              [10]SCLK
 	DFT_XOSC_CTRL    mmio.R32[DFT_OSC_CTRL]
 	DFT_ROSC_CTRL    mmio.R32[DFT_OSC_CTRL]
@@ -45,6 +48,8 @@ func (p *Periph) BaseAddr() uintptr {
 }
 
 type SCLK struct {
+	_ structs.HostLayout
+
 	CTRL     mmio.R32[CTRL]
 	DIV      mmio.R32[DIV]
 	SELECTED mmio.R32[uint32]

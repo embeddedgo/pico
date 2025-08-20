@@ -6,12 +6,15 @@ package uart
 
 import (
 	"embedded/mmio"
+	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/p/mmap"
 )
 
 type Periph struct {
+	_ structs.HostLayout
+
 	DR        mmio.R32[uint32]
 	RSR       mmio.R32[RSR]
 	_         [4]uint32
