@@ -25,9 +25,9 @@ type Periph struct {
 	FS_SCL_HCNT        mmio.R32[uint32]
 	FS_SCL_LCNT        mmio.R32[uint32]
 	_                  [2]uint32
-	INTR_STAT          mmio.R32[INTR_STAT]
-	INTR_MASK          mmio.R32[INTR_MASK]
-	RAW_INTR_STAT      mmio.R32[RAW_INTR_STAT]
+	INTR_STAT          mmio.R32[INTR]
+	INTR_MASK          mmio.R32[INTR]
+	RAW_INTR_STAT      mmio.R32[INTR]
 	RX_TL              mmio.R32[uint32]
 	TX_TL              mmio.R32[uint32]
 	CLR_INTR           mmio.R32[uint32]
@@ -111,131 +111,7 @@ func FIRST_DATA_BYTE_(p *Periph) mmio.RM32[DATA_CMD] {
 	return mmio.RM32[DATA_CMD]{R: &p.DATA_CMD, Mask: FIRST_DATA_BYTE}
 }
 
-type INTR_STAT uint32
-
-func R_RX_UNDER_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RX_UNDER}
-}
-func R_RX_OVER_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RX_OVER}
-}
-func R_RX_FULL_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RX_FULL}
-}
-func R_TX_OVER_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_TX_OVER}
-}
-func R_TX_EMPTY_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_TX_EMPTY}
-}
-func R_RD_REQ_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RD_REQ}
-}
-func R_TX_ABRT_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_TX_ABRT}
-}
-func R_RX_DONE_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RX_DONE}
-}
-func R_ACTIVITY_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_ACTIVITY}
-}
-func R_STOP_DET_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_STOP_DET}
-}
-func R_START_DET_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_START_DET}
-}
-func R_GEN_CALL_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_GEN_CALL}
-}
-func R_RESTART_DET_(p *Periph) mmio.RM32[INTR_STAT] {
-	return mmio.RM32[INTR_STAT]{R: &p.INTR_STAT, Mask: R_RESTART_DET}
-}
-
-type INTR_MASK uint32
-
-func M_RX_UNDER_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RX_UNDER}
-}
-func M_RX_OVER_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RX_OVER}
-}
-func M_RX_FULL_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RX_FULL}
-}
-func M_TX_OVER_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_TX_OVER}
-}
-func M_TX_EMPTY_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_TX_EMPTY}
-}
-func M_RD_REQ_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RD_REQ}
-}
-func M_TX_ABRT_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_TX_ABRT}
-}
-func M_RX_DONE_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RX_DONE}
-}
-func M_ACTIVITY_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_ACTIVITY}
-}
-func M_STOP_DET_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_STOP_DET}
-}
-func M_START_DET_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_START_DET}
-}
-func M_GEN_CALL_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_GEN_CALL}
-}
-func M_RESTART_DET_(p *Periph) mmio.RM32[INTR_MASK] {
-	return mmio.RM32[INTR_MASK]{R: &p.INTR_MASK, Mask: M_RESTART_DET}
-}
-
-type RAW_INTR_STAT uint32
-
-func RX_UNDER_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RX_UNDER}
-}
-func RX_OVER_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RX_OVER}
-}
-func RX_FULL_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RX_FULL}
-}
-func TX_OVER_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: TX_OVER}
-}
-func TX_EMPTY_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: TX_EMPTY}
-}
-func RD_REQ_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RD_REQ}
-}
-func TX_ABRT_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: TX_ABRT}
-}
-func RX_DONE_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RX_DONE}
-}
-func ACTIVITY_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: ACTIVITY}
-}
-func STOP_DET_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: STOP_DET}
-}
-func START_DET_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: START_DET}
-}
-func GEN_CALL_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: GEN_CALL}
-}
-func RESTART_DET_(p *Periph) mmio.RM32[RAW_INTR_STAT] {
-	return mmio.RM32[RAW_INTR_STAT]{R: &p.RAW_INTR_STAT, Mask: RESTART_DET}
-}
+type INTR uint32
 
 type ENABLE uint32
 
