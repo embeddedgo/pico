@@ -28,16 +28,12 @@ package main
 
 import (
 	"embedded/rtos"
-	"os"
 	"time"
 
+	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/irq"
-	"github.com/embeddedgo/pico/hal/system/console/uartcon"
-	"github.com/embeddedgo/pico/hal/uart"
-	"github.com/embeddedgo/pico/hal/uart/uart0"
 )
 
 const (
@@ -53,28 +49,20 @@ var m *i2c.Master
 func main() {
 	// Used IO pins
 	const (
-		conTx = pins.GP0
-		conRx = pins.GP1
-		sda   = pins.GP20
-		scl   = pins.GP21
+		sda = pins.GP20
+		scl = pins.GP21
 	)
 
-	// Serial console
-	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
-
 	// I2C
-	sda.Setup(iomux.InpEn | iomux.D4mA | iomux.PullUp)
-	sda.SetAltFunc(iomux.I2C)
-	scl.Setup(iomux.InpEn | iomux.D4mA | iomux.PullUp)
-	scl.SetAltFunc(iomux.I2C)
-
 	m = i2c.NewMaster(i2c.I2C(0))
-	m.Setup(100e3)
+	m.UsePin(sda, i2c.SDA)
+	m.UsePin(scl, i2c.SCL)
+	m.Setup(10e3)
 	irq.I2C0.Enable(rtos.IntPrioLow, 0)
 
 	m.SetAddr(0b010_0111)
 
-	n := 1000
+	n := 400
 	cmds := make([]int16, n)
 	for i := range cmds {
 		cmds[i] = Z
@@ -88,12 +76,11 @@ func main() {
 	for {
 		m.WriteCmds(cmds)
 		if err := m.Err(true); err != nil {
-			os.Stderr.WriteString("\n")
-			os.Stderr.WriteString(err.Error())
-			os.Stderr.WriteString("\n")
-			time.Sleep(time.Second)
-		} else {
-			//os.Stderr.WriteString(".")
+			m.Abort()
+			for range 6 {
+				leds.User.Toggle()
+				time.Sleep(time.Second / 2)
+			}
 		}
 	}
 }

@@ -4,12 +4,13 @@
 package main
 
 import (
+	"embedded/rtos"
 	"fmt"
 
 	"github.com/embeddedgo/device/adc/ads111x"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/iomux"
+	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -19,6 +20,8 @@ const (
 	addr = 0b100_1000 // address if the ADDR pin is connected to GND
 	cfg  = ads111x.OS | ads111x.AIN0_AIN1 | ads111x.FS2048 | ads111x.SINGLESHOT | ads111x.R8
 )
+
+var d = i2c.NewMaster(i2c.I2C(0))
 
 func main() {
 	// Used IO pins
@@ -33,13 +36,11 @@ func main() {
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// I2C
-	sda.Setup(iomux.InpEn | iomux.D4mA | iomux.PullUp)
-	sda.SetAltFunc(iomux.I2C)
-	scl.Setup(iomux.InpEn | iomux.D4mA | iomux.PullUp)
-	scl.SetAltFunc(iomux.I2C)
-
-	d := i2c.NewMaster(i2c.I2C(0))
+	d.UsePin(sda, i2c.SDA)
+	d.UsePin(scl, i2c.SCL)
 	d.Setup(100e3)
+	irq.I2C0.Enable(rtos.IntPrioLow, 0)
+
 	d.SetAddr(addr)
 
 again:
@@ -82,4 +83,9 @@ func volt(buf [2]byte) float64 {
 		scale = 4.096 / float64(uint(1)<<(shift-1))
 	}
 	return float64(int16(buf[0])<<8|int16(buf[1])) * scale / 0x8000
+}
+
+//go:interrupthandler
+func I2C0_Handler() {
+	d.ISR()
 }
