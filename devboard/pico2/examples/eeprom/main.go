@@ -3,6 +3,9 @@
 // license that can be found in the LICENSE file.
 package main
 
+// Eeprom writes and reads the memory of the 24C64/128/256 I2C EEPROM. The
+// difference to the less dense 24C0x EEPROMs is the use of 16 bit memory
+// address instead of 8 bit one.
 import (
 	"embedded/rtos"
 	"errors"
@@ -12,6 +15,7 @@ import (
 
 	"github.com/embeddedgo/device/bus/i2cbus"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
+	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
@@ -31,7 +35,7 @@ func randomData(p []byte) {
 	}
 }
 
-var d *i2c.Master
+var d = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
 
 func main() {
 	// Used IO pins
@@ -45,7 +49,6 @@ func main() {
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
-	d = i2c.NewMaster(i2c.I2C(0))
 	d.UsePin(sda, i2c.SDA)
 	d.UsePin(scl, i2c.SCL)
 	d.Setup(100e3)
@@ -68,6 +71,11 @@ loop:
 		d.Flush()
 		d.Wait(i2c.TX_EMPTY)
 		d.Abort() // stop
+		if err := d.Err(true); err != nil {
+			fmt.Println("write error:", err)
+			time.Sleep(time.Second)
+			continue
+		}
 
 		// Wait for the end of write
 		for {
@@ -90,12 +98,12 @@ loop:
 		d.WriteCmd(i2c.Recv | int16(n-1))
 		d.ReadBytes(in[:n])
 		d.Abort() // stop
-
-		err := d.Err(true)
-		if err != nil {
+		if err := d.Err(true); err != nil {
 			fmt.Println(err)
+			time.Sleep(time.Second)
 		} else if string(in[:n]) != string(out[:n]) {
 			fmt.Printf("Rd %2d B BAD! %d: %s\n\n", n, page, in[:n])
+			time.Sleep(time.Second)
 		} else {
 			fmt.Print("Rd OK\n")
 		}

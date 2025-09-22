@@ -49,7 +49,7 @@ func NewSPI(drv *spi.Master, csn, dc iomux.Pin, mode spi.Config, rcHz, wcHz int)
 func (dci *SPI) Driver() *spi.Master  { return dci.spi }
 func (dci *SPI) Err(clear bool) error { return nil }
 
-func start(dci *SPI) {
+func spiStart(dci *SPI) {
 	dci.started = true
 	d := dci.spi
 	d.Lock()
@@ -74,7 +74,7 @@ func set16b(dci *SPI) {
 
 func (dci *SPI) Cmd(p []byte, _ int) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	d := dci.spi
 	d.WaitTxDone()
@@ -99,7 +99,7 @@ func (dci *SPI) End() {
 
 func (dci *SPI) WriteBytes(p []uint8) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set8b(dci)
 	dci.spi.Write(p)
@@ -107,7 +107,7 @@ func (dci *SPI) WriteBytes(p []uint8) {
 
 func (dci *SPI) WriteString(s string) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set8b(dci)
 	dci.spi.WriteString(s)
@@ -115,7 +115,7 @@ func (dci *SPI) WriteString(s string) {
 
 func (dci *SPI) WriteByteN(b byte, n int) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set8b(dci)
 	dci.spi.WriteByteN(b, n)
@@ -123,7 +123,7 @@ func (dci *SPI) WriteByteN(b byte, n int) {
 
 func (dci *SPI) WriteWords(p []uint16) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set16b(dci)
 	dci.spi.Write16(p)
@@ -131,7 +131,7 @@ func (dci *SPI) WriteWords(p []uint16) {
 
 func (dci *SPI) WriteWordN(w uint16, n int) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set16b(dci)
 	dci.spi.WriteWord16N(w, n)
@@ -139,7 +139,7 @@ func (dci *SPI) WriteWordN(w uint16, n int) {
 
 func (dci *SPI) ReadBytes(p []byte) {
 	if !dci.started {
-		start(dci)
+		spiStart(dci)
 	}
 	set8b(dci)
 	d := dci.spi

@@ -32,6 +32,7 @@ import (
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
+	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/irq"
 )
@@ -44,7 +45,7 @@ const (
 	Z = 0b1111_1111
 )
 
-var m *i2c.Master
+var m = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
 
 func main() {
 	// Used IO pins
@@ -54,27 +55,27 @@ func main() {
 	)
 
 	// I2C
-	m = i2c.NewMaster(i2c.I2C(0))
 	m.UsePin(sda, i2c.SDA)
 	m.UsePin(scl, i2c.SCL)
-	m.Setup(10e3)
+	m.Setup(100e3)
 	irq.I2C0.Enable(rtos.IntPrioLow, 0)
 
 	m.SetAddr(0b010_0111)
 
-	n := 400
-	cmds := make([]int16, n)
-	for i := range cmds {
-		cmds[i] = Z
+	n := 4000
+	data := make([]byte, n)
+	for i := range data {
+		data[i] = Z
 	}
-	cmds[n*0/4] = R
-	cmds[n*1/4] = G
-	cmds[n*2/4] = B
-	cmds[n*3/4] = W
-	cmds[n-1] = Z
+	for i := 0; i < 20; i++ {
+		data[n*0/4+i] = R
+		data[n*1/4+i] = G
+		data[n*2/4+i] = B
+		data[n*3/4+i] = W
+	}
 
 	for {
-		m.WriteCmds(cmds)
+		m.WriteBytes(data)
 		if err := m.Err(true); err != nil {
 			m.Abort()
 			for range 6 {

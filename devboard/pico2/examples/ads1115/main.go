@@ -9,6 +9,7 @@ import (
 
 	"github.com/embeddedgo/device/adc/ads111x"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
+	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/irq"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
@@ -21,7 +22,7 @@ const (
 	cfg  = ads111x.OS | ads111x.AIN0_AIN1 | ads111x.FS2048 | ads111x.SINGLESHOT | ads111x.R8
 )
 
-var d = i2c.NewMaster(i2c.I2C(0))
+var d = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
 
 func main() {
 	// Used IO pins

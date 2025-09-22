@@ -10,12 +10,13 @@ import (
 	"github.com/embeddedgo/device/bus/i2cbus"
 )
 
-// An Error wraps the value of TX_ABRT_SOURCE regisert.
-type Error struct {
+// An MasterError wraps the value of TX_ABRT_SOURCE regisert.
+type MasterError struct {
+	Bus   string
 	Abort TX_ABRT_SOURCE
 }
 
-func (e *Error) Is(target error) bool {
+func (e *MasterError) Is(target error) bool {
 	const ackFlags = ABRT_SBYTE_ACKDET | ABRT_HS_ACKDET | ABRT_GCALL_NOACK |
 		ABRT_TXDATA_NOACK | ABRT_10ADDR2_NOACK | ABRT_10ADDR1_NOACK |
 		ABRT_7B_ADDR_NOACK
@@ -42,7 +43,7 @@ var abortStr = [...]string{
 	16: "user_abrt",
 }
 
-func (e *Error) Error() string {
+func (e *MasterError) Error() string {
 	n := 0
 	for i, s := range abortStr {
 		if e.Abort>>uint(i)&1 != 0 {
@@ -50,8 +51,11 @@ func (e *Error) Error() string {
 		}
 	}
 	prefix := "i2c: "
-	buf := make([]byte, len(prefix), len(prefix)+n-1)
-	copy(buf, prefix)
+	n += len(prefix) + len(e.Bus) + 2
+	buf := make([]byte, 0, n-1)
+	buf = append(buf, prefix...)
+	buf = append(buf, e.Bus...)
+	buf = append(buf, ": "...)
 	for i, s := range abortStr {
 		if e.Abort>>uint(i)&1 != 0 {
 			buf = append(buf, s...)

@@ -12,19 +12,64 @@ import (
 	"unsafe"
 
 	"github.com/embeddedgo/device/bus/i2cbus"
+	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/internal"
 	"github.com/embeddedgo/pico/hal/system/clock"
 )
 
+// A Master is a driver for the I2C peripheral. It provides two kinds of
+// interfaces to communicate with slave devices on the I2C bus.
+//
+// The first interface is a low-level one. It provides a set of methods to
+// directly interract with the Data / Command FIFOs of the underlying I2C
+// peripheral.
+//
+// Example:
+//
+//	d.SetAddr(eepromAddr)
+//	d.WriteCmds([]int16{
+//		lpi2c.Send|int16(memAddr),
+//		lpi2c.Recv|int16(len(buf) - 1),
+//		lpi2c.Stop,
+//	})
+//	d.ReadBytes(buf)
+//	if err := d.Err(true); err != nil {
+//
+// Write methods in the low-level interface are asynchronous, that is, they may
+// return before all commands/data will be written to the FIFO. Therefore you
+// must not modify the data/command buffer passed to the last write method until
+// the return of the Flush method or another write method.
+//
+// The read/write methods doesn't return errors. There is an Err method that
+// allow to check and reset the I2C error flags at a convenient time. Even if
+// you call Err after every method call the returned error is still asynchronous
+// due to the asynchronous nature of the write methods and the delayed execution
+// of commands by the I2C peripheral itself. You can use Wait before checking
+// error (especially waiting for STOP_DET) to somehow synhronize things.
+//
+// The second interface is a connection oriented one that implements the
+// i2cbus.Conn interface.
+//
+// Example:
+//
+//	c := d.NewConn(eepromAddr)
+//	c.WriteByte(memAaddr)
+//	c.Read(buf)
+//	err := c.Close()
+//	if err != nil {
+//
+// Both interfaces may be used concurently by multiple goroutines but in such
+// a case users of the low-level interface must gain an exclusive access to the
+// driver using the embedded mutex and wait for the Stop Condition before
+// unlocking the Master.
 type Master struct {
 	sync.Mutex
 
 	name string
 	p    *Periph
-	id   uint8
 
-	rbuf byte
 	wbuf int16
+	id   uint8
 
 	cmd   bool
 	wdata unsafe.Pointer
@@ -36,43 +81,41 @@ type Master struct {
 	ri    int32 // ISR cannot alter the above pointer so it alters ri instead
 	rn    int32
 	rdone rtos.Note
+
+	dma dma.Channel
 }
 
 // NewMaster returns a new master-mode driver for p. If valid DMA channel is
 // given, the DMA will be used for bigger data transfers.
-func NewMaster(p *Periph) *Master {
+func NewMaster(p *Periph, dma dma.Channel) *Master {
 	return &Master{
-		name: string([]byte{'I', '2', 'C', '0' + byte(num(p))}),
+		name: "I2C" + string(rune('0'+num(p))),
 		p:    p,
+		dma:  dma,
 	}
 }
 
-// Periph returns the underlying LPSPI peripheral.
+// Periph returns the underlying SPI peripheral.
 func (d *Master) Periph() *Periph {
 	return d.p
 }
 
+// Setup resets and configures the underlying I2C pripheral to operate in the
+// master mode with the given speed.
 func (d *Master) Setup(baudrate int) {
 	p := d.p
 	p.SetReset(true)
 	p.SetReset(false)
 	p.INTR_MASK.Store(0)
 
-	mode := MASTER_MODE | SLAVE_DISABLE | RESTART_EN | TX_EMPTY_CTRL |
-		RX_FIFO_FULL_HLD_CTRL
-	if baudrate > 100e3 {
-		mode |= FAST
-	}
-	p.CON.Store(mode)
+	// Always use FAST mode as PICO-SDK does.
+	p.CON.Store(MASTER_MODE | SLAVE_DISABLE | RESTART_EN | TX_EMPTY_CTRL | RX_FIFO_FULL_HLD_CTRL | FAST)
 
-	// Baudrate
+	// Baudrate (calculations taken from PICO-SDK)
 
 	clk := clock.PERI.Freq()
 	cn := uint32((clk + int64(baudrate/2)) / int64(baudrate))
 
-	//spkLen := p.FS_SPKLEN.Load()
-	//lcn := cn/2 - 1
-	//hcn := cn/2  - spkLen - 7
 	lcn := cn * 3 / 5
 	hcn := cn - lcn
 
@@ -94,6 +137,9 @@ func (d *Master) Setup(baudrate int) {
 	p.SDA_HOLD.StoreBits(SDA_TX_HOLD, txHold)
 }
 
+// SetAddr sets the address of a slave device. You must ensure there is no
+// any command in the Tx FIFO intended to use the previous address (a command
+// that causes Start or Repeated Start Condition).
 func (d *Master) SetAddr(addr i2cbus.Addr) {
 	p := d.p
 	p.ENABLE.Store(0)
@@ -125,10 +171,10 @@ const (
 // (in other words, it makes the previous write operation synchronous). You must
 // call Flush or write new to enusre the Master stops referencing previously
 // written data (to reuse memory or make it available for garbage collection).
-// Return from Flush doesn't mean that all data were sent on the bus (there may be
-// even full Tx FIFO not handled yet, see Wait).
+// Return from Flush doesn't mean that all data were sent on the bus (there may
+// be even full Tx FIFO not handled yet, see Wait).
 func (d *Master) Flush() {
-	if d.wdata != nil {
+	if d.wdata != nil && d.p.TX_ABRT_SOURCE.LoadBits(abrtFlags) == 0 {
 		d.wdone.Sleep(-1)
 		d.wdone.Clear()
 		d.wdata = nil
@@ -187,12 +233,16 @@ func masterWrite(d *Master, ptr unsafe.Pointer, n int, cmd bool) {
 	internal.AtomicSet(&p.INTR_MASK, TX_EMPTY|TX_ABRT) // race with ISR (clear)
 }
 
+// WriteCmd works like WriteCmds but writes only one command word into the Tx
+// FIFO.
 func (d *Master) WriteCmd(cmd int16) {
 	d.Flush()
 	d.wbuf = cmd
 	masterWrite(d, unsafe.Pointer(&d.wbuf), 1, true)
 }
 
+// WriteCmds starts writing commands into the Tx FIFO in the background using
+// interrupts and/or DMA. WriteCmd is no-op if len(cmds) == 0.
 func (d *Master) WriteCmds(cmds []int16) {
 	if len(cmds) == 0 {
 		return
@@ -201,6 +251,8 @@ func (d *Master) WriteCmds(cmds []int16) {
 	masterWrite(d, unsafe.Pointer(unsafe.SliceData(cmds)), len(cmds), true)
 }
 
+// WriteBytes is like WriteCmds but writes only Send commands with the provided
+// data.
 func (d *Master) WriteBytes(p []byte) {
 	if len(p) == 0 {
 		return
@@ -209,6 +261,7 @@ func (d *Master) WriteBytes(p []byte) {
 	masterWrite(d, unsafe.Pointer(unsafe.SliceData(p)), len(p), false)
 }
 
+// WriteStr is like WriteBytes but writes bytes from string instead of slice.
 func (d *Master) WriteStr(s string) {
 	if len(s) == 0 {
 		return
@@ -233,11 +286,10 @@ func masterRead(d *Master, ptr *byte, n int) {
 			return
 		}
 	}
-	n -= i
 	// The remaining data will be read by the ISR.
 	d.rdata = &data[i]
-	d.ri = 0
-	p.RX_TL.Store(uint32(min(n, rxFIFOCap) - 1))
+	d.ri = int32(i)
+	p.RX_TL.Store(uint32(min(n-i, rxFIFOCap) - 1))
 	atomic.StoreInt32(&d.rn, int32(n))
 	internal.AtomicSet(&p.INTR_MASK, RX_FULL|TX_ABRT) // race with ISR (clear)
 	d.rdone.Sleep(-1)
@@ -245,11 +297,19 @@ func masterRead(d *Master, ptr *byte, n int) {
 	d.rdata = nil
 }
 
+// ReadBytes reads len(p) data bytes from Rx FIFO. The read data is valid if Err
+// returns nil.
 func (d *Master) ReadBytes(p []byte) {
 	if len(p) == 0 {
 		return
 	}
 	masterRead(d, &p[0], len(p))
+}
+
+// ReadByte works like ReadBytes but reads only one byte from the Rx FIFO.
+func (d *Master) ReadByte() (b byte) {
+	masterRead(d, &b, 1)
+	return
 }
 
 const statusFlags = RX_FULL | TX_EMPTY | TX_ABRT | ACTIVITY | STOP_DET | START_DET
@@ -294,10 +354,13 @@ func (d *Master) Wait(flags INTR) {
 	d.rdone.Clear()
 }
 
+// Err returns the content of the TX_ABRT_SOURCE register wrapped into the
+// MasterError type if any sbort flag is set. Othewrise it returns nil. If clear
+// is true Err clears the TX_ABRT_SOURCE register.
 func (d *Master) Err(clear bool) (err error) {
 	p := d.p
 	if abort := p.TX_ABRT_SOURCE.Load(); abort&abrtFlags != 0 {
-		err = &Error{abort}
+		err = &MasterError{d.name, abort}
 		if clear {
 			p.CLR_TX_ABRT.Load()
 		}
@@ -305,6 +368,11 @@ func (d *Master) Err(clear bool) (err error) {
 	return
 }
 
+// Abort aborts the I2C transfer. It can be used togather with Wait(TX_EMPTY) to
+// implement asynchronous Stop condition. The command set supports only
+// synchronous Stop by setting the Stop bit in the last send/receive command
+// (you need to know in advance which command is the last command in the I2C
+// transaction which isn't always convenient/possible).
 func (d *Master) Abort() {
 	p := d.p
 	if p.TX_ABRT_SOURCE.LoadBits(abrtFlags) != 0 {
@@ -383,8 +451,7 @@ func (d *Master) ISR() {
 		enable |= flags
 	} else if n < 0 {
 		// Wait
-		flags := INTR(-n)
-		if p.RAW_INTR_STAT.LoadBits(flags) != 0 {
+		if flags := INTR(-n); p.RAW_INTR_STAT.LoadBits(flags) != 0 {
 			done = true
 		} else {
 			enable |= flags
@@ -441,4 +508,21 @@ func (d *Master) ISR() {
 	if enable != 0 {
 		internal.AtomicSet(&p.INTR_MASK, enable)
 	}
+}
+
+func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
+	_writeDMA(d, uintptr(pw), n, dmacfg)
+}
+
+//go:uintptrescapes
+func _writeDMA(d *Master, pw uintptr, n int, dmacfg dma.Config) {
+	d.wdone.Clear() // memory barrier
+	dc := d.dma
+	dc.ClearIRQ()
+	dc.SetWriteAddr(unsafe.Pointer(d.p.DATA_CMD.Addr()))
+	dc.SetReadAddr(unsafe.Pointer(pw))
+	dc.SetTransCount(n, dma.Normal)
+	//dc.SetConfigTrig(d.wdc|dmacfg, wdma)
+	//dc.EnableIRQ(d.irqn)
+	d.wdone.Sleep(-1)
 }
