@@ -174,7 +174,7 @@ const (
 // Return from Flush doesn't mean that all data were sent on the bus (there may
 // be even full Tx FIFO not handled yet, see Wait).
 func (d *Master) Flush() {
-	if d.wdata != nil && d.p.TX_ABRT_SOURCE.LoadBits(abrtFlags) == 0 {
+	if d.wdata != nil {
 		d.wdone.Sleep(-1)
 		d.wdone.Clear()
 		d.wdata = nil
@@ -410,7 +410,7 @@ func (d *Master) ISR() {
 
 	if p.TX_ABRT_SOURCE.LoadBits(abrtFlags&^ABRT_USER_ABRT) != 0 {
 		// Tx/Rx FIFOs are kept empty until TX_ABRT IRQ is cleared
-		if atomic.LoadInt32(&d.wn) > 0 {
+		if atomic.LoadInt32(&d.wn) != 0 {
 			d.wn = 0
 			d.wdone.Wakeup()
 		}
