@@ -287,7 +287,7 @@ func masterRead(d *Master, ptr *byte, n int) {
 		}
 	}
 	// The remaining data will be read by the ISR.
-	d.rdata = &data[i]
+	d.rdata = ptr
 	d.ri = int32(i)
 	p.RX_TL.Store(uint32(min(n-i, rxFIFOCap) - 1))
 	atomic.StoreInt32(&d.rn, int32(n))

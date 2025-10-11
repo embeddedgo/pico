@@ -3,10 +3,11 @@
 // license that can be found in the LICENSE file.
 package main
 
-// Eeprom writes and reads the memory of the 24C64/128/256 I2C EEPROM. The only
-// difference to the less dense 24C0x EEPROMs is the use of 16 bit address
-// instead of 8 bit one. Check also../eepromll to see a similar example that
-// uses the RP2350 specific low-level I2C interface.
+// Eepromll uses low-level RP2350 specific I2C interface to write and read the
+// memory of the 24C64/128/256 I2C EEPROM. The only difference to the less dense
+// 24C0x EEPROMs is the use of 16 bit memory address instead of 8 bit one. Check
+// also../eeprom to see a similar example that uses a more convenient and
+// portable high-level I2C interface.
 import (
 	"embedded/rtos"
 	"errors"
@@ -54,8 +55,7 @@ func main() {
 	d.UsePin(scl, i2c.SCL)
 	d.Setup(100e3)
 	irq.I2C0.Enable(rtos.IntPrioLow, 0)
-
-	c := d.NewConn(prefix<<3 | a2a1a0)
+	d.SetAddr(prefix<<3 | a2a1a0)
 
 	var out, in [pageSize]byte
 
@@ -68,44 +68,46 @@ loop:
 		randomData(out[:n])
 
 		fmt.Printf("Wr %2d B page %d: %s ", n, page, out[:n])
-		c.Write(addr)
-		c.Write(out[:n])
-		err := c.Close()
-		if err != nil {
-			fmt.Println("\nWr error:", err)
-			time.Sleep(2 * time.Second)
+		d.WriteBytes(addr)
+		d.WriteBytes(out[:n])
+		d.Flush()
+		d.Wait(i2c.TX_EMPTY)
+		d.Abort() // stop
+		if err := d.Err(true); err != nil {
+			fmt.Println("write error:", err)
+			time.Sleep(time.Second)
 			continue
 		}
 
 		// Wait for the end of write
 		for {
-			c.Write(addr)
-			err = c.Close()
+			d.WriteBytes(addr)
+			d.Flush()
+			d.Wait(i2c.TX_EMPTY)
+			err := d.Err(true)
 			if err == nil {
 				break
 			}
 			if !errors.Is(err, i2cbus.ErrACK) {
-				fmt.Print("\nwait error: ", err, "\n")
-				time.Sleep(2 * time.Second)
+				fmt.Print("\n", err, "\n")
+				time.Sleep(time.Second)
 				continue loop
 			}
 			fmt.Print(".")
 		}
 		fmt.Println(" done")
 
-		c.Read(in[:n])
-		err = c.Close()
-		if err != nil {
-			fmt.Println("Rd error:", err)
-			time.Sleep(2 * time.Second)
+		d.WriteCmd(i2c.Recv | int16(n-1))
+		d.ReadBytes(in[:n])
+		d.Abort() // stop
+		if err := d.Err(true); err != nil {
+			fmt.Println(err)
+			time.Sleep(time.Second)
 		} else if string(in[:n]) != string(out[:n]) {
 			fmt.Printf("Rd %2d B BAD! %d: %s\n\n", n, page, in[:n])
-			time.Sleep(2 * time.Second)
+			time.Sleep(time.Second)
 		} else {
 			fmt.Print("Rd OK\n")
-		}
-		for i := range in {
-			in[i] = ':'
 		}
 	}
 }
