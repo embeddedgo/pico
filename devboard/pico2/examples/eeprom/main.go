@@ -8,7 +8,6 @@ package main
 // instead of 8 bit one. Check also../eepromll to see a similar example that
 // uses the RP2350 specific low-level I2C interface.
 import (
-	"embedded/rtos"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -16,9 +15,8 @@ import (
 
 	"github.com/embeddedgo/device/bus/i2cbus"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
-	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/irq"
+	"github.com/embeddedgo/pico/hal/i2c/i2c0"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -36,8 +34,6 @@ func randomData(p []byte) {
 	}
 }
 
-var d = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
-
 func main() {
 	// Used IO pins
 	const (
@@ -50,10 +46,10 @@ func main() {
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
+	d := i2c0.Master()
 	d.UsePin(sda, i2c.SDA)
 	d.UsePin(scl, i2c.SCL)
 	d.Setup(100e3)
-	irq.I2C0.Enable(rtos.IntPrioLow, 0)
 
 	c := d.NewConn(prefix<<3 | a2a1a0)
 
@@ -108,9 +104,4 @@ loop:
 			in[i] = ':'
 		}
 	}
-}
-
-//go:interrupthandler
-func I2C0_Handler() {
-	d.ISR()
 }

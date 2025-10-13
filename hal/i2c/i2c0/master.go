@@ -1,0 +1,31 @@
+// Copyright 2025 The Embedded Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package i2c0
+
+import (
+	"embedded/rtos"
+	_ "unsafe"
+
+	"github.com/embeddedgo/pico/hal/dma"
+	"github.com/embeddedgo/pico/hal/i2c"
+	"github.com/embeddedgo/pico/hal/irq"
+	"github.com/embeddedgo/pico/hal/system"
+)
+
+var driver *i2c.Master
+
+// Master returns ready to use driver for I2C master.
+func Master() *i2c.Master {
+	if driver == nil {
+		driver = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
+		irq.I2C0.Enable(rtos.IntPrioLow, system.NextCPU())
+	}
+	return driver
+}
+
+//go:interrupthandler
+func _I2C0_Handler() { driver.ISR() }
+
+//go:linkname _I2C0_Handler IRQ36_Handler

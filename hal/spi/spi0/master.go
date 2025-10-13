@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package spi0
+package i2c0
 
 import (
 	_ "unsafe"
 
 	"github.com/embeddedgo/pico/hal/dma"
-	"github.com/embeddedgo/pico/hal/spi"
+	"github.com/embeddedgo/pico/hal/i2c"
 )
 
 var driver *spi.Master

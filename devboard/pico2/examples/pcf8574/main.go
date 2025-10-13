@@ -27,14 +27,16 @@
 package main
 
 import (
-	"embedded/rtos"
+	"fmt"
 	"time"
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
-	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/irq"
+	"github.com/embeddedgo/pico/hal/i2c/i2c0"
+	"github.com/embeddedgo/pico/hal/system/console/uartcon"
+	"github.com/embeddedgo/pico/hal/uart"
+	"github.com/embeddedgo/pico/hal/uart/uart0"
 )
 
 const (
@@ -45,23 +47,27 @@ const (
 	Z = 0b1111_1111
 )
 
-var m = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
-
 func main() {
 	// Used IO pins
 	const (
-		sda = pins.GP20
-		scl = pins.GP21
+		conTx = pins.GP0
+		conRx = pins.GP1
+		sda   = pins.GP20
+		scl   = pins.GP21
 	)
 
+	// Serial console
+	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
+
 	// I2C
+	m := i2c0.Master()
 	m.UsePin(sda, i2c.SDA)
 	m.UsePin(scl, i2c.SCL)
 	m.Setup(100e3)
-	irq.I2C0.Enable(rtos.IntPrioLow, 0)
 
 	m.SetAddr(0b010_0111)
 
+	// Demonstrate long I2C transfers
 	n := 4000
 	data := make([]byte, n)
 	for i := range data {
@@ -77,16 +83,12 @@ func main() {
 	for {
 		m.WriteBytes(data)
 		if err := m.Err(true); err != nil {
-			m.Abort()
+			fmt.Println(err)
 			for range 6 {
 				leds.User.Toggle()
-				time.Sleep(time.Second / 2)
+				time.Sleep(time.Second / 4)
 			}
+			time.Sleep(time.Second)
 		}
 	}
-}
-
-//go:interrupthandler
-func I2C0_Handler() {
-	m.ISR()
 }
