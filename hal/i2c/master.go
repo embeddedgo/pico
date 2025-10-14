@@ -14,6 +14,7 @@ import (
 	"github.com/embeddedgo/device/bus/i2cbus"
 	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/internal"
+	"github.com/embeddedgo/pico/hal/system"
 	"github.com/embeddedgo/pico/hal/system/clock"
 )
 
@@ -83,15 +84,20 @@ type Master struct {
 	rdone rtos.Note
 
 	dma dma.Channel
+	dcf dma.Config
+	din int
 }
 
 // NewMaster returns a new master-mode driver for p. If valid DMA channel is
 // given, the DMA will be used for bigger data transfers.
-func NewMaster(p *Periph, dma dma.Channel) *Master {
+func NewMaster(p *Periph, dc dma.Channel) *Master {
+	req := dma.I2C0_TX + dma.Config(num(p))*(dma.I2C1_TX-dma.I2C0_TX)
 	return &Master{
 		name: "I2C" + string(rune('0'+num(p))),
 		p:    p,
-		dma:  dma,
+		dma:  dc,
+		dcf:  dma.En | dma.S8b | req,
+		din:  int(system.NextCPU()),
 	}
 }
 
@@ -110,6 +116,7 @@ func (d *Master) Setup(baudrate int) {
 
 	// Always use FAST mode as PICO-SDK does.
 	p.CON.Store(MASTER_MODE | SLAVE_DISABLE | RESTART_EN | TX_EMPTY_CTRL | RX_FIFO_FULL_HLD_CTRL | FAST)
+	p.DMA_CR.Store(TDMAE | RDMAE) // enable by defalut, on/off at the DMA side
 
 	// Baudrate (calculations taken from PICO-SDK)
 
@@ -165,6 +172,7 @@ const (
 	rxFIFOCap = 16
 	txFIFOCap = 16
 	abrtFlags = 0x1ffff
+	minDMA    = 16
 )
 
 // Flush waits until all commands/data passed to the driver have been consumed
@@ -233,6 +241,23 @@ func masterWrite(d *Master, ptr unsafe.Pointer, n int, cmd bool) {
 	internal.AtomicSet(&p.INTR_MASK, TX_EMPTY|TX_ABRT) // race with ISR (clear)
 }
 
+func masterWriteDMA(d *Master, ptr unsafe.Pointer, n int) {
+	p := d.p
+	if p.TX_ABRT_SOURCE.LoadBits(abrtFlags) != 0 {
+		return
+	}
+	d.wdata = ptr                // prevent premature GC and make Flush working
+	atomic.StoreInt32(&d.wn, -1) // DMA write in progress
+	dc := d.dma
+	dc.ClearIRQ()
+	dc.SetReadAddr(ptr)
+	dc.SetWriteAddr(unsafe.Pointer(p.DATA_CMD.Addr() | 1<<14))
+	dc.SetTransCount(n, dma.Normal)
+	dc.SetConfigTrig(d.dcf|dma.IncR, dc)
+	dc.EnableIRQ(d.din)
+	internal.AtomicSet(&p.INTR_MASK, TX_ABRT)
+}
+
 // WriteCmd works like WriteCmds but writes only one command word into the Tx
 // FIFO.
 func (d *Master) WriteCmd(cmd int16) {
@@ -258,16 +283,18 @@ func (d *Master) WriteBytes(p []byte) {
 		return
 	}
 	d.Flush()
-	masterWrite(d, unsafe.Pointer(unsafe.SliceData(p)), len(p), false)
+	if len(p) < minDMA || !d.dma.IsValid() {
+		masterWrite(d, unsafe.Pointer(&p[0]), len(p), false)
+	} else {
+		masterWriteDMA(d, unsafe.Pointer(&p[0]), len(p))
+	}
 }
 
 // WriteStr is like WriteBytes but writes bytes from string instead of slice.
 func (d *Master) WriteStr(s string) {
-	if len(s) == 0 {
-		return
+	if len(s) != 0 {
+		d.WriteBytes(unsafe.Slice(unsafe.StringData(s), len(s)))
 	}
-	d.Flush()
-	masterWrite(d, unsafe.Pointer(unsafe.StringData(s)), len(s), false)
 }
 
 func masterRead(d *Master, ptr *byte, n int) {
@@ -410,11 +437,18 @@ func (d *Master) ISR() {
 
 	if p.TX_ABRT_SOURCE.LoadBits(abrtFlags&^ABRT_USER_ABRT) != 0 {
 		// Tx/Rx FIFOs are kept empty until TX_ABRT IRQ is cleared
-		if atomic.LoadInt32(&d.wn) != 0 {
+		wn := atomic.LoadInt32(&d.wn)
+		rn := atomic.LoadInt32(&d.rn)
+		if wn|rn == -1 {
+			dc := d.dma
+			dc.DisableIRQ(d.din)
+			dc.Abort()
+		}
+		if wn != 0 {
 			d.wn = 0
 			d.wdone.Wakeup()
 		}
-		if atomic.LoadInt32(&d.rn) != 0 {
+		if rn != 0 {
 			d.rn = 0
 			d.rdone.Wakeup()
 		}
@@ -510,19 +544,17 @@ func (d *Master) ISR() {
 	}
 }
 
-func writeDMA(d *Master, pw unsafe.Pointer, n int, dmacfg dma.Config) {
-	_writeDMA(d, uintptr(pw), n, dmacfg)
-}
-
-//go:uintptrescapes
-func _writeDMA(d *Master, pw uintptr, n int, dmacfg dma.Config) {
-	d.wdone.Clear() // memory barrier
-	dc := d.dma
-	dc.ClearIRQ()
-	dc.SetWriteAddr(unsafe.Pointer(d.p.DATA_CMD.Addr()))
-	dc.SetReadAddr(unsafe.Pointer(pw))
-	dc.SetTransCount(n, dma.Normal)
-	//dc.SetConfigTrig(d.wdc|dmacfg, wdma)
-	//dc.EnableIRQ(d.irqn)
-	d.wdone.Sleep(-1)
+// DMAISR is a DMA interrupt handler for the DMA channel used by Master.
+//
+//go:nosplit
+//go:nowritebarrierrec
+func (d *Master) DMAISR() {
+	d.dma.DisableIRQ(d.din)
+	if atomic.LoadInt32(&d.wn) == -1 {
+		d.wn = 0
+		d.wdone.Wakeup()
+	} else if atomic.LoadInt32(&d.rn) == -1 {
+		d.rn = 0
+		d.rdone.Wakeup()
+	}
 }

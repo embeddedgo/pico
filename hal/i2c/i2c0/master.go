@@ -14,18 +14,18 @@ import (
 	"github.com/embeddedgo/pico/hal/system"
 )
 
-var driver *i2c.Master
+var master *i2c.Master
 
 // Master returns ready to use driver for I2C master.
 func Master() *i2c.Master {
-	if driver == nil {
-		driver = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
+	if master == nil {
+		master = i2c.NewMaster(i2c.I2C(0), dma.Channel{})
 		irq.I2C0.Enable(rtos.IntPrioLow, system.NextCPU())
 	}
-	return driver
+	return master
 }
 
 //go:interrupthandler
-func _I2C0_Handler() { driver.ISR() }
+func _I2C0_Handler() { master.ISR() }
 
 //go:linkname _I2C0_Handler IRQ36_Handler
