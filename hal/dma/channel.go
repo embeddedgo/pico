@@ -324,6 +324,13 @@ func (c Channel) Trig() {
 	c.d.multiChanTrig.Store(1 << uint(c.n))
 }
 
+// Abort aborts an in-progress transfer sequence.
+//
+//go:nosplit
+func (c Channel) Abort() {
+	c.d.chanAbort.Store(1 << uint(c.n))
+}
+
 // EnableIRQ enables routing the interrupts from this DMA channel to the
 // system-level DMA interrupt line irqn.
 //

@@ -81,7 +81,7 @@ type Controller struct {
 	sniffData     mmio.U32
 	_             uint32
 	fifoLevels    mmio.U32
-	_             uint32
+	chanAbort     mmio.U32
 	nChannels     mmio.U32
 	_             [5]uint32
 	seccfgCh      [16]mmio.U32
@@ -149,7 +149,16 @@ func (d *Controller) AllocChannel() (ch Channel) {
 //
 //go:nosplit
 func (d *Controller) Trig(channels uint32) {
+
 	d.multiChanTrig.Store(channels)
+}
+
+// Abort aborts an in-progress transfer sequence on channels specified by the
+// channels bitmask.
+//
+//go:nosplit
+func (d *Controller) Abort(channels uint32) {
+	d.chanAbort.Store(channels)
 }
 
 // EnableIRQs enables routing the interrupts from the specified DMA channels to
