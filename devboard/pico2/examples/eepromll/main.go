@@ -71,7 +71,7 @@ loop:
 		d.Abort() // stop
 		if err := d.Err(true); err != nil {
 			fmt.Println("write error:", err)
-			time.Sleep(2 * time.Second)
+			time.Sleep(3 * time.Second)
 			continue
 		}
 
@@ -86,7 +86,7 @@ loop:
 			}
 			if !errors.Is(err, i2cbus.ErrACK) {
 				fmt.Print("\n", err, "\n")
-				time.Sleep(2 * time.Second)
+				time.Sleep(3 * time.Second)
 				continue loop
 			}
 			fmt.Print(".")
@@ -98,10 +98,10 @@ loop:
 		d.Abort() // stop
 		if err := d.Err(true); err != nil {
 			fmt.Println(err)
-			time.Sleep(2 * time.Second)
+			time.Sleep(3 * time.Second)
 		} else if string(in[:n]) != string(out[:n]) {
 			fmt.Printf("Rd %2d B BAD! %d: %s\n\n", n, page, in[:n])
-			time.Sleep(2 * time.Second)
+			time.Sleep(3 * time.Second)
 		} else {
 			fmt.Print("Rd OK\n")
 		}

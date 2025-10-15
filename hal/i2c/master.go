@@ -324,13 +324,45 @@ func masterRead(d *Master, ptr *byte, n int) {
 	d.rdata = nil
 }
 
+func masterReadDMA(d *Master, ptr *byte, n int) {
+	// Avoid GC the ptr prematurely if the caller intention is to read and
+	// discard data so it may no longer reference the ptr.
+	_masterReadDMA(d, uintptr(unsafe.Pointer(ptr)), n)
+}
+
+//go:uintptrescapes
+func _masterReadDMA(d *Master, ptr uintptr, n int) {
+	if atomic.LoadInt32(&d.wn) == -1 {
+		d.Flush() // wait for the end of DMA write
+	}
+	p := d.p
+	if p.TX_ABRT_SOURCE.LoadBits(abrtFlags) != 0 {
+		return
+	}
+	atomic.StoreInt32(&d.rn, -1) // DMA read in progress
+	dc := d.dma
+	dc.ClearIRQ()
+	dc.SetReadAddr(unsafe.Pointer(p.DATA_CMD.Addr()))
+	dc.SetWriteAddr(unsafe.Pointer(ptr))
+	dc.SetTransCount(n, dma.Normal)
+	dc.SetConfigTrig((d.dcf|dma.IncW)+(dma.I2C0_RX-dma.I2C0_TX), dc)
+	dc.EnableIRQ(d.din)
+	internal.AtomicSet(&p.INTR_MASK, TX_ABRT)
+	d.rdone.Sleep(-1) // wait until the major loop complete or error
+	d.rdone.Clear()
+}
+
 // ReadBytes reads len(p) data bytes from Rx FIFO. The read data is valid if Err
 // returns nil.
 func (d *Master) ReadBytes(p []byte) {
 	if len(p) == 0 {
 		return
 	}
-	masterRead(d, &p[0], len(p))
+	if len(p) < minDMA || !d.dma.IsValid() {
+		masterRead(d, &p[0], len(p))
+	} else {
+		masterReadDMA(d, &p[0], len(p))
+	}
 }
 
 // ReadByte works like ReadBytes but reads only one byte from the Rx FIFO.
