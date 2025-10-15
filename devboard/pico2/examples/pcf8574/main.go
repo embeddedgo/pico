@@ -30,10 +30,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/embeddedgo/pico/devboard/pico2/board/leds"
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/i2c/i2c0"
+	"github.com/embeddedgo/pico/hal/i2c/i2c0dma"
+	"github.com/embeddedgo/pico/hal/system/clock"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -59,16 +59,25 @@ func main() {
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
+	fmt.Println("Clocks:")
+	fmt.Println("REF: ", clock.REF.Freq()/1e6, "MHz")
+	fmt.Println("SYS: ", clock.SYS.Freq()/1e6, "MHz")
+	fmt.Println("PERI:", clock.PERI.Freq()/1e6, "MHz")
+	fmt.Println("HSTX:", clock.HSTX.Freq()/1e6, "MHz")
+	fmt.Println("USB: ", clock.USB.Freq()/1e6, "MHz")
+	fmt.Println("ADC: ", clock.ADC.Freq()/1e6, "MHz")
+	fmt.Println()
+
 	// I2C
-	m := i2c0.Master()
+	m := i2c0dma.Master()
 	m.UsePin(sda, i2c.SDA)
 	m.UsePin(scl, i2c.SCL)
-	m.Setup(100e3)
+	m.Setup(200e3)
 
 	m.SetAddr(0b010_0111)
 
 	// Demonstrate long I2C transfers
-	n := 4000
+	n := 8000
 	data := make([]byte, n)
 	for i := range data {
 		data[i] = Z
@@ -81,13 +90,12 @@ func main() {
 	}
 
 	for {
+		t0 := time.Now()
 		m.WriteBytes(data)
+		t1 := time.Now()
+		fmt.Println(t1.Sub(t0))
 		if err := m.Err(true); err != nil {
 			fmt.Println(err)
-			for range 6 {
-				leds.User.Toggle()
-				time.Sleep(time.Second / 4)
-			}
 			time.Sleep(time.Second)
 		}
 	}

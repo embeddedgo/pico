@@ -24,23 +24,35 @@ import (
 // that is, it's clocked from 12 MHz crystal, the XIP QSPI flash supports 133
 // MHz clock, the IOVDD >= 2.5 V. Both the CPU and QSPI flash are configured
 // to run at conservative 125 MHz, which seems to be a good compromise between
-// speed and stability. See Setup for more generic fuction that does the same.
+// speed and stability. Works well with Pico 2 clones that may have worse flash
+// chip/circuit. See the Setup function for more generic interface.
 func SetupPico2_125MHz() {
 	Setup(12e6, PLL{1, 125, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
 }
 
 // SetupPico2_133MHz is like SetupPico2_125MHz but both the CPU and QSPI flash
-// run at 133 MHz. It's gives you slightly faster system but without any margin
-// for flash and its circuity.
+// run at 133 MHz. It gives you slightly faster system but without any  margin
+// for flash and its circuity which may cause problems in case of cheap Pico 2
+// clones.
 func SetupPico2_133MHz() {
 	Setup(12e6, PLL{1, 133, 6, 2}, PLL{1, 100, 5, 5}, 133e6)
 }
 
 // SetupPico2_150MHz is like SetupPico2_125MHz but the CPU runs at 150 MHz, the
-// QSPI flash at 75 MHz. It should give you quite good performance while being
-// very forgiving for flash and its circuity.
+// QMI (flash, PSRAM) at 75 MHz. It should give you quite good performance while
+// being very forgiving for the flash and its circuity. It also supports most
+// common QSPI PSRAM chips thet usually can work up to 100 MHz.
 func SetupPico2_150MHz() {
 	Setup(12e6, PLL{1, 125, 5, 2}, PLL{1, 100, 5, 5}, 133e6)
+}
+
+// SetupPico2_200MHz is like SetupPico2_150MHz but the CPU and most peripherals
+// are overclocked to 200 MHz. The QMI (flash, PSRAM) run at 100 MHz which is
+// below the spec of the Pico 2 flash but seems to be the maximum supported
+// clock in case of most common PSRAM chips. This level of overclocking should
+// work with almost all RP2350 chips but keep in mind that it's out of spec.
+func SetupPico2_200MHz() {
+	Setup(12e6, PLL{1, 100, 3, 2}, PLL{1, 100, 5, 5}, 133e6)
 }
 
 // A PLL configuration.
@@ -62,7 +74,7 @@ type PLL struct {
 	PostDiv2 int
 }
 
-// Fout calculates the output frequency fo the PLL worknig with the pll
+// Fout calculates the output frequency of the PLL worknig with the pll
 // configuration and the refHz frequency as an input. It returns outHz < 0 if
 // the refHz is invalid or the pll configuration is invalid for the given refHz.
 func (pll PLL) Fout(refHz int64) (outHz int64) {
