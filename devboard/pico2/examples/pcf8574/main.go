@@ -2,21 +2,21 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Pcf8574 writes consecutive numbers to the remote I/O expander chip (PCF8574)
-// using I2C protocol.
+// Pcf8574 writes data to the remote I/O expander chip (PCF8574) using I2C
+// protocol.
 //
 // The easiest way to try this example is to use a PCF8574 based module intended
-// for LCD displays and one or more LEDs. Low-voltage LEDs like red ones
-// require a current limiting resistor of the order 150-200 Ω. High voltage LEDs
-// like the white ones may work without any resistor.
+// for LCD displays and one or more LEDs. Low-voltage LEDs like red ones require
+// a current limiting resistor of the order 150-200 Ω. High voltage LEDs like
+// the white ones may work without any resistor.
 //
-// Connect your LEDs between pin 2 (closest to the I2C connector, 3.3V) and pins
-// 4, 5, 6 (PCF8574 P0, P1, P2 outputs). If you have more LEDs you can connect
-// four more to the pins 11, 12, 13, 14. Polarity matters. Pin 2 should be
-// connected to the anodes of all LEDs. The easiest way to do it is to use a
-// breadboard. Next connect the module pins GND, VCC, SDA, SCL to the Pico
-// pins GND, 3.3V, 20, 21. After programming your Teensy with this example the
-// LEDs should start blinking with different frequencies.
+// Connect your LEDs between pin 2 (counting form the I2C connector, 3.3V) and
+// pins 4, 5, 6 (PCF8574 P0, P1, P2 outputs). If you have more LEDs you can
+// connect four more to the pins 11, 12, 13, 14. Polarity matters. Pin 2 should
+// be connected to the anodes of all LEDs. The easiest way to do it is to use a
+// breadboard. Next connect the module pins GND, VCC, SDA, SCL to the Pico pins
+// GND, 3.3V, 20, 21. After programming your Pico with this example the LEDs
+/  should start blinking in sequence.
 //
 // As the LEDs are connected between 3.3V and P0, P1, P2 writing the
 // corresponding bit zero turns the LED on, writting it one turns it off.
@@ -58,15 +58,6 @@ func main() {
 
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
-
-	fmt.Println("Clocks:")
-	fmt.Println("REF: ", clock.REF.Freq()/1e6, "MHz")
-	fmt.Println("SYS: ", clock.SYS.Freq()/1e6, "MHz")
-	fmt.Println("PERI:", clock.PERI.Freq()/1e6, "MHz")
-	fmt.Println("HSTX:", clock.HSTX.Freq()/1e6, "MHz")
-	fmt.Println("USB: ", clock.USB.Freq()/1e6, "MHz")
-	fmt.Println("ADC: ", clock.ADC.Freq()/1e6, "MHz")
-	fmt.Println()
 
 	// I2C
 	m := i2c0dma.Master()
