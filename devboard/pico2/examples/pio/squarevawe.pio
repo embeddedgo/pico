@@ -1,0 +1,20 @@
+; pioasm -o json $%
+
+.define public g0 12345
+
+.program squarewave
+.define public p0 654321
+
+	set pindirs, 1 ; Set pin to output
+again:
+	set pins, 1 [1] ; Drive pin high and then delay for one cycle
+	set pins, 0     ; Drive pin low
+	jmp again       ; Set PC to label `again`
+
+.program squarewaveFast
+; Like squarewave_wrap, but remove the delay cycles so we can run twice as fast.
+set pindirs, 1 ; Set pin to output
+.wrap_target
+	set pins, 1 ; Drive pin high
+	set pins, 0 ; Drive pin low
+.wrap
