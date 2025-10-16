@@ -1,0 +1,35 @@
+.define public aaa 15
+
+.program squarewave
+
+	.define public bbb 4
+
+	set pindirs, 1
+again:
+	set pins, 1 [1]; Drive pin high and then delay for one cycle
+	set pins, 0; Drive pin low
+	jmp again; Set PC to label `again`
+
+
+.program pull_example1
+
+loop:
+	out pins, 8
+public entry_point:
+	pull
+	out pins, 8 [1]
+	out pins, 8 [1]
+	out pins, 8
+	jmp loop
+
+
+.program txOnlySPI
+
+.out 32 auto
+.side_set 1
+
+	set pindirs, 3  side 0
+.wrap_target
+	out pins, 1  side 0 ; Stall here if no data (clock low)
+    nop          side 1
+.wrap
