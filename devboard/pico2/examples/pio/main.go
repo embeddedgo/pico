@@ -38,7 +38,7 @@ func main() {
 
 	pos, _ := pb.Load(pioProg_txOnlySPI, 0)
 
-	cfg := pb.DBG_CFGINFO.Load()
+	cfg := pb.Periph().DBG_CFGINFO.Load()
 	fmt.Println(
 		"\nVERSION:", cfg>>28&0xf,
 		"IMEM_SIZE:", cfg>>16&0x3f,
@@ -46,39 +46,34 @@ func main() {
 		"FIFO_DEPTH:", cfg&0x3f,
 	)
 
-	sm := &pb.SM[0]
+	sm := pb.SM(0)
 
-	fmt.Printf("CTRL:      %#x\n", pb.CTRL.Load())
-	fmt.Printf("CLKDIV:    %g\n", float64(sm.CLKDIV.Load()>>pio.FRACn)/256)
-	fmt.Printf("EXECCTRL:  %#x\n", sm.EXECCTRL.Load())
-	fmt.Printf("SHIFTCTRL: %#x\n", sm.SHIFTCTRL.Load())
-	fmt.Printf("ADDR:      %#x\n", sm.ADDR.Load())
-	fmt.Printf("PINCTRL:   %#x\n", sm.PINCTRL.Load())
+	fmt.Printf("CTRL:      %#x\n", pb.Periph().CTRL.Load())
+	fmt.Printf("CLKDIV:    %g\n", float64(sm.Regs().CLKDIV.Load()>>pio.FRACn)/256)
+	fmt.Printf("EXECCTRL:  %#x\n", sm.Regs().EXECCTRL.Load())
+	fmt.Printf("SHIFTCTRL: %#x\n", sm.Regs().SHIFTCTRL.Load())
+	fmt.Printf("ADDR:      %#x\n", sm.Regs().ADDR.Load())
+	fmt.Printf("PINCTRL:   %#x\n", sm.Regs().PINCTRL.Load())
 	fmt.Println()
 
 	sm.Configure(pioProg_txOnlySPI, pos)
-	sm.PINCTRL.StoreBits(
-		pio.OUT_BASE|pio.SET_BASE|pio.SIDESET_BASE,
-		pio.PINCTRL(pioData)<<pio.OUT_BASEn|
-			pio.PINCTRL(pioClk)<<pio.SET_BASEn|
-			pio.PINCTRL(pioClk)<<pio.SIDESET_BASEn,
-	)
-
-	sm.SetClkFreq(100e3)
+	sm.SetPinBase(pioData, pioClk, pioClk)
+	sm.SetClkFreq(1e6)
 	sm.Enable()
 
-	fmt.Printf("CTRL:      %#x\n", pb.CTRL.Load())
-	fmt.Printf("CLKDIV:    %g\n", float64(sm.CLKDIV.Load()>>pio.FRACn)/256)
-	fmt.Printf("EXECCTRL:  %#x\n", sm.EXECCTRL.Load())
-	fmt.Printf("SHIFTCTRL: %#x\n", sm.SHIFTCTRL.Load())
-	fmt.Printf("ADDR:      %#x\n", sm.ADDR.Load())
-	fmt.Printf("PINCTRL:   %#x\n", sm.PINCTRL.Load())
+	fmt.Printf("CTRL:      %#x\n", pb.Periph().CTRL.Load())
+	fmt.Printf("CLKDIV:    %g\n", float64(sm.Regs().CLKDIV.Load()>>pio.FRACn)/256)
+	fmt.Printf("EXECCTRL:  %#x\n", sm.Regs().EXECCTRL.Load())
+	fmt.Printf("SHIFTCTRL: %#x\n", sm.Regs().SHIFTCTRL.Load())
+	fmt.Printf("ADDR:      %#x\n", sm.Regs().ADDR.Load())
+	fmt.Printf("PINCTRL:   %#x\n", sm.Regs().PINCTRL.Load())
+	fmt.Println()
 
-	txFIFO := &pb.TXF[sm.Num()]
+	txFIFO := &pb.Periph().TXF[sm.Num()]
 	txFull := pio.FSTAT(1) << (pio.TXFULLn + sm.Num())
 	for i := uint32(0); ; i++ {
 		//fmt.Printf("%d: FSTAT: %#x\n", i, pb.FSTAT.Load())
-		for pb.FSTAT.LoadBits(txFull) != 0 {
+		for pb.Periph().FSTAT.LoadBits(txFull) != 0 {
 		}
 		txFIFO.Store(i)
 	}

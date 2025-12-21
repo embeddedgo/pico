@@ -5,9 +5,7 @@
 package pio
 
 import (
-	"embedded/mmio"
 	"errors"
-	"structs"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -15,40 +13,8 @@ import (
 	"github.com/embeddedgo/pico/p/resets"
 )
 
-const (
-	imCap = 32
-	numSM = 4
-)
-
 type PIO struct {
-	_ structs.HostLayout
-
-	CTRL              mmio.R32[CTRL]
-	FSTAT             mmio.R32[FSTAT]
-	FDEBUG            mmio.R32[FDEBUG]
-	FLEVEL            mmio.R32[FLEVEL]
-	TXF               [numSM]mmio.U32
-	RXF               [numSM]mmio.U32
-	_                 [2]uint32
-	INPUT_SYNC_BYPASS mmio.U32
-	DBG_PADOUT        mmio.U32
-	DBG_PADOE         mmio.U32
-	DBG_CFGINFO       mmio.R32[DBG_CFGINFO]
-	INSTR_MEM         [imCap]mmio.R32[uint32]
-	SM                [numSM]SM
-	RXF_PUTGET        [numSM][4]mmio.U32
-	_                 [12]uint32
-	GPIOBASE          mmio.U32
-	INTR              mmio.R32[INTR]
-	IRQ               [2]SIRQ
-}
-
-type SIRQ struct {
-	_ structs.HostLayout
-
-	E mmio.R32[INTR]
-	F mmio.R32[INTR]
-	S mmio.R32[INTR]
+	p Periph
 }
 
 const pioStep = 0x100000
@@ -71,6 +37,15 @@ func (pio *PIO) SetReset(assert bool) {
 	internal.SetReset(resets.PIO0<<uint(pio.Num()), assert)
 }
 
+func (pio *PIO) Periph() *Periph {
+	return &pio.p
+}
+
+// SM returns the n-th state machine of pio.
+func (pio *PIO) SM(n int) *SM {
+	return (*SM)(unsafe.Pointer(&pio.p.SM[n]))
+}
+
 // Load loads the PIO program into instruction memory starting at the given
 // position pos. If the program requires a specific location in the instruction
 // memory (encoded in the program itself) the pos must be -1.
@@ -85,12 +60,12 @@ func (pio *PIO) Load(prog Program, pos int) (actualPos int, err error) {
 		pos = 0 // TODO: find a free chunk of the instruction memory
 	}
 	end := pos + prog.Len()
-	if end > len(pio.INSTR_MEM) {
+	if end > len(pio.p.INSTR_MEM) {
 		return 0, errors.New("pio: out off instruction memory")
 	}
-	im := pio.INSTR_MEM[pos:end]
+	im := pio.p.INSTR_MEM[pos:end]
 	prog.LoadTo(im)
-	gpioBase := pio.GPIOBASE.LoadBits(16)
+	gpioBase := pio.p.GPIOBASE.LoadBits(16)
 	for i := range im {
 		op := im[i].Load()
 		switch op & 0xe000 {
