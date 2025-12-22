@@ -95,8 +95,9 @@ func (sm *SM) SetClkDiv(divInt, divFrac uint) {
 }
 
 // SetPinBase sets the base pin for out, set and sideset operations.
-func (sm *SM) SetPinBase(out, set, sideset iomux.Pin) {
+func (sm *SM) SetPinBase(in, out, set, sideset iomux.Pin) {
 	gpioBase := int(sm.PIO().p.GPIOBASE.LoadBits(16))
+	inBase := PINCTRL(int(in) - gpioBase)
 	outBase := PINCTRL(int(out) - gpioBase)
 	setBase := PINCTRL(int(set) - gpioBase)
 	sidesetBase := PINCTRL(int(sideset) - gpioBase)
@@ -104,7 +105,10 @@ func (sm *SM) SetPinBase(out, set, sideset iomux.Pin) {
 		panic("pio: pin out of range")
 	}
 	sm.r.PINCTRL.StoreBits(
-		OUT_BASE|SET_BASE|SIDESET_BASE,
-		outBase<<OUT_BASEn|setBase<<SET_BASEn|sidesetBase<<SIDESET_BASEn,
+		OUT_BASE|SET_BASE|SIDESET_BASE|IN_BASE,
+		outBase<<OUT_BASEn|
+			setBase<<SET_BASEn|
+			sidesetBase<<SIDESET_BASEn|
+			inBase<<IN_BASEn,
 	)
 }
