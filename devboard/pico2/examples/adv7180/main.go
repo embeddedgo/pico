@@ -11,6 +11,8 @@ import (
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/i2c/i2c0"
+	"github.com/embeddedgo/pico/hal/iomux"
+	"github.com/embeddedgo/pico/hal/pio"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"
@@ -21,51 +23,117 @@ func main() {
 	const (
 		conTx = pins.GP0
 		conRx = pins.GP1
-		sda   = pins.GP20
-		scl   = pins.GP21
+
+		// ADV data + clock, nine pins: GP2 to GP10
+		advD0  = pins.GP2
+		advClk = pins.GP10
+
+		advSDA = pins.GP12
+		advSCL = pins.GP13
 	)
 
 	// Serial console
 	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
+	// PIO
+	for pin := advD0; pin <= advClk; pin++ {
+		pin.Setup(iomux.InpEn | iomux.OutDis)
+		pin.SetAltFunc(iomux.PIO0)
+	}
+	pb := pio.Block(0)
+	pb.SetReset(true)
+	pb.SetReset(false)
+	pos, _ := pb.Load(pioProg_bt656, 0)
+
+	// Setup the state machine
+
+	sm := pb.SM(0)
+	sm.Configure(pioProg_bt656, pos)
+	sm.SetPinBase(advD0, advD0, advD0, advD0)
+
+	// Pass to the SM two parameters.
+	//sm.WriteWord32(0b1000_0000) // XY for start of active pixels, field 0
+	//sm.WriteWord32(0b1100_0111) // XY for start of active pixels, field 1
+
+	// Move the parameters to the Y and OSR registers
+	//sm.Exec(pio.PULL(false, false, 0))
+	//sm.Exec(pio.MOV(pio.Y, pio.None, pio.OSR, 0))
+	//sm.Exec(pio.PULL(false, false, 0))
+	//sm.SetFIFOMode(pio.Rx)
+
 	// I2C
 	m := i2c0.Master()
-	m.UsePin(sda, i2c.SDA)
-	m.UsePin(scl, i2c.SCL)
+	m.UsePin(advSDA, i2c.SDA)
+	m.UsePin(advSCL, i2c.SCL)
 	m.Setup(100e3)
 
-	var buf [4]byte
-
+	var (
+		i2cBuf  [4]byte
+		dataBuf = make([]uint32, 630*8)
+	)
 	c := m.NewConn(0x21)
-	/*
-		c.WriteByte(0x58)
-		c.WriteByte(0x00) // VS/FIELD
-		err := c.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	*/
+
 	for {
 		const addr = 0x10
 		c.WriteByte(addr)
-		c.Read(buf[:])
+		c.Read(i2cBuf[:4])
 		err := c.Close()
 		if err != nil {
 			fmt.Println(err)
 			time.Sleep(2 * time.Second)
 			continue
 		}
-		fmt.Println()
-		for i := range buf {
-			b := buf[i]
-			fmt.Printf(
-				"%02x %24s: %02x %04b_%04b\n",
-				addr+i, regs[addr+i], b, b>>4, b&0xf,
-			)
+		s1 := i2cBuf[0]
+		s3 := i2cBuf[3]
+		fmt.Print("\nIn lock:                          ", s1>>0&1)
+		fmt.Print("\nf_sc locked:                      ", s1>>2&1)
+		fmt.Print("\nAGC follows peak white algorithm: ", s1>>3&1)
+		ad := "SECAM 525"
+		switch s1 >> 4 & 7 {
+		case 0:
+			ad = "NTSC M/J"
+		case 1:
+			ad = "NTSC 4.43"
+		case 2:
+			ad = "PAL M"
+		case 3:
+			ad = "PAL 60"
+		case 4:
+			ad = "PAL B/G/H/I/D"
+		case 5:
+			ad = "SECAM"
+		case 6:
+			ad = "PAL Combination N"
 		}
+		fmt.Print("\nResult of autodetection:          ", ad)
+		fmt.Print("\nColor kill active:                ", s1>>7&1)
+		fmt.Print("\nHorizontal lock indicator:        ", s3>>0&1)
+		fmt.Print("\n50 Hz at output:                  ", s3>>2&1)
+		fmt.Print("\nBlue screen:                      ", s3>>4&1)
+		fmt.Print("\nField length is correct:          ", s3>>5&1)
+		fmt.Print("\nInterlaced:                       ", s3>>6&1)
+		fmt.Print("\nReliable PAL swinging bursts:     ", s3>>7&1)
+		fmt.Println()
+		sr := sm.Regs()
+		fmt.Printf("CLKDIV:    %08x\n", sr.CLKDIV.Load())
+		fmt.Printf("EXECCTRL:  %08x\n", sr.EXECCTRL.Load())
+		fmt.Printf("SHIFTCTRL: %08x\n", sr.SHIFTCTRL.Load())
+		fmt.Printf("ADDR:      %08x\n", sr.ADDR.Load())
+		fmt.Printf("PINCTRL:   %08x\n", sr.PINCTRL.Load())
+
+		sm.Enable()
+		sm.Read32(dataBuf[:])
+		sm.Disable()
+		sm.Exec(pio.JMP(pos, pio.Always, 0))
+		for i, w := range dataBuf {
+			if i&7 == 0 {
+				fmt.Printf("\n%d: ", i>>3)
+			}
+			fmt.Printf("%08x", w)
+		}
+		fmt.Println()
 		time.Sleep(10 * time.Second)
 	}
-
 }
 
 var regs = [...]string{

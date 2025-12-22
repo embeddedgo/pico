@@ -1,0 +1,40 @@
+// Copyright 2025 The Embedded Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+.program bt656
+	.fifo rx
+
+	set y, 7
+again:
+	mov isr, null
+
+	wait 0 pin 8
+	wait 1 pin 8
+	in pins, 8
+	mov x, isr
+	jmp x--, again
+
+	wait 0 pin 8
+	wait 1 pin 8
+	in pins, 8
+	mov x, isr
+	jmp x--, again
+
+	wait 0 pin 8
+	wait 1 pin 8
+	in pins, 4
+	mov x, isr
+	jmp !x, field0
+	jmp x!=y, again
+field1:
+field0:
+	push
+	set x, 27
+read:
+	wait 0 pin 8
+	wait 1 pin 8
+	in pins, 8
+	push iffull
+	jmp x--, read
+

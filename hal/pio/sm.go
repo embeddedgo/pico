@@ -72,7 +72,7 @@ func (sm *SM) Configure(prog Program, initPC int) {
 		panic("pio: bad initPC")
 	}
 	prog.AlterSM(sm)
-	sm.r.INSTR.Store(0xe000 + uint32(initPC))
+	sm.Exec(JMP(initPC, Always, 0))
 }
 
 // SetClkFreq configures the SM to run at the given frequency. It returns the
@@ -111,4 +111,104 @@ func (sm *SM) SetPinBase(in, out, set, sideset iomux.Pin) {
 			sidesetBase<<SIDESET_BASEn|
 			inBase<<IN_BASEn,
 	)
+}
+
+// Exec provides an instruction to the state machine for immediate execution.
+// The instruction is executed even if the state machine is disabled.
+func (sm *SM) Exec(instr uint32) {
+	sm.r.INSTR.Store(instr)
+}
+
+// SetFIFOMode fifoMode
+const (
+	TxRx   = SHIFTCTRL(0)
+	Rx     = FJOIN_RX
+	Tx     = FJOIN_TX
+	TxPut  = FJOIN_RX_PUT
+	TxGet  = FJOIN_RX_GET
+	PutGet = FJOIN_RX_PUT | FJOIN_RX_GET
+)
+
+// SetFIFOMode sets the FIFO mode to one of: TxRx, Rx, Tx, TxPut, TxGet, PutGet.
+func (sm *SM) SetFIFOMode(fifoMode SHIFTCTRL) {
+	sm.r.SHIFTCTRL.StoreBits(FJOIN_RX_GET|FJOIN_RX_PUT|FJOIN_TX|FJOIN_RX, fifoMode)
+}
+
+func (sm *SM) ReadByte() (b byte, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
+	}
+	return byte(pp.RXF[sn].Load()), nil
+}
+
+func (sm *SM) Read(p []byte) (n int, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	rxf := &pp.RXF[sn]
+	for i := range p {
+		for fstat.LoadBits(rxEmpty) != 0 {
+		}
+		p[i] = byte(rxf.Load())
+	}
+	return len(p), nil
+}
+
+func (sm *SM) ReadWord16() (w uint16, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
+	}
+	return uint16(pp.RXF[sn].Load()), nil
+}
+
+func (sm *SM) Read16(p []uint16) (n int, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	rxf := &pp.RXF[sn]
+	for i := range p {
+		for fstat.LoadBits(rxEmpty) != 0 {
+		}
+		p[i] = uint16(rxf.Load())
+	}
+	return len(p), nil
+}
+
+func (sm *SM) ReadWord32() (w uint32, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
+	}
+	return pp.RXF[sn].Load(), nil
+}
+
+func (sm *SM) Read32(p []uint32) (n int, err error) {
+	sn := sm.Num()
+	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	rxf := &pp.RXF[sn]
+	for i := range p {
+		for fstat.LoadBits(rxEmpty) != 0 {
+		}
+		p[i] = rxf.Load()
+	}
+	return len(p), nil
+}
+
+func (sm *SM) WriteWord32(w uint32) error {
+	sn := sm.Num()
+	txFull := FSTAT(1) << uint(TXFULLn+sn)
+	pp := &sm.PIO().p
+	for pp.FSTAT.LoadBits(txFull) != 0 {
+	}
+	pp.TXF[sn].Store(w)
+	return nil
 }

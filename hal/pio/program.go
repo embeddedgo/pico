@@ -86,8 +86,8 @@ func (p StringProgram) AlterSM(sm *SM) {
 		ecm &^= STATUS_SEL | STATUS_N
 	}
 	scm := SHIFTCTRL(0xffff_c01f)
-	if sc&(IN_COUNT<<1|1) == IN_COUNT<<1|1 {
-		scm &^= IN_COUNT<<1 | 1
+	if icm := IN_COUNT<<1 | 1<<IN_COUNTn; sc&icm == icm {
+		scm &^= icm
 	}
 	pcm := PINCTRL(0xfff0_0000)
 	if pc&SIDESET_COUNT == SIDESET_COUNT {

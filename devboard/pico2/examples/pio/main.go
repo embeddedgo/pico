@@ -57,7 +57,7 @@ func main() {
 	fmt.Println()
 
 	sm.Configure(pioProg_txOnlySPI, pos)
-	sm.SetPinBase(pioData, pioClk, pioClk)
+	sm.SetPinBase(pioData, pioData, pioClk, pioClk)
 	sm.SetClkFreq(1e6)
 	sm.Enable()
 
