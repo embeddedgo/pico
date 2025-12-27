@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build !nosysinit && !133MHz && !150MHz && !200MHz && !250MHz
+//go:build !nosysinit && 250MHz
 
 package init
 
@@ -12,6 +12,6 @@ import (
 )
 
 func init() {
-	system.SetupPico2_125MHz()
+	system.SetupPico2_200MHz()
 	riscvst.Setup()
 }

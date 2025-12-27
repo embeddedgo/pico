@@ -55,6 +55,13 @@ func SetupPico2_200MHz() {
 	Setup(12e6, PLL{1, 100, 3, 2}, PLL{1, 100, 5, 5}, 133e6)
 }
 
+// SetupPico2_250MHz is like SetupPico2_125MHz but the CPU and most peripherals
+// are overclocked to 250 MHz. The QMI (flash, PSRAM) runs at 125 MHz. It is
+// significant level of overclocking but seems to be still well supported.
+func SetupPico2_250MHz() {
+	Setup(12e6, PLL{1, 125, 3, 2}, PLL{1, 100, 5, 5}, 133e6)
+}
+
 // A PLL configuration.
 //
 //	vcoHz = refHz / RefDiv * FbDiv
