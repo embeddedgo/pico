@@ -2,39 +2,42 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Program bt656 transfers the active lines of BT.656 video to the input FIFO.
+// It expects that the OSR contains the number of bytes in the horizontal line,
+// the Y contains the 4 least significant bits of the SAV XY field 1 byte
+// (protection bits) used to detect the beggining of field 1 lines. The same
+// bits for the SAV SX field 0 are zero so we need no separate constant.
 .program bt656
-	.fifo rx
 
-	set y, 7
-again:
+waitForPixels:
 	mov isr, null
 
 	wait 0 pin 8
 	wait 1 pin 8
 	in pins, 8
 	mov x, isr
-	jmp x--, again
+	jmp x--, waitForPixels
 
 	wait 0 pin 8
 	wait 1 pin 8
 	in pins, 8
 	mov x, isr
-	jmp x--, again
+	jmp x--, waitForPixels
 
 	wait 0 pin 8
 	wait 1 pin 8
 	in pins, 4
 	mov x, isr
-	jmp !x, field0
-	jmp x!=y, again
-field1:
-field0:
+	jmp !x, readPixels
+	jmp x!=y, waitForPixels
+
+readPixels:
 	push
-	set x, 27
-read:
+	mov x, osr // number of bytes in the horizontal line - 1 to x
+readByte:
 	wait 0 pin 8
 	wait 1 pin 8
 	in pins, 8
 	push iffull
-	jmp x--, read
+	jmp x--, readByte
 

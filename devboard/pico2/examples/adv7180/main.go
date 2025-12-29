@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
@@ -51,15 +52,25 @@ func main() {
 	sm.Configure(pioProg_bt656, pos)
 	sm.SetPinBase(advD0, advD0, advD0, advD0)
 
-	// Pass to the SM two parameters.
-	//sm.WriteWord32(0b1000_0000) // XY for start of active pixels, field 0
-	//sm.WriteWord32(0b1100_0111) // XY for start of active pixels, field 1
+	const (
+		width  = 720
+		height = 220
+	)
 
-	// Move the parameters to the Y and OSR registers
-	//sm.Exec(pio.PULL(false, false, 0))
-	//sm.Exec(pio.MOV(pio.Y, pio.None, pio.OSR, 0))
-	//sm.Exec(pio.PULL(false, false, 0))
-	//sm.SetFIFOMode(pio.Rx)
+	// Pass to the SM two constants.
+	sm.WriteWord32(width*2 - 1) // number of bytes in the horizontal line - 1
+	sm.Exec(pio.PULL(false, false, 0))
+	sm.Exec(pio.SET(pio.Y, 7, 0)) // SAV XY active field 1 protection bits for
+
+	// Double the size of Rx FIFO as we no longer need the Tx one.
+	sm.SetFIFOMode(pio.Rx)
+
+	sr := sm.Regs()
+	fmt.Printf("CLKDIV:    %08x\n", sr.CLKDIV.Load())
+	fmt.Printf("EXECCTRL:  %08x\n", sr.EXECCTRL.Load())
+	fmt.Printf("SHIFTCTRL: %08x\n", sr.SHIFTCTRL.Load())
+	fmt.Printf("ADDR:      %08x\n", sr.ADDR.Load())
+	fmt.Printf("PINCTRL:   %08x\n", sr.PINCTRL.Load())
 
 	// I2C
 	m := i2c0.Master()
@@ -67,9 +78,10 @@ func main() {
 	m.UsePin(advSCL, i2c.SCL)
 	m.Setup(100e3)
 
+	const lineWordN = width/2 + 1
 	var (
 		i2cBuf  [4]byte
-		dataBuf = make([]uint32, 630*8)
+		dataBuf = make([]uint32, lineWordN*height)
 	)
 	c := m.NewConn(0x21)
 
@@ -114,20 +126,15 @@ func main() {
 		fmt.Print("\nInterlaced:                       ", s3>>6&1)
 		fmt.Print("\nReliable PAL swinging bursts:     ", s3>>7&1)
 		fmt.Println()
-		sr := sm.Regs()
-		fmt.Printf("CLKDIV:    %08x\n", sr.CLKDIV.Load())
-		fmt.Printf("EXECCTRL:  %08x\n", sr.EXECCTRL.Load())
-		fmt.Printf("SHIFTCTRL: %08x\n", sr.SHIFTCTRL.Load())
-		fmt.Printf("ADDR:      %08x\n", sr.ADDR.Load())
-		fmt.Printf("PINCTRL:   %08x\n", sr.PINCTRL.Load())
 
 		sm.Enable()
 		sm.Read32(dataBuf[:])
 		sm.Disable()
 		sm.Exec(pio.JMP(pos, pio.Always, 0))
 		for i, w := range dataBuf {
-			if i&7 == 0 {
-				fmt.Printf("\n%d: ", i>>3)
+			if i%lineWordN == 0 {
+				fmt.Printf("\n%d: ", i/lineWordN)
+				runtime.GC()
 			}
 			fmt.Printf("%08x", w)
 		}

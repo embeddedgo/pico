@@ -17,24 +17,29 @@ const (
 )
 
 func JMP(newPC int, cond int8, delaySideSet uint32) uint32 {
-	return 0 |
+	return 0b000<<13 |
 		uint32(newPC)&31 | uint32(cond)&7<<5 | delaySideSet&31<<8
 }
 
-// MOV src and dst
+// MOV, SET, IN, OUT src and dst
 const (
 	PINS uint8 = 0
 	X    uint8 = 1
 	Y    uint8 = 2
-	EXEC uint8 = 4
-	ISR  uint8 = 6
-	OSR  uint8 = 7
 
-	PINDIRS uint8 = 3 // destination only
-	NULL    uint8 = 3 // source only
+	NULL        uint8 = 3 // MOV, IN, OUT source only
+	PINDIRS_MOV uint8 = 3 // MOV destination only
 
-	PC     uint8 = 5 // destination only
-	STATUS uint8 = 5 // source only
+	EXEC_MOV uint8 = 4
+	PINDIRS  uint8 = 4
+
+	STATUS uint8 = 5 // MOV source only
+	PC     uint8 = 5 // MOV destination only
+
+	ISR uint8 = 6
+
+	OSR      uint8 = 7
+	EXEC_OUT uint8 = 7
 )
 
 // MOV op
@@ -49,13 +54,6 @@ func MOV(dst uint8, op int8, src uint8, delaySideSet uint32) uint32 {
 		uint32(src)&7 | uint32(op)&3<<3 | uint32(dst)&7<<5 | delaySideSet&31<<8
 }
 
-func btou32(b bool) uint32 {
-	if b {
-		return 1
-	}
-	return 0
-}
-
 func PUSH(ifEmpty, block bool, delaySideSet uint32) uint32 {
 	return 0b100<<13 |
 		btou32(block)<<5 | btou32(ifEmpty) | delaySideSet&31<<8
@@ -64,4 +62,16 @@ func PUSH(ifEmpty, block bool, delaySideSet uint32) uint32 {
 func PULL(ifEmpty, block bool, delaySideSet uint32) uint32 {
 	return 0b100<<13 | 1<<7 |
 		btou32(block)<<5 | btou32(ifEmpty) | delaySideSet&31<<8
+}
+
+func SET(dst uint8, data int, delaySideSet uint32) uint32 {
+	return 0b111 |
+		uint32(data)&31 | uint32(dst)&7<<5 | delaySideSet&31<<8
+}
+
+func btou32(b bool) uint32 {
+	if b {
+		return 1
+	}
+	return 0
 }

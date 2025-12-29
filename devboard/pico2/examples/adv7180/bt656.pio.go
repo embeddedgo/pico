@@ -22,35 +22,34 @@ const (
 const pioProg_bt656 pio.StringProgram = "" +
 	"\xff" + //             origin:    -1
 	"\x00\x01\x00" + //     CLKDIV:    1
-	"\x60\x80\x01\x00" + // EXECCTRL:  wrap=0-24
-	"\x3f\x00\x00\x80" + // SHIFTCTRL: fifo=rx
+	"\x60\x70\x01\x00" + // EXECCTRL:  wrap=0-23
+	"\x3f\x00\x00\x00" + // SHIFTCTRL: fifo=txrx
 	"\xf0\x1f" + //         PINCTRL:   sideset=0
 	// Instructions:
 	//              .wrap_target
-	"\x47\xe0" + //  0:  set    y, 7
-	"\xc3\xa0" + //  1:  mov    isr, null
-	"\x28\x20" + //  2:  wait   0 pin, 8
-	"\xa8\x20" + //  3:  wait   1 pin, 8
-	"\x08\x40" + //  4:  in     pins, 8
-	"\x26\xa0" + //  5:  mov    x, isr
-	"\x41\x00" + //  6:  jmp    x--, 1
-	"\x28\x20" + //  7:  wait   0 pin, 8
-	"\xa8\x20" + //  8:  wait   1 pin, 8
-	"\x08\x40" + //  9:  in     pins, 8
-	"\x26\xa0" + // 10:  mov    x, isr
-	"\x41\x00" + // 11:  jmp    x--, 1
-	"\x28\x20" + // 12:  wait   0 pin, 8
-	"\xa8\x20" + // 13:  wait   1 pin, 8
-	"\x04\x40" + // 14:  in     pins, 4
-	"\x26\xa0" + // 15:  mov    x, isr
-	"\x32\x00" + // 16:  jmp    !x, 18
-	"\xa1\x00" + // 17:  jmp    x != y, 1
-	"\x20\x80" + // 18:  push   block
-	"\x3b\xe0" + // 19:  set    x, 27
-	"\x28\x20" + // 20:  wait   0 pin, 8
-	"\xa8\x20" + // 21:  wait   1 pin, 8
-	"\x08\x40" + // 22:  in     pins, 8
-	"\x60\x80" + // 23:  push   iffull block
-	"\x54\x00" + // 24:  jmp    x--, 20
+	"\xc3\xa0" + //  0:  mov    isr, null
+	"\x28\x20" + //  1:  wait   0 pin, 8
+	"\xa8\x20" + //  2:  wait   1 pin, 8
+	"\x08\x40" + //  3:  in     pins, 8
+	"\x26\xa0" + //  4:  mov    x, isr
+	"\x40\x00" + //  5:  jmp    x--, 0
+	"\x28\x20" + //  6:  wait   0 pin, 8
+	"\xa8\x20" + //  7:  wait   1 pin, 8
+	"\x08\x40" + //  8:  in     pins, 8
+	"\x26\xa0" + //  9:  mov    x, isr
+	"\x40\x00" + // 10:  jmp    x--, 0
+	"\x28\x20" + // 11:  wait   0 pin, 8
+	"\xa8\x20" + // 12:  wait   1 pin, 8
+	"\x04\x40" + // 13:  in     pins, 4
+	"\x26\xa0" + // 14:  mov    x, isr
+	"\x31\x00" + // 15:  jmp    !x, 17
+	"\xa0\x00" + // 16:  jmp    x != y, 0
+	"\x20\x80" + // 17:  push   block
+	"\x27\xa0" + // 18:  mov    x, osr
+	"\x28\x20" + // 19:  wait   0 pin, 8
+	"\xa8\x20" + // 20:  wait   1 pin, 8
+	"\x08\x40" + // 21:  in     pins, 8
+	"\x60\x80" + // 22:  push   iffull block
+	"\x53\x00" + // 23:  jmp    x--, 19
 	//              .wrap
 	""
