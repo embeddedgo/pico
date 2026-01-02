@@ -5,6 +5,7 @@
 package pio
 
 import (
+	"embedded/mmio"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -132,6 +133,16 @@ const (
 // SetFIFOMode sets the FIFO mode to one of: TxRx, Rx, Tx, TxPut, TxGet, PutGet.
 func (sm *SM) SetFIFOMode(fifoMode SHIFTCTRL) {
 	sm.r.SHIFTCTRL.StoreBits(FJOIN_RX_GET|FJOIN_RX_PUT|FJOIN_TX|FJOIN_RX, fifoMode)
+}
+
+// RxFIFO returns the receive FIFO register.
+func (sm *SM) RxFIFO() *mmio.R32[uint32] {
+	return &sm.PIO().p.RXF[sm.Num()]
+}
+
+// TxFIFO returns the transmit FIFO register.
+func (sm *SM) TxFIFO() *mmio.R32[uint32] {
+	return &sm.PIO().p.TXF[sm.Num()]
 }
 
 func (sm *SM) ReadByte() (b byte, err error) {

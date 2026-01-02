@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"runtime"
 	"time"
+	"unsafe"
 
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
+	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/i2c/i2c0"
 	"github.com/embeddedgo/pico/hal/iomux"
@@ -46,7 +48,7 @@ func main() {
 	pb.SetReset(false)
 	pos, _ := pb.Load(pioProg_bt656, 0)
 
-	// Setup the state machine
+	// Setup the state machine and DMA
 
 	sm := pb.SM(0)
 	sm.Configure(pioProg_bt656, pos)
@@ -77,19 +79,33 @@ func main() {
 	m.UsePin(advSDA, i2c.SDA)
 	m.UsePin(advSCL, i2c.SCL)
 	m.Setup(100e3)
+	advCtrl := m.NewConn(0x21)
 
 	const lineWordN = width/2 + 1
 	var (
 		i2cBuf  [4]byte
 		dataBuf = make([]uint32, lineWordN*height)
 	)
-	c := m.NewConn(0x21)
+
+	// DMA
+	dc := dma.DMA(0).AllocChannel()
+	dc.SetReadAddr(unsafe.Pointer(sm.RxFIFO().Addr()))
+	dc.SetTransCount(len(dataBuf), dma.Normal)
+	dc.SetConfig(dma.En|dma.PrioH|dma.S32b|dma.IncW|dma.PIO0_RX0, dc)
+
+	// Disable the automatic free-run mode (blue screen).
+	advCtrl.WriteByte(0x0c)
+	advCtrl.WriteByte(0)
+	err := advCtrl.Close()
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(2 * time.Second)
+	}
 
 	for {
-		const addr = 0x10
-		c.WriteByte(addr)
-		c.Read(i2cBuf[:4])
-		err := c.Close()
+		advCtrl.WriteByte(0x10)
+		advCtrl.Read(i2cBuf[:4])
+		err := advCtrl.Close()
 		if err != nil {
 			fmt.Println(err)
 			time.Sleep(2 * time.Second)
@@ -128,7 +144,10 @@ func main() {
 		fmt.Println()
 
 		sm.Enable()
-		sm.Read32(dataBuf[:])
+		dc.SetWriteAddrTrig(unsafe.Pointer(&dataBuf[0]))
+		for dc.Status()&dma.Busy != 0 {
+			runtime.Gosched()
+		}
 		sm.Disable()
 		sm.Exec(pio.JMP(pos, pio.Always, 0))
 		for i, w := range dataBuf {
