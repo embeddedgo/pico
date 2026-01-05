@@ -46,7 +46,7 @@ type channel struct {
 	writeAddrTrig2 mmio.U32
 
 	ctrl3         mmio.U32
-	readAddr3     mmio.U32
+	writeAddr3     mmio.U32
 	transCount3   mmio.U32
 	readAddrTrig3 mmio.U32
 }
