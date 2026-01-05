@@ -22,7 +22,7 @@ const (
 const pioProg_bt656 pio.StringProgram = "" +
 	"\xff" + //             origin:    -1
 	"\x00\x01\x00" + //     CLKDIV:    1
-	"\x60\x70\x01\x00" + // EXECCTRL:  wrap=0-23
+	"\x60\x60\x01\x00" + // EXECCTRL:  wrap=0-22
 	"\x3f\x00\x00\x00" + // SHIFTCTRL: fifo=txrx
 	"\xf0\x1f" + //         PINCTRL:   sideset=0
 	// Instructions:
@@ -42,14 +42,13 @@ const pioProg_bt656 pio.StringProgram = "" +
 	"\xa8\x20" + // 12:  wait   1 pin, 8
 	"\x04\x40" + // 13:  in     pins, 4
 	"\x26\xa0" + // 14:  mov    x, isr
-	"\x31\x00" + // 15:  jmp    !x, 17
-	"\xa0\x00" + // 16:  jmp    x != y, 0
-	"\x20\x80" + // 17:  push   block
-	"\x27\xa0" + // 18:  mov    x, osr
-	"\x28\x20" + // 19:  wait   0 pin, 8
-	"\xa8\x20" + // 20:  wait   1 pin, 8
-	"\x08\x40" + // 21:  in     pins, 8
-	"\x60\x80" + // 22:  push   iffull block
-	"\x53\x00" + // 23:  jmp    x--, 19
+	"\xa0\x00" + // 15:  jmp    x != y, 0
+	"\x20\x80" + // 16:  push   block
+	"\x27\xa0" + // 17:  mov    x, osr
+	"\x28\x20" + // 18:  wait   0 pin, 8
+	"\xa8\x20" + // 19:  wait   1 pin, 8
+	"\x08\x40" + // 20:  in     pins, 8
+	"\x60\x80" + // 21:  push   iffull block
+	"\x52\x00" + // 22:  jmp    x--, 18
 	//              .wrap
 	""

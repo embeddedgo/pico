@@ -6,7 +6,8 @@ package main
 
 import (
 	"fmt"
-	"runtime"
+	"os"
+	"sync/atomic"
 	"time"
 	"unsafe"
 
@@ -54,25 +55,15 @@ func main() {
 	sm.Configure(pioProg_bt656, pos)
 	sm.SetPinBase(advD0, advD0, advD0, advD0)
 
-	const (
-		width  = 720
-		height = 220
-	)
+	const lineWidth = 720
 
-	// Pass to the SM two constants.
-	sm.WriteWord32(width*2 - 1) // number of bytes in the horizontal line - 1
+	// Pass two constants to the SM.
+	sm.WriteWord32(lineWidth*2 - 1) // line data counter (number of bytes - 1)
 	sm.Exec(pio.PULL(false, false, 0))
-	sm.Exec(pio.SET(pio.Y, 7, 0)) // SAV XY active field 1 protection bits for
+	sm.Exec(pio.SET(pio.Y, 7, 0)) // SAV XY active field 1 protection bits
 
 	// Double the size of Rx FIFO as we no longer need the Tx one.
 	sm.SetFIFOMode(pio.Rx)
-
-	sr := sm.Regs()
-	fmt.Printf("CLKDIV:    %08x\n", sr.CLKDIV.Load())
-	fmt.Printf("EXECCTRL:  %08x\n", sr.EXECCTRL.Load())
-	fmt.Printf("SHIFTCTRL: %08x\n", sr.SHIFTCTRL.Load())
-	fmt.Printf("ADDR:      %08x\n", sr.ADDR.Load())
-	fmt.Printf("PINCTRL:   %08x\n", sr.PINCTRL.Load())
 
 	// I2C
 	m := i2c0.Master()
@@ -81,175 +72,90 @@ func main() {
 	m.Setup(100e3)
 	advCtrl := m.NewConn(0x21)
 
-	const lineWordN = width/2 + 1
-	var (
-		i2cBuf  [4]byte
-		dataBuf = make([]uint32, lineWordN*height)
-	)
-
-	// DMA
-	dc := dma.DMA(0).AllocChannel()
-	dc.SetReadAddr(unsafe.Pointer(sm.RxFIFO().Addr()))
-	dc.SetTransCount(len(dataBuf), dma.Normal)
-	dc.SetConfig(dma.En|dma.PrioH|dma.S32b|dma.IncW|dma.PIO0_RX0, dc)
-
 	// Disable the automatic free-run mode (blue screen).
 	advCtrl.WriteByte(0x0c)
 	advCtrl.WriteByte(0)
 	err := advCtrl.Close()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("cannot disable ADV free-run:", err)
 		time.Sleep(2 * time.Second)
 	}
 
-	for {
-		advCtrl.WriteByte(0x10)
-		advCtrl.Read(i2cBuf[:4])
-		err := advCtrl.Close()
-		if err != nil {
-			fmt.Println(err)
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		s1 := i2cBuf[0]
-		s3 := i2cBuf[3]
-		fmt.Print("\nIn lock:                          ", s1>>0&1)
-		fmt.Print("\nf_sc locked:                      ", s1>>2&1)
-		fmt.Print("\nAGC follows peak white algorithm: ", s1>>3&1)
-		ad := "SECAM 525"
-		switch s1 >> 4 & 7 {
-		case 0:
-			ad = "NTSC M/J"
-		case 1:
-			ad = "NTSC 4.43"
-		case 2:
-			ad = "PAL M"
-		case 3:
-			ad = "PAL 60"
-		case 4:
-			ad = "PAL B/G/H/I/D"
-		case 5:
-			ad = "SECAM"
-		case 6:
-			ad = "PAL Combination N"
-		}
-		fmt.Print("\nResult of autodetection:          ", ad)
-		fmt.Print("\nColor kill active:                ", s1>>7&1)
-		fmt.Print("\nHorizontal lock indicator:        ", s3>>0&1)
-		fmt.Print("\n50 Hz at output:                  ", s3>>2&1)
-		fmt.Print("\nBlue screen:                      ", s3>>4&1)
-		fmt.Print("\nField length is correct:          ", s3>>5&1)
-		fmt.Print("\nInterlaced:                       ", s3>>6&1)
-		fmt.Print("\nReliable PAL swinging bursts:     ", s3>>7&1)
-		fmt.Println()
+	advPrintStatus(advCtrl)
 
-		sm.Enable()
-		dc.SetWriteAddrTrig(unsafe.Pointer(&dataBuf[0]))
-		for dc.Status()&dma.Busy != 0 {
-			runtime.Gosched()
-		}
-		sm.Disable()
-		sm.Exec(pio.JMP(pos, pio.Always, 0))
-		for i, w := range dataBuf {
-			if i%lineWordN == 0 {
-				fmt.Printf("\n%d: ", i/lineWordN)
-				runtime.GC()
+	const (
+		lineWordN  = lineWidth/2 + 1
+		logLineNum = 2
+		lineNum    = 1 << logLineNum
+	)
+
+	var (
+		nLineBuf  = make([]uint32, lineWordN*lineNum)
+		lineAddrs = allocRingBuf(logLineNum)
+	)
+
+	for i := range lineNum {
+		p := &nLineBuf[i*lineWordN]
+		lineAddrs[i] = unsafe.Pointer(p)
+		*p = 0xffff_ffff
+	}
+
+	// Alloc two DMA
+	dmaData := dma.DMA(0).AllocChannel()
+	dmaCtrl := dma.DMA(0).AllocChannel()
+	dmaCfg := dma.En | dma.PrioH | dma.S32b
+
+	// The dmaData channel transfers pixels from the PIO to the line buffers.
+	dmaData.SetReadAddr(unsafe.Pointer(sm.RxFIFO().Addr()))
+	dmaData.SetTransCount(lineWordN, dma.Normal)
+	dmaData.SetConfig(dmaCfg|dma.IncW|dma.PIO0_RX0, dmaCtrl)
+
+	// The dmaCtrl triggers the dmaData with the address of the next line buf.
+	dmaCtrl.SetReadAddr(unsafe.Pointer(&lineAddrs[0]))
+	dmaCtrl.SetWriteAddr(unsafe.Pointer(&dmaData.CTRW()[3]))
+	dmaCtrl.SetTransCount(1, dma.Normal)
+	dmaCtrl.SetConfigTrig(dmaCfg|dma.IncR|dma.Always|dma.RingSizeCfg(logLineNum+2), dmaCtrl)
+
+	sm.Enable()
+
+	for {
+		for i := 0; i < len(nLineBuf); i += lineWordN {
+			p := &nLineBuf[i]
+		again:
+			x := atomic.LoadUint32(p)
+			if x == 0xffff_ffff {
+				goto again
 			}
-			fmt.Printf("%08x", w)
+			*p = 0xffff_ffff
+			if x == 0 {
+				os.Stdout.WriteString("0")
+			} else {
+				os.Stdout.WriteString("1")
+			}
 		}
-		fmt.Println()
-		time.Sleep(10 * time.Second)
 	}
 }
 
-var regs = [...]string{
-	0x00: "Input control",
-	0x01: "Video selection",
-	0x03: "Output control",
-	0x04: "Extended output control",
-	0x05: "Reserved",
-	0x06: "Reserved",
-	0x07: "Autodetect enable",
-	0x08: "Contrast",
-	0x09: "Reserved",
-	0x0A: "Brightness",
-	0x0B: "Hue",
-	0x0C: "Default Value Y",
-	0x0D: "Default Value C",
-	0x0E: "ADI Control 1",
-	0x0F: "Power management",
-	0x10: "Status 1",
-	0x11: "IDENT",
-	0x12: "Status 2",
-	0x13: "Status 3",
-	0x14: "Analog clamp control",
-	0x15: "Digital Clamp Control 1",
-	0x16: "Reserved",
-	0x17: "Shaping Filter Control 1",
-	0x18: "Shaping Filter Control 2",
-	0x19: "Comb filter control",
-	0x1D: "ADI Control 2",
-	0x27: "Pixel delay control",
-	0x2B: "Misc gain control",
-	0x2C: "AGC mode control",
-	0x2D: "Chroma Gain 1",
-	0x2E: "Chroma Gain 2",
-	0x2F: "Luma Gain 1",
-	0x30: "Luma Gain 2",
-	0x31: "VS/FIELD Control 1",
-	0x32: "VS/FIELD Control 2",
-	0x33: "VS/FIELD Control 3",
-	0x34: "HS Position Control 1",
-	0x35: "HS Position Control 2",
-	0x36: "HS Position Control 3",
-	0x37: "Polarity",
-	0x38: "NTSC comb control",
-	0x39: "PAL comb control",
-	0x3A: "ADC control",
-	0x3D: "Manual windocontrol",
-	0x41: "Resample control",
-	0x48: "Gemstar Control 1",
-	0x49: "Gemstar Control 2",
-	0x4A: "Gemstar Control 3",
-	0x4B: "Gemstar Control 4",
-	0x4C: "Gemstar control 5",
-	0x4D: "CTI DNR Control 1",
-	0x4E: "CTI DNR Control 2",
-	0x50: "CTI DNR Control 4",
-	0x51: "Lock count",
-	0x52: "CVBS_TRIM",
-	0x58: "VS/FIELD pin control1",
-	0x59: "General-purpose outputs2",
-	0x8F: "Free-Run Line Length 1",
-	0x99: "CCAP 1",
-	0x9A: "CCAP 2",
-	0x9B: "Letterbox 1",
-	0x9C: "Letterbox 2",
-	0x9D: "Letterbox 3",
-	0xB2: "CRC enable",
-	0xC3: "ADC Switch 1",
-	0xC4: "ADC Switch 2",
-	0xDC: "Letterbox Control 1",
-	0xDD: "Letterbox Control 2",
-	0xDE: "ST Noise Readback 1",
-	0xDF: "ST Noise Readback 2",
-	0xE0: "Reserved",
-	0xE1: "SD Offset Cb",
-	0xE2: "SD Offset Cr",
-	0xE3: "SD Saturation Cb",
-	0xE4: "SD Saturation Cr",
-	0xE5: "NTSC V bit begin",
-	0xE6: "NTSC V bit end",
-	0xE7: "NTSC F bit toggle",
-	0xE8: "PAL V bit begin",
-	0xE9: "PAL V bit end",
-	0xEA: "PAL F bit toggle",
-	0xEB: "Vblank Control 1",
-	0xEC: "Vblank Control 2",
-	0xF3: "AFE_CONTROL 1",
-	0xF4: "Drive strength",
-	0xF8: "IF comp control",
-	0xF9: "VS mode control",
-	0xFB: "Peaking control",
-	0xFC: "Coring threshold",
+/*
+sr := sm.Regs()
+fmt.Printf("CLKDIV:    %08x\n", sr.CLKDIV.Load())
+fmt.Printf("EXECCTRL:  %08x\n", sr.EXECCTRL.Load())
+fmt.Printf("SHIFTCTRL: %08x\n", sr.SHIFTCTRL.Load())
+fmt.Printf("ADDR:      %08x\n", sr.ADDR.Load())
+fmt.Printf("PINCTRL:   %08x\n", sr.PINCTRL.Load())
+*/
+
+func allocRingBuf(logN int) []unsafe.Pointer {
+	// There is a chance that the ordinary alignment is OK.
+	p := make([]unsafe.Pointer, 1<<logN)
+	ptrSize := unsafe.Sizeof(p[0])
+	amask := ptrSize<<logN - 1
+	if uintptr(unsafe.Pointer(&p[0]))&amask == 0 {
+		return p
+	}
+
+	// Alloc a bigger one and take an aligned slice from it.
+	p = make([]unsafe.Pointer, 2<<logN)
+	o := -uintptr(unsafe.Pointer(&p[0])) & amask
+	return p[o/ptrSize:][:1<<logN]
 }

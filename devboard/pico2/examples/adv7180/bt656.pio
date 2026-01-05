@@ -8,6 +8,7 @@
 // (protection bits) used to detect the beggining of field 1 lines. The same
 // bits for the SAV SX field 0 are zero so we need no separate constant.
 .program bt656
+	//set y, 7
 
 waitForPixels:
 	mov isr, null
@@ -28,7 +29,7 @@ waitForPixels:
 	wait 1 pin 8
 	in pins, 4
 	mov x, isr
-	jmp !x, readPixels
+	//jmp !x, readPixels
 	jmp x!=y, waitForPixels
 
 readPixels:
