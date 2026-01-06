@@ -247,10 +247,10 @@ const (
 	SnifEn Config = 1 << 25 // Transfers are visible to the sniff hardware
 )
 
-// RingSize allows to spefiy the ring size parameter in the configuration.
+// RingSizeCfg converts the log2size to the configuration bits.
 //
 //go:nosplit
-func RingSize(log2size int) (c Config) {
+func RingSizeCfg(log2size int) (c Config) {
 	if uint(log2size) > 15 {
 		panic("dma: log2size")
 	}
@@ -385,4 +385,36 @@ func (c Channel) IsIRQ() bool {
 //go:nosplit
 func (c Channel) ClearIRQ() {
 	c.d.irq[0].r.Store(1 << uint(c.n))
+}
+
+// RWTC returns a pointer to the array of ReadAddr, WriteAddr, TransCount,
+// CtrlTrig registers.
+//
+//go:nosplit
+func (c Channel) RWTC() *[4]mmio.R32[uint32] {
+	return (*[4]mmio.R32[uint32])(unsafe.Pointer(&c.d.ch[c.n].readAddr))
+}
+
+// CRWT returns a pointer to the array of the Ctrl, ReadAddr, WriteAddr,
+// TransCountTrig alias registers.
+//
+//go:nosplit
+func (c Channel) CRWT() *[4]mmio.R32[uint32] {
+	return (*[4]mmio.R32[uint32])(unsafe.Pointer(&c.d.ch[c.n].ctrl1))
+}
+
+// CTRW returns a pointer to the array of Ctrl, TransCount, ReadAddr,
+// WriteAddrTrig alias registers.
+//
+//go:nosplit
+func (c Channel) CTRW() *[4]mmio.R32[uint32] {
+	return (*[4]mmio.R32[uint32])(unsafe.Pointer(&c.d.ch[c.n].ctrl2))
+}
+
+// CWTR returns a pointer to the array of Ctrl, WriteAddr, TransCount,
+// ReadAddrTrig alias registers.
+//
+//go:nosplit
+func (c Channel) CWTR() *[4]mmio.R32[uint32] {
+	return (*[4]mmio.R32[uint32])(unsafe.Pointer(&c.d.ch[c.n].ctrl3))
 }
