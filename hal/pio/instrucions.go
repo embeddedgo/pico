@@ -65,7 +65,7 @@ func PULL(ifEmpty, block bool, delaySideSet uint32) uint32 {
 }
 
 func SET(dst uint8, data int, delaySideSet uint32) uint32 {
-	return 0b111 |
+	return 0b111<<13 |
 		uint32(data)&31 | uint32(dst)&7<<5 | delaySideSet&31<<8
 }
 
