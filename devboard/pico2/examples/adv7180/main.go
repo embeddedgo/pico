@@ -6,8 +6,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"sync/atomic"
 	"time"
 	"unsafe"
 
@@ -85,7 +83,7 @@ func main() {
 
 	const (
 		lineWordN  = lineWidth/2 + 1
-		logLineNum = 2
+		logLineNum = 3
 		lineNum    = 1 << logLineNum
 	)
 
@@ -118,20 +116,25 @@ func main() {
 
 	sm.Enable()
 
+	last := uint32(0)
+	var i, n int
 	for {
-		for i := 0; i < len(nLineBuf); i += lineWordN {
-			p := &nLineBuf[i]
-		again:
-			x := atomic.LoadUint32(p)
-			if x == 0xffff_ffff {
-				goto again
-			}
-			*p = 0xffff_ffff
-			if x == 0 {
-				os.Stdout.WriteString("0")
-			} else {
-				os.Stdout.WriteString("1")
-			}
+		if i += lineWordN; i >= len(nLineBuf) {
+			i = 0
+		}
+		p := &nLineBuf[i]
+	again:
+		x := *p
+		if x == 0xffff_ffff {
+			goto again
+		}
+		*p = 0xffff_ffff
+		if x == last {
+			n++
+		} else {
+			fmt.Println(n)
+			n = 0
+			last = x
 		}
 	}
 }
