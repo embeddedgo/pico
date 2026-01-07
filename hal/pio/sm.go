@@ -6,6 +6,9 @@ package pio
 
 import (
 	"embedded/mmio"
+	"runtime"
+	"structs"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -14,6 +17,8 @@ import (
 )
 
 type SM struct {
+	_ structs.HostLayout
+
 	r SMRegs
 }
 
@@ -23,12 +28,18 @@ func (sm *SM) PIO() *PIO {
 }
 
 func (sm *SM) Num() int {
-	addr := uintptr(unsafe.Pointer(sm))
-	return int(addr>>2-2) & (numSM - 1)
+	// Probably the most compact way to calculate the SM number, 4 instructions.
+	o := uint(byte(uintptr(unsafe.Pointer(sm)) - 0xc8))
+	return int(o * 3 >> 6) // calculates o/24 for 4 possible values of o
 }
 
 func (sm *SM) Regs() *SMRegs {
 	return &sm.r
+}
+
+// Free frees the state machine so it can be allocated again by PIO.AllocSM.
+func (sm *SM) Free() {
+	atomic.OrUint32(&smAllocMasks[sm.PIO().Num()], 1<<uint(sm.Num()))
 }
 
 // Disable disables the state machine (stops executing program).
@@ -68,11 +79,15 @@ func (sm *SM) Reset() {
 // the instruction in the memory slot initPC. It doesn't reset the state machine
 // before applying the program configuration (see SM.Reset). It doesn't load the
 // program to the instruction memory (see PIO.Load).
-func (sm *SM) Configure(prog Program, initPC int) {
-	if uint(initPC) >= imCap {
-		panic("pio: bad initPC")
+func (sm *SM) Configure(prog Program, pos, initPC int) {
+	if uint(pos) >= imCap || uint(initPC) >= imCap {
+		panic("pio: bad pos or initPC")
 	}
 	prog.AlterSM(sm)
+	ec := sm.r.EXECCTRL.Load()
+	wb := ec&WRAP_BOTTOM>>WRAP_BOTTOMn + EXECCTRL(pos)
+	wt := ec&WRAP_TOP>>WRAP_TOPn + EXECCTRL(pos)
+	sm.r.EXECCTRL.StoreBits(WRAP_BOTTOM|WRAP_TOP, wb<<WRAP_BOTTOMn|wt<<WRAP_TOPn)
 	sm.Exec(JMP(initPC, Always, 0))
 }
 
@@ -145,13 +160,14 @@ func (sm *SM) TxFIFO() *mmio.R32[uint32] {
 	return &sm.PIO().p.TXF[sm.Num()]
 }
 
-func (sm *SM) ReadByte() (b byte, err error) {
+func (sm *SM) ReadWord32() (w uint32, err error) {
 	sn := sm.Num()
 	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
 	pp := &sm.PIO().p
 	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
+		runtime.Gosched()
 	}
-	return byte(pp.RXF[sn].Load()), nil
+	return pp.RXF[sn].Load(), nil
 }
 
 func (sm *SM) Read(p []byte) (n int, err error) {
@@ -162,19 +178,11 @@ func (sm *SM) Read(p []byte) (n int, err error) {
 	rxf := &pp.RXF[sn]
 	for i := range p {
 		for fstat.LoadBits(rxEmpty) != 0 {
+			runtime.Gosched()
 		}
 		p[i] = byte(rxf.Load())
 	}
 	return len(p), nil
-}
-
-func (sm *SM) ReadWord16() (w uint16, err error) {
-	sn := sm.Num()
-	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
-	pp := &sm.PIO().p
-	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
-	}
-	return uint16(pp.RXF[sn].Load()), nil
 }
 
 func (sm *SM) Read16(p []uint16) (n int, err error) {
@@ -185,19 +193,11 @@ func (sm *SM) Read16(p []uint16) (n int, err error) {
 	rxf := &pp.RXF[sn]
 	for i := range p {
 		for fstat.LoadBits(rxEmpty) != 0 {
+			runtime.Gosched()
 		}
 		p[i] = uint16(rxf.Load())
 	}
 	return len(p), nil
-}
-
-func (sm *SM) ReadWord32() (w uint32, err error) {
-	sn := sm.Num()
-	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
-	pp := &sm.PIO().p
-	for pp.FSTAT.LoadBits(rxEmpty) != 0 {
-	}
-	return pp.RXF[sn].Load(), nil
 }
 
 func (sm *SM) Read32(p []uint32) (n int, err error) {
@@ -208,6 +208,7 @@ func (sm *SM) Read32(p []uint32) (n int, err error) {
 	rxf := &pp.RXF[sn]
 	for i := range p {
 		for fstat.LoadBits(rxEmpty) != 0 {
+			runtime.Gosched()
 		}
 		p[i] = rxf.Load()
 	}
@@ -219,6 +220,7 @@ func (sm *SM) WriteWord32(w uint32) error {
 	txFull := FSTAT(1) << uint(TXFULLn+sn)
 	pp := &sm.PIO().p
 	for pp.FSTAT.LoadBits(txFull) != 0 {
+		runtime.Gosched()
 	}
 	pp.TXF[sn].Store(w)
 	return nil

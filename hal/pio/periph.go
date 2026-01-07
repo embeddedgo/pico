@@ -11,7 +11,7 @@ import (
 
 const (
 	imCap = 32
-	numSM = 4
+	smNum = 4
 )
 
 type Periph struct {
@@ -21,16 +21,16 @@ type Periph struct {
 	FSTAT             mmio.R32[FSTAT]
 	FDEBUG            mmio.R32[FDEBUG]
 	FLEVEL            mmio.R32[FLEVEL]
-	TXF               [numSM]mmio.R32[uint32]
-	RXF               [numSM]mmio.R32[uint32]
+	TXF               [smNum]mmio.R32[uint32]
+	RXF               [smNum]mmio.R32[uint32]
 	_                 [2]uint32
 	INPUT_SYNC_BYPASS mmio.R32[uint32]
 	DBG_PADOUT        mmio.R32[uint32]
 	DBG_PADOE         mmio.R32[uint32]
 	DBG_CFGINFO       mmio.R32[DBG_CFGINFO]
 	INSTR_MEM         [imCap]mmio.R32[uint32]
-	SM                [numSM]SMRegs
-	RXF_PUTGET        [numSM][4]mmio.U32
+	SM                [smNum]SMRegs
+	RXF_PUTGET        [smNum][4]mmio.U32
 	_                 [12]uint32
 	GPIOBASE          mmio.R32[uint32]
 	INTR              mmio.R32[INTR]

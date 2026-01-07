@@ -8,7 +8,7 @@ import "github.com/embeddedgo/pico/hal/pio"
 const (
 )
 
-/// Program bt656 ///
+/// Program bt656data ///
 
 // Symbols
 const (
@@ -19,10 +19,10 @@ const (
 )
 
 // Code
-const pioProg_bt656 pio.StringProgram = "" +
+const pioProg_bt656data pio.StringProgram = "" +
 	"\xff" + //             origin:    -1
 	"\x00\x01\x00" + //     CLKDIV:    1
-	"\x60\x70\x01\x00" + // EXECCTRL:  wrap=0-23
+	"\x60\x80\x01\x00" + // EXECCTRL:  wrap=0-24
 	"\x3f\x00\x00\x00" + // SHIFTCTRL: fifo=txrx
 	"\xf0\x1f" + //         PINCTRL:   sideset=0
 	// Instructions:
@@ -44,12 +44,41 @@ const pioProg_bt656 pio.StringProgram = "" +
 	"\x26\xa0" + // 14:  mov    x, isr
 	"\x31\x00" + // 15:  jmp    !x, 17
 	"\xa0\x00" + // 16:  jmp    x != y, 0
-	"\x20\x80" + // 17:  push   block
-	"\x27\xa0" + // 18:  mov    x, osr
-	"\x28\x20" + // 19:  wait   0 pin, 8
-	"\xa8\x20" + // 20:  wait   1 pin, 8
-	"\x08\x40" + // 21:  in     pins, 8
-	"\x60\x80" + // 22:  push   iffull block
-	"\x53\x00" + // 23:  jmp    x--, 19
+	"\x00\xc0" + // 17:  irq    nowait 0
+	"\x00\x80" + // 18:  push   noblock
+	"\x27\xa0" + // 19:  mov    x, osr
+	"\x28\x20" + // 20:  wait   0 pin, 8
+	"\xa8\x20" + // 21:  wait   1 pin, 8
+	"\x08\x40" + // 22:  in     pins, 8
+	"\x40\x80" + // 23:  push   iffull noblock
+	"\x54\x00" + // 24:  jmp    x--, 20
+	//              .wrap
+	""
+
+/// Program bt656ctrl ///
+
+// Symbols
+const (
+)
+
+// Labels
+const (
+)
+
+// Code
+const pioProg_bt656ctrl pio.StringProgram = "" +
+	"\xff" + //             origin:    -1
+	"\x00\x01\x00" + //     CLKDIV:    1
+	"\x60\x50\x00\x00" + // EXECCTRL:  wrap=0-5
+	"\x20\x00\x05\x00" + // SHIFTCTRL: fifo=txrx in=32,right,32,auto
+	"\xf0\x1f" + //         PINCTRL:   sideset=0
+	// Instructions:
+	//              .wrap_target
+	"\xc0\x20" + //  0:  wait   1 irq, 0
+	"\x20\x40" + //  1:  in     x, 32
+	"\xc0\x20" + //  2:  wait   1 irq, 0
+	"\x40\x40" + //  3:  in     y, 32
+	"\xc0\x20" + //  4:  wait   1 irq, 0
+	"\xe0\x40" + //  5:  in     osr, 32
 	//              .wrap
 	""

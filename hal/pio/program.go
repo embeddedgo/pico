@@ -77,9 +77,10 @@ func (p StringProgram) AlterSM(sm *SM) {
 	ec := EXECCTRL(p[4]) | EXECCTRL(p[5])<<8 | EXECCTRL(p[6])<<16 | EXECCTRL(p[7])<<24
 	sc := SHIFTCTRL(p[8]) | SHIFTCTRL(p[9])<<8 | SHIFTCTRL(p[10])<<16 | SHIFTCTRL(p[11])<<24
 	pc := PINCTRL(p[12])<<16 | PINCTRL(p[13])<<24
+	sr := sm.Regs()
 	if cd != 1<<16 {
 		// Pico-SDK doesn't generate configuration code for CLKDIV=1.0.
-		sm.r.CLKDIV.Store(cd)
+		sr.CLKDIV.Store(cd)
 	}
 	ecm := EXECCTRL(0xffff_ffff)
 	if ec&STATUS_SEL == STATUS_SEL {
@@ -99,7 +100,7 @@ func (p StringProgram) AlterSM(sm *SM) {
 	if pc&OUT_COUNT == OUT_COUNT {
 		pcm &^= OUT_COUNT
 	}
-	sm.r.EXECCTRL.StoreBits(ecm, ec)
-	sm.r.SHIFTCTRL.StoreBits(scm, sc)
-	sm.r.PINCTRL.StoreBits(pcm, pc)
+	sr.EXECCTRL.StoreBits(ecm, ec)
+	sr.SHIFTCTRL.StoreBits(scm, sc)
+	sr.PINCTRL.StoreBits(pcm, pc)
 }

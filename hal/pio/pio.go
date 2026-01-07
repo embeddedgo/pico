@@ -6,6 +6,9 @@ package pio
 
 import (
 	"errors"
+	"math/bits"
+	"structs"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/embeddedgo/pico/hal/internal"
@@ -14,23 +17,32 @@ import (
 )
 
 type PIO struct {
+	_ structs.HostLayout
+
 	p Periph
 }
 
-const pioStep = 0x100000
+const (
+	pioNum  = 2
+	pioStep = 0x100000
+)
 
 // Block returns the n-th instance of the Programable IO Block
 func Block(n int) *PIO {
-	if uint(n) > 2 {
+	if uint(n) > pioNum {
 		panic("wrong PIO number")
 	}
 	addr := mmap.PIO0_BASE + uintptr(n)*pioStep
 	return (*PIO)(unsafe.Pointer(addr))
 }
 
-func (pio *PIO) Num() int {
-	addr := uintptr(unsafe.Pointer(pio))
+func pnum(p *Periph) int {
+	addr := uintptr(unsafe.Pointer(p))
 	return int((addr - mmap.PIO0_BASE) / pioStep)
+}
+
+func (pio *PIO) Num() int {
+	return pnum(&pio.p)
 }
 
 func (pio *PIO) SetReset(assert bool) {
@@ -41,12 +53,30 @@ func (pio *PIO) Periph() *Periph {
 	return &pio.p
 }
 
-// SM returns the n-th state machine of pio.
+// SM returns the n-th pio's state machine.
 func (pio *PIO) SM(n int) *SM {
 	return (*SM)(unsafe.Pointer(&pio.p.SM[n]))
+	//return SM{&pio.p, uint(n)}
 }
 
-// Load loads the PIO program into instruction memory starting at the given
+var smAllocMasks = [pioNum]uint32{0xffff_ffff, 0xffff_ffff}
+
+// AllocSM allocates a free state machine in pio.
+func (pio *PIO) AllocSM() *SM {
+	p := &smAllocMasks[pio.Num()]
+	for {
+		m := *p
+		i := bits.TrailingZeros32(m)
+		if i >= smNum {
+			return nil
+		}
+		if atomic.CompareAndSwapUint32(p, m, m&^(1<<uint(i))) {
+			return pio.SM(i)
+		}
+	}
+}
+
+// Load loads the PIO program into the instruction memory starting at the given
 // position pos. If the program requires a specific location in the instruction
 // memory (encoded in the program itself) the pos must be -1.
 func (pio *PIO) Load(prog Program, pos int) (actualPos int, err error) {
