@@ -28,29 +28,29 @@ const pioProg_bt656data pio.StringProgram = "" +
 	// Instructions:
 	//              .wrap_target
 	"\xc3\xa0" + //  0:  mov    isr, null
-	"\x28\x20" + //  1:  wait   0 pin, 8
-	"\xa8\x20" + //  2:  wait   1 pin, 8
+	"\x2e\x20" + //  1:  wait   0 pin, 14
+	"\xae\x20" + //  2:  wait   1 pin, 14
 	"\x08\x40" + //  3:  in     pins, 8
 	"\x26\xa0" + //  4:  mov    x, isr
 	"\x40\x00" + //  5:  jmp    x--, 0
-	"\x28\x20" + //  6:  wait   0 pin, 8
-	"\xa8\x20" + //  7:  wait   1 pin, 8
+	"\x2e\x20" + //  6:  wait   0 pin, 14
+	"\xae\x20" + //  7:  wait   1 pin, 14
 	"\x08\x40" + //  8:  in     pins, 8
 	"\x26\xa0" + //  9:  mov    x, isr
 	"\x40\x00" + // 10:  jmp    x--, 0
-	"\x28\x20" + // 11:  wait   0 pin, 8
-	"\xa8\x20" + // 12:  wait   1 pin, 8
+	"\x2e\x20" + // 11:  wait   0 pin, 14
+	"\xae\x20" + // 12:  wait   1 pin, 14
 	"\x04\x40" + // 13:  in     pins, 4
 	"\x26\xa0" + // 14:  mov    x, isr
 	"\x31\x00" + // 15:  jmp    !x, 17
 	"\xa0\x00" + // 16:  jmp    x != y, 0
 	"\x00\xc0" + // 17:  irq    nowait 0
-	"\x00\x80" + // 18:  push   noblock
+	"\x20\x80" + // 18:  push   block
 	"\x27\xa0" + // 19:  mov    x, osr
-	"\x28\x20" + // 20:  wait   0 pin, 8
-	"\xa8\x20" + // 21:  wait   1 pin, 8
+	"\x2e\x20" + // 20:  wait   0 pin, 14
+	"\xae\x20" + // 21:  wait   1 pin, 14
 	"\x08\x40" + // 22:  in     pins, 8
-	"\x40\x80" + // 23:  push   iffull noblock
+	"\x60\x80" + // 23:  push   iffull block
 	"\x54\x00" + // 24:  jmp    x--, 20
 	//              .wrap
 	""

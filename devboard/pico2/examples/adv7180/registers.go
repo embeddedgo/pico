@@ -114,6 +114,7 @@ func advPrintStatus(advCtrl i2cbus.Conn) {
 	}
 	s1 := i2cBuf[0]
 	s3 := i2cBuf[3]
+
 	fmt.Print("\nIn lock:                          ", s1>>0&1)
 	fmt.Print("\nf_sc locked:                      ", s1>>2&1)
 	fmt.Print("\nAGC follows peak white algorithm: ", s1>>3&1)
@@ -142,5 +143,15 @@ func advPrintStatus(advCtrl i2cbus.Conn) {
 	fmt.Print("\nField length is correct:          ", s3>>5&1)
 	fmt.Print("\nInterlaced:                       ", s3>>6&1)
 	fmt.Print("\nReliable PAL swinging bursts:     ", s3>>7&1)
+
+	advCtrl.WriteByte(4)
+	advCtrl.Read(i2cBuf[:1])
+	err = advCtrl.Close()
+	if err != nil {
+		fmt.Println("cannot read ADV XOC:", err)
+		return
+	}
+	fmt.Printf("\nExtended output control:         %b", i2cBuf[0])
+
 	fmt.Println()
 }
