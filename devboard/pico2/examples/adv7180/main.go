@@ -13,36 +13,43 @@ import (
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/dma"
 	"github.com/embeddedgo/pico/hal/i2c"
-	"github.com/embeddedgo/pico/hal/i2c/i2c0"
+	"github.com/embeddedgo/pico/hal/i2c/i2c1"
 	"github.com/embeddedgo/pico/hal/iomux"
 	"github.com/embeddedgo/pico/hal/pio"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
-	"github.com/embeddedgo/pico/hal/uart/uart0"
+	"github.com/embeddedgo/pico/hal/uart/uart1"
 )
 
 func main() {
 	// Used IO pins
 	const (
-		conTx = pins.GP0
-		conRx = pins.GP1
+		// ADV data + clock, nine pins: GP0 to GP7 and GP14
+		advD0  = pins.GP0
+		advD7  = pins.GP7
+		advClk = pins.GP14
 
-		// ADV data + clock, nine pins: GP2 to GP10
-		advD0  = pins.GP2
-		advClk = pins.GP10
+		// Serial console
+		conTx = pins.GP20
+		conRx = pins.GP21
 
-		advSDA = pins.GP12
-		advSCL = pins.GP13
+		// ADV I2C control
+		advSDA = pins.GP26_A0
+		advSCL = pins.GP27_A1
+
 	)
 
 	// Serial console
-	uartcon.Setup(uart0.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
+	uartcon.Setup(uart1.Driver(), conRx, conTx, uart.Word8b, 115200, "UART0")
 
 	// PIO
-	for pin := advD0; pin <= advClk; pin++ {
+	for pin := advD0; pin <= advD7; pin++ {
 		pin.Setup(iomux.InpEn | iomux.OutDis)
 		pin.SetAltFunc(iomux.PIO0)
 	}
+	advClk.Setup(iomux.InpEn | iomux.OutDis)
+	advClk.SetAltFunc(iomux.PIO0)
+
 	pio0 := pio.Block(0)
 	pio0.SetReset(true)
 	pio0.SetReset(false)
@@ -87,7 +94,7 @@ func main() {
 	smCtrl.Exec(pio.PULL(false, false, 0))
 
 	// I2C
-	m := i2c0.Master()
+	m := i2c1.Master()
 	m.UsePin(advSDA, i2c.SDA)
 	m.UsePin(advSCL, i2c.SCL)
 	m.Setup(100e3)
@@ -127,7 +134,8 @@ func main() {
 
 	last := uint32(0)
 	i := 0
-	var buf [1]byte
+	n := 0
+	var buf = [4]byte{' ', ' '}
 	for {
 		p := &lineBufs[i]
 	again:
@@ -138,8 +146,12 @@ func main() {
 		*p = 0xffff_ffff
 		if x != last {
 			last = x
-			buf[0] = '0' + byte(x)
+			buf[0] = '\'' + byte(x)
+			buf[1] = '0' + byte((n-288)&63)
 			os.Stdout.Write(buf[:])
+			n = 1
+		} else {
+			n++
 		}
 		if i += lineBufLen; i >= len(lineBufs) {
 			i = 0

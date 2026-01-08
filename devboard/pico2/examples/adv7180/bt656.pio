@@ -11,22 +11,24 @@
 .program bt656data
 
 waitForPixels:
+	.define advClk 14
+
 	mov isr, null
 
-	wait 0 pin 8
-	wait 1 pin 8
-	in pins, 8
+	wait 0 pin advClk
+	wait 1 pin advClk
+	in pins, advClk
 	mov x, isr
 	jmp x--, waitForPixels
 
-	wait 0 pin 8
-	wait 1 pin 8
-	in pins, 8
+	wait 0 pin advClk
+	wait 1 pin advClk
+	in pins, advClk
 	mov x, isr
 	jmp x--, waitForPixels
 
-	wait 0 pin 8
-	wait 1 pin 8
+	wait 0 pin advClk
+	wait 1 pin advClk
 	in pins, 4
 	mov x, isr
 	jmp !x, readPixels
@@ -37,8 +39,8 @@ readPixels:
 	push noblock
 	mov x, osr // number of bytes in the horizontal line - 1 to x
 readByte:
-	wait 0 pin 8
-	wait 1 pin 8
+	wait 0 pin advClk
+	wait 1 pin advClk
 	in pins, 8
 	push iffull noblock
 	jmp x--, readByte
