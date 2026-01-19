@@ -62,7 +62,10 @@ func main() {
 
 	// Setup the state machines.
 	smData := pio0.SM(0)
+	printRegs(smData)
 	smData.Configure(pioProg_bt656data, smDataPos, smDataPos)
+	println("---")
+	printRegs(smData)
 	smData.SetPinBase(advD0, advD0, advD0, advD0)
 	smCtrl := pio0.SM(1)
 	smCtrl.Configure(pioProg_bt656ctrl, smCtrlPos, smCtrlPos)

@@ -23,7 +23,7 @@ const pioProg_bt656data pio.StringProgram = "" +
 	"\xff" + //             origin:    -1
 	"\x00\x01\x00" + //     CLKDIV:    1
 	"\x60\x80\x01\x00" + // EXECCTRL:  wrap=0-24
-	"\x3f\x00\x00\x00" + // SHIFTCTRL: fifo=txrx
+	"\x20\x00\x00\x00" + // SHIFTCTRL: fifo=txrx in=32,left,32
 	"\xf0\x1f" + //         PINCTRL:   sideset=0
 	// Instructions:
 	//              .wrap_target

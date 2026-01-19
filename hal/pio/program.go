@@ -88,7 +88,7 @@ func (p StringProgram) AlterSM(sm *SM) {
 	}
 	scm := SHIFTCTRL(0xffff_c01f)
 	if icm := IN_COUNT<<1 | 1<<IN_COUNTn; sc&icm == icm {
-		scm &^= icm
+		scm &^= icm | IN_SHIFTDIR
 	}
 	pcm := PINCTRL(0xfff0_0000)
 	if pc&SIDESET_COUNT == SIDESET_COUNT {
@@ -99,6 +99,7 @@ func (p StringProgram) AlterSM(sm *SM) {
 	}
 	if pc&OUT_COUNT == OUT_COUNT {
 		pcm &^= OUT_COUNT
+		scm &^= OUT_SHIFTDIR
 	}
 	sr.EXECCTRL.StoreBits(ecm, ec)
 	sr.SHIFTCTRL.StoreBits(scm, sc)

@@ -56,7 +56,7 @@ func main() {
 	fmt.Printf("PINCTRL:   %#x\n", sm.Regs().PINCTRL.Load())
 	fmt.Println()
 
-	sm.Configure(pioProg_txOnlySPI, pos)
+	sm.Configure(pioProg_txOnlySPI, pos, pos)
 	sm.SetPinBase(pioData, pioData, pioClk, pioClk)
 	sm.SetClkFreq(1e6)
 	sm.Enable()

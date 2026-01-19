@@ -16,7 +16,7 @@
 // be connected to the anodes of all LEDs. The easiest way to do it is to use a
 // breadboard. Next connect the module pins GND, VCC, SDA, SCL to the Pico pins
 // GND, 3.3V, 20, 21. After programming your Pico with this example the LEDs
-/  should start blinking in sequence.
+// should start blinking in sequence.
 //
 // As the LEDs are connected between 3.3V and P0, P1, P2 writing the
 // corresponding bit zero turns the LED on, writting it one turns it off.
@@ -33,7 +33,6 @@ import (
 	"github.com/embeddedgo/pico/devboard/pico2/board/pins"
 	"github.com/embeddedgo/pico/hal/i2c"
 	"github.com/embeddedgo/pico/hal/i2c/i2c0dma"
-	"github.com/embeddedgo/pico/hal/system/clock"
 	"github.com/embeddedgo/pico/hal/system/console/uartcon"
 	"github.com/embeddedgo/pico/hal/uart"
 	"github.com/embeddedgo/pico/hal/uart/uart0"

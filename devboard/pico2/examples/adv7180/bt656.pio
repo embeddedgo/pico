@@ -12,6 +12,7 @@
 
 waitForPixels:
 	.define advClk 14
+	.in 32 left
 
 	mov isr, null
 
