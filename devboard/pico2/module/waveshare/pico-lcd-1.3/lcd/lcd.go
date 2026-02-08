@@ -43,7 +43,7 @@ func init() {
 	sm.UsePin(mosi, spi.TXD)
 	sm.UsePin(sck, spi.SCK)
 
-	dp := displays.Waveshare_1i3_240x240_IPS_ST7789()
+	dp := displays.Waveshare_1i3_240x240_IPS_ST7789
 	dci := tftdci.NewSPI(
 		sm, csn, dc,
 		spi.CPOL1|spi.CPHA1, // faster than CPOL0,CPHA0 (no gaps between words)

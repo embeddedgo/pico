@@ -48,7 +48,7 @@ func main() {
 	m.Setup(400e3)
 
 	dci := tftdci.NewI2C(m, 0b0111100)
-	disp := displays.Adafruit_0i96_128x64_OLED_SSD1306().New(dci)
+	disp := displays.Adafruit_0i96_128x64_OLED_SSD1306.New(dci)
 	for {
 		examples.RotateDisplay(disp)
 		examples.DrawText(disp)
