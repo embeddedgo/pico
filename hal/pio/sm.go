@@ -225,3 +225,48 @@ func (sm *SM) WriteWord32(w uint32) error {
 	pp.TXF[sn].Store(w)
 	return nil
 }
+
+func (sm *SM) Write(p []byte) (n int, err error) {
+	sn := sm.Num()
+	txFull := FSTAT(1) << uint(TXFULLn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	txf := &pp.TXF[sn]
+	for _, b := range p {
+		for fstat.LoadBits(txFull) != 0 {
+			runtime.Gosched()
+		}
+		txf.Store(uint32(b))
+	}
+	return len(p), nil
+}
+
+func (sm *SM) Write16(p []uint16) (n int, err error) {
+	sn := sm.Num()
+	txFull := FSTAT(1) << uint(TXFULLn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	txf := &pp.TXF[sn]
+	for _, w := range p {
+		for fstat.LoadBits(txFull) != 0 {
+			runtime.Gosched()
+		}
+		txf.Store(uint32(w))
+	}
+	return len(p), nil
+}
+
+func (sm *SM) Write32(p []uint32) (n int, err error) {
+	sn := sm.Num()
+	txFull := FSTAT(1) << uint(TXFULLn+sn)
+	pp := &sm.PIO().p
+	fstat := &pp.FSTAT
+	txf := &pp.TXF[sn]
+	for _, w := range p {
+		for fstat.LoadBits(txFull) != 0 {
+			runtime.Gosched()
+		}
+		txf.Store(w)
+	}
+	return len(p), nil
+}
