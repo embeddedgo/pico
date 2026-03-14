@@ -225,3 +225,49 @@ func (sm *SM) WriteWord32(w uint32) error {
 	pp.TXF[sn].Store(w)
 	return nil
 }
+
+type Signal int8
+
+const (
+	In    Signal = iota // Input only
+	Out                 // Output only
+	InOut               // Input/output, set the initial pin direction as input
+	OutIn               // Input/output, set the initial pin direction as output
+)
+
+// UsePin is a helper function that can be used to assign and configure IO pins
+// for the state machine. The state machine should be disabled because this
+// function temporary reconfigures it and executes SET PINDIRS instruction to
+// set the initial direction for the pin. The direction for pins assigned to IN,
+// OUT and SET instructions can be easily reconfigured afterwards but it isn't
+// possible for the sideset only pins because such pins cannot be accessed by
+// the IN/OUT/SET PINDIRS instuctions. The GPIOBASE register must be set so that
+// the pin is reachable by the state machine.
+func (sm *SM) UsePin(pin iomux.Pin, sig Signal) {
+	var (
+		pinCfg iomux.Config
+		pinDir int
+	)
+	switch sig {
+	case In:
+		pinCfg = iomux.InpEn | iomux.OutDis
+	case Out:
+		pinCfg = iomux.D4mA
+		pinDir = 1
+	case InOut:
+		pinCfg = iomux.InpEn | iomux.D4mA
+	case OutIn:
+		pinCfg = iomux.InpEn | iomux.D4mA
+		pinDir = 1
+	}
+	pin.SetAltFunc(iomux.PIO0 + iomux.AltFunc(sm.Num()))
+	pin.Setup(pinCfg)
+
+	p := sm.Regs()
+	pin -= iomux.Pin(sm.PIO().p.GPIOBASE.LoadBits(16))
+	pinctrl := p.PINCTRL.Load()
+	p.PINCTRL.Store(PINCTRL(pin)<<SET_BASEn | 1<<SET_COUNTn)
+	sm.Exec(SET(PINDIRS, pinDir, 0))
+	p.PINCTRL.Store(pinctrl)
+
+}
