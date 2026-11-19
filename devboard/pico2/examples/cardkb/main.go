@@ -40,13 +40,10 @@ func main() {
 	// M5Stack CardKB I2C keyboard
 	kb := i2cm.NewConn(0x5F)
 
-	var (
-		buf [1]byte
-		err error
-	)
+	var buf [1]byte
 	for {
-		buf[0], err = kb.ReadByte()
-		kb.Close()
+		buf[0], _ = kb.ReadByte()
+		err := kb.Close()
 		if err != nil {
 			fmt.Println("error:", err)
 			time.Sleep(time.Second)

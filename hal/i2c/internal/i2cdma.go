@@ -13,7 +13,7 @@ import (
 func MasterDMA(p *i2c.Periph) (d *i2c.Master) {
 	dma0 := dma.DMA(0)
 	ch := dma0.AllocChannel()
-	d = i2c.NewMaster(i2c.I2C(0), ch)
+	d = i2c.NewMaster(p, ch)
 	dmairq.SetISR(ch, d.DMAISR)
 	return
 }
