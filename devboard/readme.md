@@ -26,6 +26,12 @@ WeAct Studio [WeAct RP2350B](https://github.com/WeActStudio/WeActStudio.RP2350BC
 
 ![WeAct RP2350B](weactb/doc/board.png)
 
+#### [GNPE RP2350-0.42](gnpe042oled)
+
+GNPE Development Board Factory [RP2350-0.42](https://gnpe.aliexpress.com/store/1103029048) development board ([RP2350A](https://www.raspberrypi.com/products/rp2350/) + 4 MB QSPI NOR Flash + 0.42 inch OLED display (SSD1315, 72x40).
+
+![GNPER P2350-0.42](gnpe042oled/doc/board.png)
+
 ### Directory structure
 
 Every supported board has its directory here. Each of them contains three or four subdirectories:
