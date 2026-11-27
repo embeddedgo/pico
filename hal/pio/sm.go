@@ -160,6 +160,12 @@ func (sm *SM) TxFIFO() *mmio.R32[uint32] {
 	return &sm.PIO().p.TXF[sm.Num()]
 }
 
+// FIFOStatus returns the FSTAT bits for this SM.
+func (sm *SM) FIFOStatus() FSTAT {
+	m := FSTAT(1<<RXFULLn|1<<RXEMPTYn|1<<TXFULLn|1<<TXEMPTYn) << uint(sm.Num())
+	return sm.PIO().p.FSTAT.LoadBits(m)
+}
+
 func (sm *SM) ReadWord32() (w uint32, err error) {
 	sn := sm.Num()
 	rxEmpty := FSTAT(1) << uint(RXEMPTYn+sn)
@@ -255,7 +261,6 @@ func (sm *SM) Write16(p []uint16) (n int, err error) {
 	}
 	return len(p), nil
 }
-
 
 func (sm *SM) Write32(p []uint32) (n int, err error) {
 	sn := sm.Num()

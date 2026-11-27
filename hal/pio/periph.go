@@ -23,7 +23,8 @@ type Periph struct {
 	FLEVEL            mmio.R32[FLEVEL]
 	TXF               [smNum]mmio.R32[uint32]
 	RXF               [smNum]mmio.R32[uint32]
-	_                 [2]uint32
+	IRQ               mmio.R32[uint32]
+	IRQ_FORCE         mmio.R32[uint32]
 	INPUT_SYNC_BYPASS mmio.R32[uint32]
 	DBG_PADOUT        mmio.R32[uint32]
 	DBG_PADOE         mmio.R32[uint32]
@@ -34,7 +35,7 @@ type Periph struct {
 	_                 [12]uint32
 	GPIOBASE          mmio.R32[uint32]
 	INTR              mmio.R32[INTR]
-	IRQ               [2]SIRQ
+	INT               [2]SINT
 }
 
 type SMRegs struct {
@@ -48,7 +49,7 @@ type SMRegs struct {
 	PINCTRL   mmio.R32[PINCTRL]
 }
 
-type SIRQ struct {
+type SINT struct {
 	_ structs.HostLayout
 
 	E mmio.R32[INTR]
