@@ -69,6 +69,21 @@ func SET(dst uint8, data int, delaySideSet uint32) uint32 {
 		uint32(data)&31 | uint32(dst)&7<<5 | delaySideSet&31<<8
 }
 
+// idxMode
+const (
+	This uint8 = 0 // This PIO.
+	Prev uint8 = 1 // Next-lower-numbered PIO
+	Rel  uint8 = 2 // Relative mode
+	Next uint8 = 3 // Next-higher-numbered PIO
+)
+
+func IRQ(irqNum int, clr, wait bool, idxMode uint8, delaySideSet uint32) uint32 {
+	return 0b110<<13 |
+		uint32(irqNum)&7 | uint32(idxMode)&3<<3 | btou32(wait)<<5 |
+		btou32(clr)<<6 | delaySideSet&31<<8
+
+}
+
 func btou32(b bool) uint32 {
 	if b {
 		return 1

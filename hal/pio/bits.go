@@ -121,9 +121,9 @@ const (
 	IRQ_PREVPIO   EXECCTRL = 0x08 << 0  //  Index 0-7 of an IRQ flag in the next lower-numbered PIO block
 	IRQ_NEXTPIO   EXECCTRL = 0x10 << 0  //  Index 0-7 of an IRQ flag in the next higher-numbered PIO block
 	STATUS_SEL    EXECCTRL = 0x03 << 5  //+ Comparison used for the MOV x, STATUS instruction.
-	TXLEVEL       EXECCTRL = 0x00 << 5  //  All-ones if TX FIFO level < N, otherwise all-zeroes
-	RXLEVEL       EXECCTRL = 0x01 << 5  //  All-ones if RX FIFO level < N, otherwise all-zeroes
-	IRQ           EXECCTRL = 0x02 << 5  //  All-ones if the indexed IRQ flag is raised, otherwise all-zeroes
+	SEL_TXLEVEL   EXECCTRL = 0x00 << 5  //  All-ones if TX FIFO level < N, otherwise all-zeroes
+	SEL_RXLEVEL   EXECCTRL = 0x01 << 5  //  All-ones if RX FIFO level < N, otherwise all-zeroes
+	SEL_IRQ       EXECCTRL = 0x02 << 5  //  All-ones if the indexed IRQ flag is raised, otherwise all-zeroes
 	WRAP_BOTTOM   EXECCTRL = 0x1F << 7  //+ After reaching wrap_top, execution is wrapped to this address.
 	WRAP_TOP      EXECCTRL = 0x1F << 12 //+ After reaching this address, execution is wrapped to wrap_bottom. If the instruction is a jump, and the jump condition is true, the jump takes priority.
 	OUT_STICKY    EXECCTRL = 0x01 << 17 //+ Continuously assert the most recent OUT/SET to the pins
